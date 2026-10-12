@@ -584,3 +584,101 @@ export async function toggleCommentUpvote(
 
   return { isUpvoted: newStatus, newCount };
 }
+
+export interface UserProfileData {
+  username: string;
+  bio: string;
+  joinedDate: string;
+  totalUpvotes: number;
+  templates: Template[];
+  tierLists: PublishedTierList[];
+}
+
+/**
+ * Fetch profile and portfolio for any user / creator handle
+ */
+export async function fetchUserProfile(username: string): Promise<UserProfileData> {
+  const cleanUser = username.trim().toLowerCase();
+
+  let cloudTemplates: Template[] = [];
+  let cloudTierLists: PublishedTierList[] = [];
+
+  if (isSupabaseConfigured() && supabase) {
+    try {
+      const { data: tData } = await supabase
+        .from("templates")
+        .select("*")
+        .ilike("author_name", cleanUser);
+
+      if (tData) {
+        cloudTemplates = tData.map((d) => ({
+          id: d.id,
+          slug: d.id,
+          title: d.title,
+          description: d.description || "",
+          category: d.category as any,
+          author: { username: d.author_name || "Community" },
+          itemCount: Array.isArray(d.items) ? d.items.length : 0,
+          remixCount: d.rank_count || 0,
+          upvotes: d.upvotes || 0,
+          createdAt: new Date(d.created_at).toLocaleDateString(),
+          items: d.items || [],
+          defaultTiers: d.default_tiers || undefined,
+        }));
+      }
+
+      const { data: rData } = await supabase
+        .from("tier_lists")
+        .select("*")
+        .ilike("author_name", cleanUser);
+
+      if (rData) {
+        cloudTierLists = rData.map((d) => ({
+          id: d.id,
+          templateId: d.template_id || undefined,
+          title: d.title,
+          authorName: d.author_name || cleanUser,
+          tiers: d.tiers || [],
+          unranked: d.unranked || [],
+          upvotes: d.upvotes || 0,
+          createdAt: new Date(d.created_at).getTime(),
+        }));
+      }
+    } catch (err) {
+      console.warn("Failed to query user profile in Supabase", err);
+    }
+  }
+
+  // Local templates & rankings
+  const localTemplates = getLocalUserTemplates().filter(
+    (t) => t.author.username.toLowerCase() === cleanUser
+  );
+  const localTierLists = getLocalPublishedRankings().filter(
+    (r) => r.authorName.toLowerCase() === cleanUser
+  );
+
+  // Merge and deduplicate
+  const tMap = new Map<string, Template>();
+  cloudTemplates.forEach((t) => tMap.set(t.id, t));
+  localTemplates.forEach((t) => tMap.set(t.id, t));
+
+  const rMap = new Map<string, PublishedTierList>();
+  cloudTierLists.forEach((r) => rMap.set(r.id, r));
+  localTierLists.forEach((r) => rMap.set(r.id, r));
+
+  const allTemplates = Array.from(tMap.values());
+  const allTierLists = Array.from(rMap.values());
+
+  const totalUpvotes =
+    allTemplates.reduce((sum, t) => sum + (t.upvotes || 0), 0) +
+    allTierLists.reduce((sum, r) => sum + (r.upvotes || 0), 0);
+
+  return {
+    username,
+    bio: "Passionate TierLab creator & ranker. Analyzing, debating, and ranking topics with the community.",
+    joinedDate: "2026",
+    totalUpvotes: Math.max(totalUpvotes, 1),
+    templates: allTemplates,
+    tierLists: allTierLists,
+  };
+}

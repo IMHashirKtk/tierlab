@@ -303,3 +303,106 @@ export function compareUserBoardWithConsensus(
     hotTakes,
   };
 }
+
+export interface VersusMatchup {
+  similarityPct: number;
+  verdict: {
+    title: string;
+    description: string;
+    badgeColor: string;
+  };
+  totalCompared: number;
+  agreements: {
+    item: Item;
+    tier: string;
+  }[];
+  divergences: {
+    item: Item;
+    tierA: string;
+    tierB: string;
+    difference: number;
+  }[];
+}
+
+/**
+ * Compare two separate user tier lists head-to-head
+ */
+export function compareTwoTierLists(
+  listA: { title: string; authorName: string; tiers: TierRow[] },
+  listB: { title: string; authorName: string; tiers: TierRow[] }
+): VersusMatchup {
+  const itemTierA = new Map<string, { tier: string; item: Item }>();
+  listA.tiers.forEach((t) => {
+    t.items.forEach((it) => {
+      itemTierA.set(it.id, { tier: t.label.trim().toUpperCase(), item: it });
+    });
+  });
+
+  const itemTierB = new Map<string, { tier: string; item: Item }>();
+  listB.tiers.forEach((t) => {
+    t.items.forEach((it) => {
+      itemTierB.set(it.id, { tier: t.label.trim().toUpperCase(), item: it });
+    });
+  });
+
+  const agreements: { item: Item; tier: string }[] = [];
+  const divergences: { item: Item; tierA: string; tierB: string; difference: number }[] = [];
+  let totalCompared = 0;
+  let totalScore = 0;
+
+  itemTierA.forEach((valA, itemId) => {
+    const valB = itemTierB.get(itemId);
+    if (!valB) return;
+
+    totalCompared++;
+    const weightA = TIER_WEIGHTS[valA.tier] || 3.0;
+    const weightB = TIER_WEIGHTS[valB.tier] || 3.0;
+    const diff = Math.abs(weightA - weightB);
+
+    if (diff < 0.4) {
+      totalScore += 100;
+      agreements.push({ item: valA.item, tier: valA.tier });
+    } else {
+      const itemScore = Math.max(10, 100 - Math.round(diff * 35));
+      totalScore += itemScore;
+      divergences.push({
+        item: valA.item,
+        tierA: valA.tier,
+        tierB: valB.tier,
+        difference: Number(diff.toFixed(1)),
+      });
+    }
+  });
+
+  const similarityPct = totalCompared > 0 ? Math.round(totalScore / totalCompared) : 75;
+
+  let verdict = {
+    title: "Kindred Spirits",
+    description: "You share remarkably similar tastes across the board!",
+    badgeColor: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
+  };
+
+  if (similarityPct < 55) {
+    verdict = {
+      title: "Total Taste War",
+      description: "You completely disagree on what is top-tier and what is trash!",
+      badgeColor: "bg-rose-500/20 text-rose-300 border-rose-500/30",
+    };
+  } else if (similarityPct < 75) {
+    verdict = {
+      title: "Friendly Rivals",
+      description: "You share core favorites, but have fiery disagreements on the rest.",
+      badgeColor: "bg-amber-500/20 text-amber-300 border-amber-500/30",
+    };
+  }
+
+  divergences.sort((a, b) => b.difference - a.difference);
+
+  return {
+    similarityPct,
+    verdict,
+    totalCompared,
+    agreements,
+    divergences,
+  };
+}

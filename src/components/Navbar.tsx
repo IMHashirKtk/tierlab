@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { Search, Plus, Layers, User, Sparkles } from "lucide-react";
+import { Search, Plus, Layers, User, Sparkles, Swords } from "lucide-react";
 import { fetchTemplates } from "@/lib/community";
 import type { Template } from "@/types";
 
@@ -142,6 +142,13 @@ export function Navbar({ onOpenPublish }: NavbarProps) {
             <Link href="/my-projects" className="px-3 py-1.5 rounded-lg hover:text-white hover:bg-zinc-800/60 transition-colors">
               My Projects
             </Link>
+            <Link
+              href="/versus"
+              className="px-3 py-1.5 rounded-lg text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition-colors flex items-center gap-1 font-semibold"
+            >
+              <Swords className="w-3.5 h-3.5" />
+              <span>Versus</span>
+            </Link>
             <a href="#dropfx" className="px-3 py-1.5 rounded-lg text-amber-400 hover:text-amber-300 hover:bg-amber-500/10 transition-colors flex items-center gap-1">
               <Sparkles className="w-3.5 h-3.5" />
               <span>Drop FX</span>
@@ -166,12 +173,13 @@ export function Navbar({ onOpenPublish }: NavbarProps) {
           </Link>
 
           {/* Profile Button */}
-          <button
+          <Link
+            href="/user/Creator"
             className="w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white hover:border-zinc-700 transition-colors"
-            title="Profile / Sign In"
+            title="Creator Profile"
           >
             <User className="w-4 h-4" />
-          </button>
+          </Link>
         </div>
       </div>
     </header>

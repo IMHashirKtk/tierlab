@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import { MessageSquare, ThumbsUp, Send, Sparkles, Flame, Clock, Award } from "lucide-react";
 import { fetchComments, postComment, toggleCommentUpvote, hasUpvotedComment } from "@/lib/community";
 import type { Comment } from "@/types";
@@ -279,9 +280,12 @@ export function CommentsSection({ tierListId, creatorName }: CommentsSectionProp
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-zinc-200">
+                      <Link
+                        href={`/user/${encodeURIComponent(comment.authorName)}`}
+                        className="text-xs font-bold text-zinc-200 hover:text-indigo-400 hover:underline transition-colors"
+                      >
                         {comment.authorName}
-                      </span>
+                      </Link>
                       {isAuthor && (
                         <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 flex items-center gap-1">
                           <Award className="w-2.5 h-2.5" />

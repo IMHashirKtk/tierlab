@@ -172,27 +172,35 @@ export function ShareModal({
 
             {/* Social Share Buttons */}
             <div>
-              <span className="text-[11px] font-semibold text-zinc-400 block mb-2 uppercase tracking-wider">
-                Quick Share
-              </span>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">
+                  Viral Social Share
+                </span>
+                <span className="text-[10px] text-indigo-400 font-medium">
+                  Auto OG Preview Card
+                </span>
+              </div>
               <div className="grid grid-cols-2 gap-2">
                 <a
                   href={`https://twitter.com/intent/tweet?text=${tweetText}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-2 rounded-lg bg-zinc-800 hover:bg-zinc-750 text-zinc-300 hover:text-white flex items-center justify-center gap-2 text-xs font-medium transition-colors"
+                  className="p-2.5 rounded-xl bg-black hover:bg-zinc-950 text-white flex items-center justify-center gap-2 text-xs font-semibold transition-colors border border-zinc-800"
                 >
-                  <span>Share to X / Twitter</span>
+                  <span>𝕏 Share to Twitter</span>
                 </a>
                 <a
                   href={`https://reddit.com/submit?url=${encodeURIComponent(shareUrl)}&title=${encodeURIComponent(boardTitle + " Tier List")}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-2 rounded-lg bg-zinc-800 hover:bg-zinc-750 text-zinc-300 hover:text-white flex items-center justify-center gap-2 text-xs font-medium transition-colors"
+                  className="p-2.5 rounded-xl bg-[#ff4500]/10 hover:bg-[#ff4500]/20 text-[#ff4500] flex items-center justify-center gap-2 text-xs font-semibold transition-colors border border-[#ff4500]/30"
                 >
-                  <span>Share to Reddit</span>
+                  <span>👾 Share to Reddit</span>
                 </a>
               </div>
+              <p className="text-[10px] text-zinc-500 mt-2 text-center">
+                ✨ Links pasted into Discord, X, or Reddit automatically unfurl a dynamic S-Tier preview card.
+              </p>
             </div>
           </div>
         ) : (

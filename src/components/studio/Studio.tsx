@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useTransition, useCallback } from "react";
+import React, { useState, useEffect, useRef, useTransition, useCallback, useMemo } from "react";
 import Link from "next/link";
 import confetti from "canvas-confetti";
 import { toPng } from "html-to-image";
@@ -43,6 +43,11 @@ import {
   BrainCircuit,
   Dices,
   Tv,
+  Search,
+  Wand2,
+  ArrowDownAZ,
+  Eraser,
+  Shuffle,
 } from "lucide-react";
 import type { TierRow, Item, Project, Template } from "@/types";
 import { compressBatchImages } from "@/utils/image-compression";
@@ -52,6 +57,7 @@ import { ConsensusComparisonModal } from "@/components/studio/ConsensusCompariso
 import { CreatorExportModal } from "@/components/studio/CreatorExportModal";
 import { BlindRankModal } from "@/components/studio/BlindRankModal";
 import { PresentationModal } from "@/components/studio/PresentationModal";
+import { TierPresetsModal, type TierPresetConfig } from "@/components/studio/TierPresetsModal";
 import {
   UNRANKED,
   type Board,
@@ -123,6 +129,8 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
   const [isConsensusModalOpen, setIsConsensusModalOpen] = useState(false);
   const [isBlindModalOpen, setIsBlindModalOpen] = useState(false);
   const [isPresentationModalOpen, setIsPresentationModalOpen] = useState(false);
+  const [isPresetsModalOpen, setIsPresetsModalOpen] = useState(false);
+  const [unrankedSearch, setUnrankedSearch] = useState("");
 
   // Compression & Upload State
   const [isCompressing, setIsCompressing] = useState(false);
@@ -515,10 +523,85 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
       });
       return {
         ...prev,
-        tiers: updatedTiers,
         unranked: cleanedUnranked,
+        tiers: updatedTiers,
       };
     });
+  };
+
+  // Filter unranked items based on user search
+  const filteredUnranked = useMemo(() => {
+    if (!unrankedSearch.trim()) return board.unranked;
+    const query = unrankedSearch.toLowerCase().trim();
+    return board.unranked.filter((item) => item.name.toLowerCase().includes(query));
+  }, [board.unranked, unrankedSearch]);
+
+  // Apply Tier Preset configuration
+  const handleApplyPreset = (preset: TierPresetConfig) => {
+    commitBoardChange((prev) => {
+      const updatedTiers: TierRow[] = preset.tiers.map((cfg, index) => {
+        const existing = prev.tiers[index];
+        return {
+          id: existing ? existing.id : `tier-${Date.now()}-${index}`,
+          label: cfg.label,
+          color: cfg.color,
+          items: existing ? existing.items : [],
+        };
+      });
+
+      const excessItems: Item[] = [];
+      if (prev.tiers.length > preset.tiers.length) {
+        for (let i = preset.tiers.length; i < prev.tiers.length; i++) {
+          excessItems.push(...prev.tiers[i].items);
+        }
+      }
+
+      return {
+        ...prev,
+        tiers: updatedTiers,
+        unranked: [...prev.unranked, ...excessItems],
+      };
+    });
+  };
+
+  // Row Batch Operations
+  const handleSortTierAlphabetical = (tierId: string) => {
+    commitBoardChange((prev) => ({
+      ...prev,
+      tiers: prev.tiers.map((t) =>
+        t.id === tierId
+          ? { ...t, items: [...t.items].sort((a, b) => a.name.localeCompare(b.name)) }
+          : t
+      ),
+    }));
+  };
+
+  const handleReverseTier = (tierId: string) => {
+    commitBoardChange((prev) => ({
+      ...prev,
+      tiers: prev.tiers.map((t) =>
+        t.id === tierId ? { ...t, items: [...t.items].reverse() } : t
+      ),
+    }));
+  };
+
+  const handleShuffleTier = (tierId: string) => {
+    commitBoardChange((prev) => ({
+      ...prev,
+      tiers: prev.tiers.map((t) =>
+        t.id === tierId ? { ...t, items: [...t.items].sort(() => Math.random() - 0.5) } : t
+      ),
+    }));
+  };
+
+  const handleClearTier = (tierId: string) => {
+    const target = board.tiers.find((t) => t.id === tierId);
+    if (!target || target.items.length === 0) return;
+    commitBoardChange((prev) => ({
+      ...prev,
+      tiers: prev.tiers.map((t) => (t.id === tierId ? { ...t, items: [] } : t)),
+      unranked: [...prev.unranked, ...target.items],
+    }));
   };
 
   // Export 4K PNG
@@ -663,6 +746,16 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
               <span className="hidden lg:inline">Present</span>
             </button>
 
+            {/* Tier Presets (1-Click Curated Presets) */}
+            <button
+              onClick={() => setIsPresetsModalOpen(true)}
+              className="px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold bg-violet-500/10 hover:bg-violet-500/20 text-violet-300 border border-violet-500/30 flex items-center gap-1.5 transition-colors cursor-pointer"
+              title="Apply curated tier presets (S-F, Buyer's Guide, Gaming, Taste, etc.)"
+            >
+              <Wand2 className="w-3.5 h-3.5 text-violet-400" />
+              <span className="hidden lg:inline">Presets</span>
+            </button>
+
             {/* Community Consensus Button (if template exists) */}
             {initialTemplate && (
               <button
@@ -764,8 +857,33 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
                     removeLabel="Return to unranked"
                   />
 
-                  {/* Tier Row Operations (Move Up / Down / Delete) */}
-                  <div className="flex flex-col justify-center items-center px-1.5 py-1 border-l border-zinc-800/80 gap-1 opacity-20 group-hover:opacity-100 transition-opacity">
+                  {/* Tier Row Operations (Sort, Shuffle, Clear, Move, Delete) */}
+                  <div className="flex flex-col justify-center items-center px-1.5 py-1 border-l border-zinc-800/80 gap-1 opacity-30 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={() => handleSortTierAlphabetical(tier.id)}
+                      disabled={tier.items.length <= 1}
+                      className="p-1 rounded text-zinc-400 hover:text-indigo-400 disabled:opacity-20 cursor-pointer"
+                      title="Sort row alphabetically (A-Z)"
+                    >
+                      <ArrowDownAZ className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => handleShuffleTier(tier.id)}
+                      disabled={tier.items.length <= 1}
+                      className="p-1 rounded text-zinc-400 hover:text-amber-400 disabled:opacity-20 cursor-pointer"
+                      title="Shuffle row items"
+                    >
+                      <Shuffle className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => handleClearTier(tier.id)}
+                      disabled={tier.items.length === 0}
+                      className="p-1 rounded text-zinc-400 hover:text-orange-400 disabled:opacity-20 cursor-pointer"
+                      title="Clear row (return items to unranked)"
+                    >
+                      <Eraser className="w-3.5 h-3.5" />
+                    </button>
+                    <div className="w-full h-px bg-zinc-800/80 my-0.5" />
                     <button
                       disabled={index === 0}
                       onClick={() => handleMoveTier(index, "up")}
@@ -893,32 +1011,67 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
                 </form>
               )}
 
+              {/* Instant Unranked Item Search Filter */}
+              {board.unranked.length > 2 && (
+                <div className="relative mb-3">
+                  <Search className="w-3.5 h-3.5 text-zinc-500 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <input
+                    type="text"
+                    placeholder={`Filter ${board.unranked.length} unranked items...`}
+                    value={unrankedSearch}
+                    onChange={(e) => setUnrankedSearch(e.target.value)}
+                    className="w-full bg-zinc-950/80 border border-zinc-800 rounded-lg pl-8 pr-7 py-1.5 text-xs text-zinc-200 placeholder:text-zinc-500 focus:outline-none focus:border-indigo-500 transition-colors"
+                  />
+                  {unrankedSearch && (
+                    <button
+                      onClick={() => setUnrankedSearch("")}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 p-0.5 cursor-pointer"
+                      title="Clear search"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  )}
+                </div>
+              )}
+
               {/* Droppable Unranked Tray powered by dnd-kit */}
               <div className="max-h-[460px] overflow-y-auto pr-1">
                 <DropZone
                   id={UNRANKED}
-                  items={board.unranked}
+                  items={filteredUnranked}
                   highlighted={overContainerId === UNRANKED}
                   className="min-h-[140px] p-1"
                   emptyHint={
-                    <div className="w-full py-10 text-center text-xs text-zinc-500 space-y-2">
-                      <p>All items have been placed in tiers!</p>
-                      <div className="flex justify-center gap-2 pt-1">
+                    board.unranked.length > 0 && filteredUnranked.length === 0 ? (
+                      <div className="w-full py-8 text-center text-xs text-zinc-500 space-y-1.5">
+                        <p>No unranked items match "{unrankedSearch}"</p>
                         <button
-                          onClick={() => setIsWebSearchOpen(true)}
-                          className="text-indigo-400 hover:underline font-medium text-[11px] cursor-pointer"
+                          onClick={() => setUnrankedSearch("")}
+                          className="text-indigo-400 hover:underline text-[11px] cursor-pointer"
                         >
-                          + Search Web
-                        </button>
-                        <span>•</span>
-                        <button
-                          onClick={() => fileInputRef.current?.click()}
-                          className="text-indigo-400 hover:underline font-medium text-[11px] cursor-pointer"
-                        >
-                          + Upload Images
+                          Clear filter
                         </button>
                       </div>
-                    </div>
+                    ) : (
+                      <div className="w-full py-10 text-center text-xs text-zinc-500 space-y-2">
+                        <p>All items have been placed in tiers!</p>
+                        <div className="flex justify-center gap-2 pt-1">
+                          <button
+                            onClick={() => setIsWebSearchOpen(true)}
+                            className="text-indigo-400 hover:underline font-medium text-[11px] cursor-pointer"
+                          >
+                            + Search Web
+                          </button>
+                          <span>•</span>
+                          <button
+                            onClick={() => fileInputRef.current?.click()}
+                            className="text-indigo-400 hover:underline font-medium text-[11px] cursor-pointer"
+                          >
+                            + Upload Images
+                          </button>
+                        </div>
+                      </div>
+                    )
                   }
                   onRemoveItem={(item) => handleDeleteUnrankedItem(item.id)}
                   removeLabel="Delete item"
@@ -1010,6 +1163,13 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
           authorName={initialTemplate?.author.username || "Creator"}
           tiers={board.tiers}
           onOpenExport={() => setIsExportModalOpen(true)}
+        />
+
+        {/* Tier Presets Modal */}
+        <TierPresetsModal
+          isOpen={isPresetsModalOpen}
+          onClose={() => setIsPresetsModalOpen(false)}
+          onApplyPreset={handleApplyPreset}
         />
       </div>
     </DndContext>

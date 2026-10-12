@@ -43,6 +43,15 @@ export function WebImageSearchModal({ isOpen, onClose, onAddItems }: WebImageSea
   const [activeCategory, setActiveCategory] = useState("gaming");
   const [selectedUrls, setSelectedUrls] = useState<Record<string, { name: string; url: string }>>({});
 
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const currentAssets = PRESET_ASSETS[activeCategory] || [];

@@ -1,0 +1,135 @@
+{
+  "passed": [
+    {
+      "testName": "Homepage Hero Title",
+      "details": "Found text: \"The community platform where rankings become debates.\""
+    },
+    {
+      "testName": "Category Filters Present",
+      "details": "Found 4 category filter pills"
+    },
+    {
+      "testName": "Category Filter Click",
+      "details": "Clicked 'Gaming' category pill filter"
+    },
+    {
+      "testName": "Homepage Search Filter",
+      "details": "Filtered by 'Elden Ring', found 6 matching card(s)"
+    },
+    {
+      "testName": "Navbar Versus Link",
+      "details": "Found navigation link to Versus Arena"
+    },
+    {
+      "testName": "Studio Board Initialized",
+      "details": "Loaded template with 10 tier rows"
+    },
+    {
+      "testName": "Studio Title Edit",
+      "details": "Changed title to \"Elden Ring Bosses (Audited)\""
+    },
+    {
+      "testName": "Row Power Actions Present",
+      "details": "Found 5 Sort, 5 Shuffle, 5 Clear buttons"
+    },
+    {
+      "testName": "Unranked Tray Search",
+      "details": "Filtered for 'Messmer', found 1 matching card(s)"
+    },
+    {
+      "testName": "Unranked Search Clear",
+      "details": "Cleared search filter via (X) button"
+    },
+    {
+      "testName": "Quick Text Item Add",
+      "details": "Successfully submitted custom text item"
+    },
+    {
+      "testName": "Web Image Search Modal",
+      "details": "Opened instant web asset search modal successfully"
+    },
+    {
+      "testName": "Presets Modal Opened",
+      "details": "1-Click Tier Presets modal rendered"
+    },
+    {
+      "testName": "Apply Preset",
+      "details": "Applied 'Gaming & Masterpiece' preset cleanly"
+    },
+    {
+      "testName": "Undo Action",
+      "details": "Triggered Undo button, board state reverted successfully"
+    },
+    {
+      "testName": "Blind Rank Modal Opened",
+      "details": "TikTok Blind Rank challenge modal rendered"
+    },
+    {
+      "testName": "Blind Rank Card Placed",
+      "details": "Selected tier button and placed mystery card"
+    },
+    {
+      "testName": "Presenter Modal",
+      "details": "Opened distraction-free streamer presentation canvas"
+    },
+    {
+      "testName": "Consensus Modal Opened",
+      "details": "Opened mathematical Borda consensus comparison"
+    },
+    {
+      "testName": "Export Modal Opened",
+      "details": "Opened Creator 4K Exporter Modal"
+    },
+    {
+      "testName": "Export Aspect Ratio 9:16",
+      "details": "Switched to 9:16 TikTok/Shorts vertical layout"
+    },
+    {
+      "testName": "Export Aspect Ratio 1:1",
+      "details": "Switched to 1:1 Instagram/Twitter square layout"
+    },
+    {
+      "testName": "Share Modal Opened",
+      "details": "Opened Share & Publish modal"
+    },
+    {
+      "testName": "Shared Page Rendered",
+      "details": "Heading: \"Tier List Not Found\""
+    },
+    {
+      "testName": "Versus Arena Initialized",
+      "details": "Versus page rendered with duel title"
+    },
+    {
+      "testName": "Similarity Score Gauge",
+      "details": "Calculated match score: 86%"
+    },
+    {
+      "testName": "Versus Disagreements Section",
+      "details": "Calculated distance and identified hot-take disagreements"
+    },
+    {
+      "testName": "Profile Tabs",
+      "details": "Found dual Rankings & Templates tabs"
+    },
+    {
+      "testName": "Profile Tab Switching",
+      "details": "Switched to Templates tab successfully"
+    },
+    {
+      "testName": "Dynamic OG Image API",
+      "details": "Returned status 200 with Content-Type: image/png"
+    },
+    {
+      "testName": "Robots.txt",
+      "details": "Verified valid robots.txt with sitemap reference"
+    },
+    {
+      "testName": "Sitemap.xml",
+      "details": "Verified valid XML sitemap indexing all templates"
+    }
+  ],
+  "failed": [],
+  "warnings": [],
+  "consoleErrors": []
+}

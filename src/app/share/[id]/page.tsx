@@ -55,7 +55,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
+import { connection } from "next/server";
+
 async function SharedContent({ params }: PageProps) {
+  await connection();
   const { id } = await params;
   return <SharedTierListClient id={id} />;
 }

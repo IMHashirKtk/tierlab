@@ -538,6 +538,7 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
 
   // Apply Tier Preset configuration
   const handleApplyPreset = (preset: TierPresetConfig) => {
+    setIsPresetsModalOpen(false);
     commitBoardChange((prev) => {
       const updatedTiers: TierRow[] = preset.tiers.map((cfg, index) => {
         const existing = prev.tiers[index];

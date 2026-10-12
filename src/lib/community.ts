@@ -162,7 +162,7 @@ export async function fetchTemplateById(id: string): Promise<Template | null> {
 
   if (isSupabaseConfigured() && supabase) {
     try {
-      const { data, error } = await supabase.from("templates").select("*").eq("id", id).single();
+      const { data, error } = await supabase.from("templates").select("*").eq("id", id).maybeSingle();
       if (!error && data) {
         return {
           id: data.id,
@@ -302,7 +302,7 @@ export async function fetchSharedTierList(id: string): Promise<PublishedTierList
 
   if (isSupabaseConfigured() && supabase) {
     try {
-      const { data, error } = await supabase.from("tier_lists").select("*").eq("id", id).single();
+      const { data, error } = await supabase.from("tier_lists").select("*").eq("id", id).maybeSingle();
       if (!error && data) {
         return {
           id: data.id,

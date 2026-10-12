@@ -99,6 +99,15 @@ interface TierPresetsModalProps {
 }
 
 export function TierPresetsModal({ isOpen, onClose, onApplyPreset }: TierPresetsModalProps) {
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   return (
@@ -133,13 +142,14 @@ export function TierPresetsModal({ isOpen, onClose, onApplyPreset }: TierPresets
         {/* Presets Grid */}
         <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
           {TIER_PRESETS.map((preset) => (
-            <div
+            <button
+              type="button"
               key={preset.id}
               onClick={() => {
                 onApplyPreset(preset);
                 onClose();
               }}
-              className="p-4 rounded-2xl bg-zinc-800/50 hover:bg-zinc-800/90 border border-zinc-750 hover:border-indigo-500 transition-all cursor-pointer group space-y-2.5 shadow-sm"
+              className="w-full text-left p-4 rounded-2xl bg-zinc-800/50 hover:bg-zinc-800/90 border border-zinc-750 hover:border-indigo-500 transition-all cursor-pointer group space-y-2.5 shadow-sm block"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -166,7 +176,7 @@ export function TierPresetsModal({ isOpen, onClose, onApplyPreset }: TierPresets
                   </span>
                 ))}
               </div>
-            </div>
+            </button>
           ))}
         </div>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { X, Download, Smartphone, Monitor, Square, Sparkles, Check, Image as ImageIcon, ShieldCheck } from "lucide-react";
 import { toPng } from "html-to-image";
 import type { TierRow } from "@/types";
@@ -30,6 +30,15 @@ export function CreatorExportModal({
   const [isExporting, setIsExporting] = useState(false);
 
   const captureRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 

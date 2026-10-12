@@ -41,12 +41,17 @@ import {
   CheckCircle2,
   Loader2,
   BrainCircuit,
+  Dices,
+  Tv,
 } from "lucide-react";
 import type { TierRow, Item, Project, Template } from "@/types";
 import { compressBatchImages } from "@/utils/image-compression";
 import { WebImageSearchModal } from "@/components/WebImageSearchModal";
 import { ShareModal } from "@/components/ShareModal";
 import { ConsensusComparisonModal } from "@/components/studio/ConsensusComparisonModal";
+import { CreatorExportModal } from "@/components/studio/CreatorExportModal";
+import { BlindRankModal } from "@/components/studio/BlindRankModal";
+import { PresentationModal } from "@/components/studio/PresentationModal";
 import {
   UNRANKED,
   type Board,
@@ -116,6 +121,8 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isConsensusModalOpen, setIsConsensusModalOpen] = useState(false);
+  const [isBlindModalOpen, setIsBlindModalOpen] = useState(false);
+  const [isPresentationModalOpen, setIsPresentationModalOpen] = useState(false);
 
   // Compression & Upload State
   const [isCompressing, setIsCompressing] = useState(false);
@@ -247,6 +254,26 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
       }
     }
   };
+
+  // Hotkey listener for Presentation Mode ('P')
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      if (
+        target &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
+      if (e.key === "p" || e.key === "P") {
+        setIsPresentationModalOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   // Composite collision strategy: direct pointerWithin for empty containers & items,
   // falling back to rectIntersection and closestCorners for smooth targeting
@@ -475,6 +502,25 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
     }));
   };
 
+  // Blind Rank Placement Handler
+  const handlePlaceBlindItem = (tierId: string, item: Item) => {
+    commitBoardChange((prev) => {
+      const cleanedUnranked = prev.unranked.filter((i) => i.id !== item.id);
+      const updatedTiers = prev.tiers.map((t) => {
+        const filteredItems = t.items.filter((i) => i.id !== item.id);
+        if (t.id === tierId) {
+          return { ...t, items: [...filteredItems, item] };
+        }
+        return { ...t, items: filteredItems };
+      });
+      return {
+        ...prev,
+        tiers: updatedTiers,
+        unranked: cleanedUnranked,
+      };
+    });
+  };
+
   // Export 4K PNG
   const handleExportPng = async () => {
     if (!boardRef.current) return;
@@ -597,6 +643,26 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
               <span className="hidden md:inline">Reset</span>
             </button>
 
+            {/* Blind Rank Mode (TikTok / Shorts Mystery Challenge) */}
+            <button
+              onClick={() => setIsBlindModalOpen(true)}
+              className="px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center gap-1.5 transition-colors cursor-pointer"
+              title="Play TikTok Blind Ranking Game Mode"
+            >
+              <Dices className="w-3.5 h-3.5 text-amber-400" />
+              <span className="hidden lg:inline">Blind Rank</span>
+            </button>
+
+            {/* Streamer & Presenter View */}
+            <button
+              onClick={() => setIsPresentationModalOpen(true)}
+              className="px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 flex items-center gap-1.5 transition-colors cursor-pointer"
+              title="Clean Presenter View for Streamers & Screen Recording (Hotkey: P)"
+            >
+              <Tv className="w-3.5 h-3.5 text-cyan-400" />
+              <span className="hidden lg:inline">Present</span>
+            </button>
+
             {/* Community Consensus Button (if template exists) */}
             {initialTemplate && (
               <button
@@ -624,7 +690,7 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
               className="px-3.5 sm:px-4 py-1.5 rounded-lg text-xs font-semibold bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white shadow-md shadow-indigo-600/25 flex items-center gap-1.5 transition-all cursor-pointer"
             >
               <Download className="w-3.5 h-3.5" />
-              <span>Export 4K</span>
+              <span>Export</span>
             </button>
           </div>
         </header>
@@ -918,56 +984,33 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
           />
         )}
 
-        {/* 4K Export Modal */}
-        {isExportModalOpen && (
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl max-w-md w-full p-6 shadow-2xl">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-bold text-white">Export 4K Tier List</h3>
-                <button
-                  onClick={() => setIsExportModalOpen(false)}
-                  className="text-zinc-400 hover:text-white p-1 rounded-lg hover:bg-zinc-800 cursor-pointer"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-              <p className="text-xs text-zinc-400 mb-4">
-                Download your board in 4K resolution formatted for YouTube thumbnails and social posts.
-              </p>
-              <div className="space-y-3 text-xs mb-6">
-                <div className="p-3 rounded-xl bg-zinc-800/60 border border-zinc-700/80 flex items-center justify-between">
-                  <div>
-                    <span className="font-semibold text-zinc-200 block">Resolution</span>
-                    <span className="text-zinc-400 text-[11px]">2x Ultra HD PNG</span>
-                  </div>
-                  <span className="text-emerald-400 font-bold">4K Sharp</span>
-                </div>
-                <div className="p-3 rounded-xl bg-zinc-800/60 border border-zinc-700/80 flex items-center justify-between">
-                  <div>
-                    <span className="font-semibold text-zinc-200 block">Watermark</span>
-                    <span className="text-zinc-400 text-[11px]">Free Creator Tier</span>
-                  </div>
-                  <span className="text-indigo-400 font-bold">None (100% Clean)</span>
-                </div>
-              </div>
-              <div className="flex justify-end gap-2">
-                <button
-                  onClick={() => setIsExportModalOpen(false)}
-                  className="px-4 py-2 rounded-lg text-xs font-medium text-zinc-400 hover:text-white bg-zinc-800 cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  disabled={isExporting}
-                  onClick={handleExportPng}
-                  className="px-4 py-2 rounded-lg text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 flex items-center gap-1.5 transition-colors cursor-pointer"
-                >
-                  {isExporting ? "Rendering PNG..." : "Download 4K PNG"}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Creator Multi-Format Export Modal */}
+        <CreatorExportModal
+          isOpen={isExportModalOpen}
+          onClose={() => setIsExportModalOpen(false)}
+          boardTitle={title}
+          authorName={initialTemplate?.author.username || "Creator"}
+          tiers={board.tiers}
+        />
+
+        {/* Blind Rank Challenge Modal */}
+        <BlindRankModal
+          isOpen={isBlindModalOpen}
+          onClose={() => setIsBlindModalOpen(false)}
+          board={board}
+          onPlaceBlindItem={handlePlaceBlindItem}
+          onOpenConsensus={initialTemplate ? () => setIsConsensusModalOpen(true) : undefined}
+        />
+
+        {/* Presentation & Streamer Mode Modal */}
+        <PresentationModal
+          isOpen={isPresentationModalOpen}
+          onClose={() => setIsPresentationModalOpen(false)}
+          boardTitle={title}
+          authorName={initialTemplate?.author.username || "Creator"}
+          tiers={board.tiers}
+          onOpenExport={() => setIsExportModalOpen(true)}
+        />
       </div>
     </DndContext>
   );

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { X, Upload, Check, Loader2, Sparkles, Plus, Image as ImageIcon } from "lucide-react";
 import { publishTemplate } from "@/lib/community";
 import { compressBatchImages } from "@/utils/image-compression";
+import { uploadItemsToCloud } from "@/lib/upload";
 import type { Item } from "@/types";
 
 interface PublishModalProps {
@@ -22,6 +23,7 @@ export function PublishModal({ isOpen, onClose }: PublishModalProps) {
   const [textInput, setTextInput] = useState("");
   const [isCompressing, setIsCompressing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStep, setSubmitStep] = useState<string | null>(null);
   const [createdTemplateId, setCreatedTemplateId] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -78,11 +80,17 @@ export function PublishModal({ isOpen, onClose }: PublishModalProps) {
 
     setIsSubmitting(true);
     try {
+      // 1. Upload compressed items to Cloudflare R2
+      setSubmitStep("Hosting items on Cloudflare R2 CDN...");
+      const cloudItems = await uploadItemsToCloud(items, (msg) => setSubmitStep(msg));
+
+      // 2. Publish template with CDN URLs
+      setSubmitStep("Publishing template to community...");
       const created = await publishTemplate({
         title,
         category,
         description,
-        items,
+        items: cloudItems,
         authorName: authorName.trim() || undefined,
       });
       setCreatedTemplateId(created.id);
@@ -91,6 +99,7 @@ export function PublishModal({ isOpen, onClose }: PublishModalProps) {
       alert("Error publishing template. Please try again.");
     } finally {
       setIsSubmitting(false);
+      setSubmitStep(null);
     }
   };
 
@@ -332,7 +341,7 @@ export function PublishModal({ isOpen, onClose }: PublishModalProps) {
                 {isSubmitting ? (
                   <>
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    <span>Publishing...</span>
+                    <span>{submitStep || "Publishing..."}</span>
                   </>
                 ) : (
                   <span>Publish Template</span>

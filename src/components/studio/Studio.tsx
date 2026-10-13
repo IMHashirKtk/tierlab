@@ -48,6 +48,7 @@ import {
   Eraser,
   Shuffle,
   SlidersHorizontal,
+  Film,
 } from "lucide-react";
 import type { TierRow, Item, Project, Template } from "@/types";
 import { compressBatchImages } from "@/utils/image-compression";
@@ -67,6 +68,10 @@ const ConsensusComparisonModal = dynamic(
 );
 const CreatorExportModal = dynamic(
   () => import("@/components/studio/CreatorExportModal").then((mod) => mod.CreatorExportModal),
+  { ssr: false }
+);
+const VideoExportModal = dynamic(
+  () => import("@/components/studio/VideoExportModal").then((mod) => mod.VideoExportModal),
   { ssr: false }
 );
 const BlindRankModal = dynamic(
@@ -149,6 +154,7 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
   const [isWebSearchOpen, setIsWebSearchOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isConsensusModalOpen, setIsConsensusModalOpen] = useState(false);
   const [isBlindModalOpen, setIsBlindModalOpen] = useState(false);
@@ -807,6 +813,16 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
               <span>Share</span>
             </button>
 
+            {/* TikTok / Animated Video Export */}
+            <button
+              onClick={() => setIsVideoModalOpen(true)}
+              className="px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold bg-gradient-to-r from-rose-500/15 to-pink-500/15 hover:from-rose-500/25 hover:to-pink-500/25 text-rose-300 border border-rose-500/30 flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
+              title="Export Animated Reveal Video (TikTok / Reels / Shorts)"
+            >
+              <Film className="w-3.5 h-3.5 text-rose-400" />
+              <span className="hidden xl:inline">Video Export</span>
+            </button>
+
             {/* Export 4K */}
             <button
               onClick={() => setIsExportModalOpen(true)}
@@ -977,6 +993,21 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
                   <div>
                     <div className="text-white text-xs">Share & Publish</div>
                     <div className="text-[10px] text-zinc-500 font-normal">Generate viral link</div>
+                  </div>
+                </button>
+
+                {/* Animated Video Export */}
+                <button
+                  onClick={() => {
+                    setIsVideoModalOpen(true);
+                    setIsMobileToolsOpen(false);
+                  }}
+                  className="flex items-center gap-2 p-3 rounded-xl bg-gradient-to-r from-rose-950/50 to-pink-950/50 hover:bg-rose-900/40 border border-rose-500/30 text-left font-semibold text-zinc-200 transition-colors"
+                >
+                  <Film className="w-4 h-4 text-rose-400 flex-shrink-0" />
+                  <div>
+                    <div className="text-white text-xs">Video Export</div>
+                    <div className="text-[10px] text-rose-300 font-normal">TikTok 9:16 Animation</div>
                   </div>
                 </button>
 
@@ -1349,6 +1380,16 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
         <CreatorExportModal
           isOpen={isExportModalOpen}
           onClose={() => setIsExportModalOpen(false)}
+          boardTitle={title}
+          authorName={initialTemplate?.author.username || "Creator"}
+          tiers={board.tiers}
+          onSwitchToVideo={() => setIsVideoModalOpen(true)}
+        />
+
+        {/* Animated Video Export Modal (TikTok / Reels / Shorts) */}
+        <VideoExportModal
+          isOpen={isVideoModalOpen}
+          onClose={() => setIsVideoModalOpen(false)}
           boardTitle={title}
           authorName={initialTemplate?.author.username || "Creator"}
           tiers={board.tiers}

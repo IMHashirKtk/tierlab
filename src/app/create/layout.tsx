@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   description:
     "Design and customize your tier lists with drag-and-drop tiers, streamer mode, color themes, and 4K lossless exports.",
   openGraph: {
-    title: "Tier List Maker Studio | TierLab",
+    title: "Tier List Maker Studio | Tier List Maker",
     description:
       "Design and customize your tier lists with drag-and-drop tiers, streamer mode, color themes, and 4K lossless exports.",
   },

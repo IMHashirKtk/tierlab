@@ -12,13 +12,13 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://tierlab.app";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://tierlistmaker.app";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "TierLab — The Next-Gen Community Tier List Platform",
-    template: "%s | TierLab",
+    default: "Tier List Maker — The Next-Gen Community Tier List Platform",
+    template: "%s | Tier List Maker",
   },
   description:
     "Create, rank, duel, and remix tier lists with images and text. 4K streamer exports, TikTok blind rank challenge, global community consensus, and zero watermarks.",
@@ -33,31 +33,31 @@ export const metadata: Metadata = {
     "blind rank challenge",
     "tier list template",
   ],
-  authors: [{ name: "TierLab Team" }],
-  creator: "TierLab",
+  authors: [{ name: "Tier List Maker Team" }],
+  creator: "Tier List Maker",
   openGraph: {
     type: "website",
     locale: "en_US",
     url: siteUrl,
-    title: "TierLab — The Next-Gen Community Tier List Platform",
+    title: "Tier List Maker — The Next-Gen Community Tier List Platform",
     description:
       "Create, rank, duel, and remix tier lists with images and text. 4K streamer exports, TikTok blind rank challenge, and global consensus.",
-    siteName: "TierLab",
+    siteName: "Tier List Maker",
     images: [
       {
-        url: "/api/og?title=TierLab%20-%20Next-Gen%20Tier%20List%20Platform&author=TierLab&category=Platform",
+        url: "/api/og?title=Tier%20List%20Maker%20-%20Next-Gen%20Tier%20List%20Platform&author=Tier%20List%20Maker&category=Platform",
         width: 1200,
         height: 630,
-        alt: "TierLab - Community Tier List Platform",
+        alt: "Tier List Maker - Community Tier List Platform",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "TierLab — The Next-Gen Community Tier List Platform",
+    title: "Tier List Maker — The Next-Gen Community Tier List Platform",
     description:
       "Create, rank, duel, and remix tier lists with images and text. 4K streamer exports, TikTok blind rank challenge, and global consensus.",
-    images: ["/api/og?title=TierLab%20-%20Next-Gen%20Tier%20List%20Platform&author=TierLab&category=Platform"],
+    images: ["/api/og?title=Tier%20List%20Maker%20-%20Next-Gen%20Tier%20List%20Platform&author=Tier%20List%20Maker&category=Platform"],
   },
   robots: {
     index: true,

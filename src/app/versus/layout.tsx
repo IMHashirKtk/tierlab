@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   description:
     "Compare your tier list head-to-head against friends and community consensus. Calculate algorithmic similarity scores and debate hot takes.",
   openGraph: {
-    title: "Head-to-Head Versus Duel | TierLab",
+    title: "Head-to-Head Versus Duel | Tier List Maker",
     description:
       "Compare your tier list head-to-head against friends and community consensus. Calculate algorithmic similarity scores and debate hot takes.",
   },

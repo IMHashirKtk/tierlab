@@ -79,7 +79,7 @@ export function SharedTierListClient({ id }: SharedTierListClientProps) {
   const totalRanked = ranking?.tiers.reduce((sum, t) => sum + t.items.length, 0) || 0;
   const currentUrl = typeof window !== "undefined" ? window.location.href : "";
   const tweetText = ranking
-    ? encodeURIComponent(`Check out my "${ranking.title}" tier list on TierLab! 🏆\n\n${currentUrl}`)
+    ? encodeURIComponent(`Check out my "${ranking.title}" tier list on Tier List Maker! 🏆\n\n${currentUrl}`)
     : "";
 
   if (loading) {

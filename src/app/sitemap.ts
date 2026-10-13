@@ -2,7 +2,7 @@ import { MetadataRoute } from "next";
 import { SEED_TEMPLATES } from "@/data/seed-templates";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://tierlab.app";
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://tierlistmaker.app";
 
   const staticRoutes: MetadataRoute.Sitemap = [
     {

@@ -10,23 +10,23 @@
     },
     {
       "testName": "Dynamic OG [Ranking Mode OG Card]",
-      "details": "HTTP 200, image/png, valid binary signature (93 KB)"
+      "details": "HTTP 200, image/png, valid binary signature (95 KB)"
     },
     {
       "testName": "Dynamic OG [Template Mode OG Card]",
-      "details": "HTTP 200, image/png, valid binary signature (89 KB)"
+      "details": "HTTP 200, image/png, valid binary signature (91 KB)"
     },
     {
       "testName": "Dynamic OG [Creator Profile OG Card]",
-      "details": "HTTP 200, image/png, valid binary signature (87 KB)"
+      "details": "HTTP 200, image/png, valid binary signature (89 KB)"
     },
     {
       "testName": "Title Tag [/]",
-      "details": "\"TierLab — The Next-Gen Community Tier List Platform\" matches expected phrase"
+      "details": "\"Tier List Maker — The Next-Gen Community Tier List Platform\" matches expected phrase"
     },
     {
       "testName": "OpenGraph Tags [/]",
-      "details": "og:title=\"TierLab — The Next-Gen Community Tier List Platform\" and description present"
+      "details": "og:title=\"Tier List Maker — The Next-Gen Community Tier List Platform\" and description present"
     },
     {
       "testName": "Twitter Card [/]",
@@ -34,11 +34,11 @@
     },
     {
       "testName": "Title Tag [/create]",
-      "details": "\"Tier List Maker Studio | TierLab\" matches expected phrase"
+      "details": "\"Tier List Maker Studio | Tier List Maker\" matches expected phrase"
     },
     {
       "testName": "OpenGraph Tags [/create]",
-      "details": "og:title=\"Tier List Maker Studio | TierLab\" and description present"
+      "details": "og:title=\"Tier List Maker Studio | Tier List Maker\" and description present"
     },
     {
       "testName": "Twitter Card [/create]",
@@ -46,11 +46,11 @@
     },
     {
       "testName": "Title Tag [/versus]",
-      "details": "\"Head-to-Head Versus Duel & Tier Compare | TierLab\" matches expected phrase"
+      "details": "\"Head-to-Head Versus Duel & Tier Compare | Tier List Maker\" matches expected phrase"
     },
     {
       "testName": "OpenGraph Tags [/versus]",
-      "details": "og:title=\"Head-to-Head Versus Duel | TierLab\" and description present"
+      "details": "og:title=\"Head-to-Head Versus Duel | Tier List Maker\" and description present"
     },
     {
       "testName": "Twitter Card [/versus]",
@@ -58,11 +58,11 @@
     },
     {
       "testName": "Title Tag [/my-projects]",
-      "details": "\"My Saved Projects & Tier Lists | TierLab\" matches expected phrase"
+      "details": "\"My Saved Projects & Tier Lists | Tier List Maker\" matches expected phrase"
     },
     {
       "testName": "OpenGraph Tags [/my-projects]",
-      "details": "og:title=\"My Saved Projects | TierLab\" and description present"
+      "details": "og:title=\"My Saved Projects | Tier List Maker\" and description present"
     },
     {
       "testName": "Twitter Card [/my-projects]",
@@ -70,11 +70,11 @@
     },
     {
       "testName": "Title Tag [/template/elden-ring-bosses]",
-      "details": "\"Elden Ring: Shadow of the Erdtree Bosses Tier List Maker & Ranking | TierLab\" matches expected phrase"
+      "details": "\"Elden Ring: Shadow of the Erdtree Bosses Tier List Maker & Ranking | Tier List Maker\" matches expected phrase"
     },
     {
       "testName": "OpenGraph Tags [/template/elden-ring-bosses]",
-      "details": "og:title=\"Elden Ring: Shadow of the Erdtree Bosses Tier List Maker & Ranking | TierLab\" and description present"
+      "details": "og:title=\"Elden Ring: Shadow of the Erdtree Bosses Tier List Maker & Ranking | Tier List Maker\" and description present"
     },
     {
       "testName": "Twitter Card [/template/elden-ring-bosses]",
@@ -82,11 +82,11 @@
     },
     {
       "testName": "Title Tag [/user/PixelHero]",
-      "details": "\"@PixelHero's Tier Lists & Creator Profile | TierLab\" matches expected phrase"
+      "details": "\"@PixelHero's Tier Lists & Creator Profile | Tier List Maker\" matches expected phrase"
     },
     {
       "testName": "OpenGraph Tags [/user/PixelHero]",
-      "details": "og:title=\"@PixelHero's Tier Lists & Creator Profile | TierLab\" and description present"
+      "details": "og:title=\"@PixelHero's Tier Lists & Creator Profile | Tier List Maker\" and description present"
     },
     {
       "testName": "Twitter Card [/user/PixelHero]",
@@ -97,51 +97,51 @@
   "warnings": [],
   "metadataByRoute": {
     "/": {
-      "title": "TierLab — The Next-Gen Community Tier List Platform",
+      "title": "Tier List Maker — The Next-Gen Community Tier List Platform",
       "metaDescription": "Create, rank, duel, and remix tier lists with images and text. 4K streamer exports, TikTok blind rank challenge, global community consensus, and zero watermarks.",
-      "ogTitle": "TierLab — The Next-Gen Community Tier List Platform",
+      "ogTitle": "Tier List Maker — The Next-Gen Community Tier List Platform",
       "ogDesc": "Create, rank, duel, and remix tier lists with images and text. 4K streamer exports, TikTok blind rank challenge, and global consensus.",
-      "ogImage": "https://tierlab.app/api/og?title=TierLab%20-%20Next-Gen%20Tier%20List%20Platform&author=TierLab&category=Platform",
+      "ogImage": "https://tierlistmaker.app/api/og?title=Tier%20List%20Maker%20-%20Next-Gen%20Tier%20List%20Platform&author=Tier%20List%20Maker&category=Platform",
       "twitterCard": "summary_large_image"
     },
     "/create": {
-      "title": "Tier List Maker Studio | TierLab",
+      "title": "Tier List Maker Studio | Tier List Maker",
       "metaDescription": "Design and customize your tier lists with drag-and-drop tiers, streamer mode, color themes, and 4K lossless exports.",
-      "ogTitle": "Tier List Maker Studio | TierLab",
+      "ogTitle": "Tier List Maker Studio | Tier List Maker",
       "ogDesc": "Design and customize your tier lists with drag-and-drop tiers, streamer mode, color themes, and 4K lossless exports.",
       "ogImage": null,
       "twitterCard": "summary_large_image"
     },
     "/versus": {
-      "title": "Head-to-Head Versus Duel & Tier Compare | TierLab",
+      "title": "Head-to-Head Versus Duel & Tier Compare | Tier List Maker",
       "metaDescription": "Compare your tier list head-to-head against friends and community consensus. Calculate algorithmic similarity scores and debate hot takes.",
-      "ogTitle": "Head-to-Head Versus Duel | TierLab",
+      "ogTitle": "Head-to-Head Versus Duel | Tier List Maker",
       "ogDesc": "Compare your tier list head-to-head against friends and community consensus. Calculate algorithmic similarity scores and debate hot takes.",
       "ogImage": null,
       "twitterCard": "summary_large_image"
     },
     "/my-projects": {
-      "title": "My Saved Projects & Tier Lists | TierLab",
+      "title": "My Saved Projects & Tier Lists | Tier List Maker",
       "metaDescription": "Manage your local-first tier lists, drafts, and published rankings stored securely in your browser.",
-      "ogTitle": "My Saved Projects | TierLab",
+      "ogTitle": "My Saved Projects | Tier List Maker",
       "ogDesc": "Manage your local-first tier lists, drafts, and published rankings stored securely in your browser.",
       "ogImage": null,
       "twitterCard": "summary_large_image"
     },
     "/template/elden-ring-bosses": {
-      "title": "Elden Ring: Shadow of the Erdtree Bosses Tier List Maker & Ranking | TierLab",
-      "metaDescription": "Rank Elden Ring: Shadow of the Erdtree Bosses with drag-and-drop tiers. View community consensus, compare similarity, and duel friends on TierLab.",
-      "ogTitle": "Elden Ring: Shadow of the Erdtree Bosses Tier List Maker & Ranking | TierLab",
-      "ogDesc": "Rank Elden Ring: Shadow of the Erdtree Bosses with drag-and-drop tiers. View community consensus, compare similarity, and duel friends on TierLab.",
-      "ogImage": "https://tierlab.app/api/og?title=Elden%20Ring%3A%20Shadow%20of%20the%20Erdtree%20Bosses&author=EldenLord&category=gaming&totalRanked=10%20items&mode=template",
+      "title": "Elden Ring: Shadow of the Erdtree Bosses Tier List Maker & Ranking | Tier List Maker",
+      "metaDescription": "Rank Elden Ring: Shadow of the Erdtree Bosses with drag-and-drop tiers. View community consensus, compare similarity, and duel friends on Tier List Maker.",
+      "ogTitle": "Elden Ring: Shadow of the Erdtree Bosses Tier List Maker & Ranking | Tier List Maker",
+      "ogDesc": "Rank Elden Ring: Shadow of the Erdtree Bosses with drag-and-drop tiers. View community consensus, compare similarity, and duel friends on Tier List Maker.",
+      "ogImage": "https://tierlistmaker.app/api/og?title=Elden%20Ring%3A%20Shadow%20of%20the%20Erdtree%20Bosses&author=EldenLord&category=gaming&totalRanked=10%20items&mode=template",
       "twitterCard": "summary_large_image"
     },
     "/user/PixelHero": {
-      "title": "@PixelHero's Tier Lists & Creator Profile | TierLab",
-      "metaDescription": "Explore tier lists, rankings, and custom templates published by @PixelHero on TierLab.",
-      "ogTitle": "@PixelHero's Tier Lists & Creator Profile | TierLab",
-      "ogDesc": "Explore tier lists, rankings, and custom templates published by @PixelHero on TierLab.",
-      "ogImage": "https://tierlab.app/api/og?title=%40PixelHero%27s%20Creator%20Profile&author=PixelHero&category=Creator&mode=profile",
+      "title": "@PixelHero's Tier Lists & Creator Profile | Tier List Maker",
+      "metaDescription": "Explore tier lists, rankings, and custom templates published by @PixelHero on Tier List Maker.",
+      "ogTitle": "@PixelHero's Tier Lists & Creator Profile | Tier List Maker",
+      "ogDesc": "Explore tier lists, rankings, and custom templates published by @PixelHero on Tier List Maker.",
+      "ogImage": "https://tierlistmaker.app/api/og?title=%40PixelHero%27s%20Creator%20Profile&author=PixelHero&category=Creator&mode=profile",
       "twitterCard": "summary_large_image"
     }
   }

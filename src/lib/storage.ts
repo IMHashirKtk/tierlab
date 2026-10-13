@@ -7,7 +7,7 @@
  */
 import type { Project } from "@/types";
 
-const DB_NAME = "tierlab";
+const DB_NAME = "tierlistmaker";
 const DB_VERSION = 1;
 const STORE = "projects";
 

@@ -65,7 +65,7 @@ export function Navbar({ onOpenPublish }: NavbarProps) {
           </div>
           <div className="flex items-baseline gap-1.5">
             <span className="text-xl font-bold tracking-tight text-white">
-              Tier<span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">Lab</span>
+              Tier List <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">Maker</span>
             </span>
             <span className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
               Community

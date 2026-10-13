@@ -66,7 +66,7 @@ async function runSeoAudit() {
       const text = await res.text();
       const hasXmlDecl = text.includes('<?xml version="1.0" encoding="UTF-8"?>');
       const hasUrlset = text.includes("<urlset");
-      const hasRootUrl = text.includes("tierlab.app");
+      const hasRootUrl = text.includes("tierlistmaker.app");
       const hasCreateUrl = text.includes("/create");
       const hasVersusUrl = text.includes("/versus");
 
@@ -141,7 +141,7 @@ async function runSeoAudit() {
   const page = await browser.newPage();
 
   const routesToAudit = [
-    { path: "/", expectedTitle: "TierLab" },
+    { path: "/", expectedTitle: "Tier List Maker" },
     { path: "/create", expectedTitle: "Studio" },
     { path: "/versus", expectedTitle: "Versus Duel" },
     { path: "/my-projects", expectedTitle: "Saved Projects" },

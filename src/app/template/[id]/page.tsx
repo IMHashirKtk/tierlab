@@ -18,8 +18,8 @@ export async function generateMetadata({
 
   if (!template) {
     return {
-      title: "Tier List Maker | TierLab",
-      description: "Create and rank custom tier lists with TierLab.",
+      title: "Custom Template | Tier List Maker",
+      description: "Create and rank custom tier lists with Tier List Maker.",
     };
   }
 
@@ -30,13 +30,13 @@ export async function generateMetadata({
   )}&mode=template`;
 
   const pageTitle = `${template.title} Tier List Maker & Ranking`;
-  const pageDescription = `Rank ${template.title} with drag-and-drop tiers. View community consensus, compare similarity, and duel friends on TierLab.`;
+  const pageDescription = `Rank ${template.title} with drag-and-drop tiers. View community consensus, compare similarity, and duel friends on Tier List Maker.`;
 
   return {
     title: pageTitle,
     description: pageDescription,
     openGraph: {
-      title: `${pageTitle} | TierLab`,
+      title: `${pageTitle} | Tier List Maker`,
       description: pageDescription,
       images: [
         {

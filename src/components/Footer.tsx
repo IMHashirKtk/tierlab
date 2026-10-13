@@ -12,7 +12,7 @@ export function Footer() {
               <div className="w-6 h-6 rounded-lg bg-indigo-600 flex items-center justify-center text-white">
                 <Layers className="w-3.5 h-3.5" />
               </div>
-              <span className="text-white font-bold text-base">TierLab</span>
+              <span className="text-white font-bold text-base">Tier List Maker</span>
             </Link>
             <p className="text-zinc-500 text-xs max-w-sm mb-4">
               The free user-generated tier list maker. Create, remix, and share rankings with zero watermarks. Built for content creators and fandom communities.
@@ -55,7 +55,7 @@ export function Footer() {
         </div>
 
         <div className="pt-8 border-t border-zinc-900 flex flex-col sm:flex-row items-center justify-between gap-4 text-zinc-600">
-          <span>© 2026 TierLab (tierlistmaker.app). All user uploads belong to their respective creators.</span>
+          <span>© 2026 Tier List Maker (tierlistmaker.app). All user uploads belong to their respective creators.</span>
           <div className="flex gap-4">
             <a href="#" className="hover:text-zinc-400">Privacy</a>
             <a href="#" className="hover:text-zinc-400">Terms</a>

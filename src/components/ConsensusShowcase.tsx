@@ -28,7 +28,7 @@ export function ConsensusShowcase() {
                 Community Consensus: See what the world thinks.
               </h2>
               <p className="text-sm sm:text-base text-zinc-300 leading-relaxed mb-6">
-                When thousands of players rank a template, TierLab calculates the mathematical average tier for every item. Compare your personal tier list directly against the crowd consensus to see how controversial your takes really are.
+                When thousands of players rank a template, Tier List Maker calculates the mathematical average tier for every item. Compare your personal tier list directly against the crowd consensus to see how controversial your takes really are.
               </p>
 
               {/* Template Switcher Pills */}
@@ -153,7 +153,7 @@ export function ConsensusShowcase() {
             <div className="flex justify-between items-center border-b border-zinc-800 pb-3">
               <div className="flex items-center gap-2">
                 <BrainCircuit className="w-5 h-5 text-indigo-400" />
-                <h3 className="text-base font-bold text-white">How TierLab Calculates Consensus</h3>
+                <h3 className="text-base font-bold text-white">How Tier List Maker Calculates Consensus</h3>
               </div>
               <button
                 onClick={() => setShowFormulaModal(false)}
@@ -164,7 +164,7 @@ export function ConsensusShowcase() {
             </div>
 
             <p className="text-zinc-300 leading-relaxed">
-              TierLab uses a weighted score aggregation algorithm to convert thousands of individual rankings into an undisputed mathematical hierarchy:
+              Tier List Maker uses a weighted score aggregation algorithm to convert thousands of individual rankings into an undisputed mathematical hierarchy:
             </p>
 
             {/* Weights Breakdown */}

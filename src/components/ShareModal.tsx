@@ -78,7 +78,7 @@ export function ShareModal({
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const tweetText = encodeURIComponent(`Check out my "${boardTitle}" tier list ranking on TierLab! 🏆\n\n${shareUrl}`);
+  const tweetText = encodeURIComponent(`Check out my "${boardTitle}" tier list ranking on Tier List Maker! 🏆\n\n${shareUrl}`);
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">

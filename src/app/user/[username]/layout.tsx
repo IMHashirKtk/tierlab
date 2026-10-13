@@ -10,13 +10,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const decoded = decodeURIComponent(username || "Creator");
 
   const title = `@${decoded}'s Tier Lists & Creator Profile`;
-  const description = `Explore tier lists, rankings, and custom templates published by @${decoded} on TierLab.`;
+  const description = `Explore tier lists, rankings, and custom templates published by @${decoded} on Tier List Maker.`;
 
   return {
     title,
     description,
     openGraph: {
-      title: `${title} | TierLab`,
+      title: `${title} | Tier List Maker`,
       description,
       images: [
         {
@@ -25,13 +25,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
           )}&category=Creator&mode=profile`,
           width: 1200,
           height: 630,
-          alt: `@${decoded}'s TierLab Profile`,
+          alt: `@${decoded}'s Tier List Maker Profile`,
         },
       ],
     },
     twitter: {
       card: "summary_large_image",
-      title: `${title} | TierLab`,
+      title: `${title} | Tier List Maker`,
       description,
     },
   };

@@ -205,7 +205,7 @@ export function CreatorExportModal({
             <div>
               <span className="text-xs font-bold text-zinc-200 block">Watermark</span>
               <span className="text-[11px] text-zinc-400">
-                {showWatermark ? "TierLab Badge included" : "100% Clean (No Watermark)"}
+                {showWatermark ? "Tier List Maker Badge included" : "100% Clean (No Watermark)"}
               </span>
             </div>
             <button
@@ -298,7 +298,7 @@ export function CreatorExportModal({
               </div>
               <div className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-zinc-900 border border-zinc-800">
                 <Sparkles className="w-5 h-5 text-indigo-400" />
-                <span className="font-bold text-sm text-zinc-200">TierLab Verified</span>
+                <span className="font-bold text-sm text-zinc-200">Tier List Maker Verified</span>
               </div>
             </div>
           )}
@@ -355,8 +355,8 @@ export function CreatorExportModal({
           {/* Footer / Watermark */}
           {showWatermark && (
             <div className="pt-8 border-t border-zinc-800/80 flex items-center justify-between text-zinc-500 text-sm">
-              <span>Made with TierLab — The Next-Generation UGC Tier List Platform</span>
-              <span className="font-bold text-zinc-400">tierlab.app</span>
+              <span>Made with Tier List Maker — The Next-Generation UGC Tier List Platform</span>
+              <span className="font-bold text-zinc-400">tierlistmaker.app</span>
             </div>
           )}
         </div>

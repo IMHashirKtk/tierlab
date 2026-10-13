@@ -675,7 +675,7 @@ export async function fetchUserProfile(username: string): Promise<UserProfileDat
 
   return {
     username,
-    bio: "Passionate TierLab creator & ranker. Analyzing, debating, and ranking topics with the community.",
+    bio: "Passionate Tier List Maker creator & ranker. Analyzing, debating, and ranking topics with the community.",
     joinedDate: "2026",
     totalUpvotes: Math.max(totalUpvotes, 1),
     templates: allTemplates,

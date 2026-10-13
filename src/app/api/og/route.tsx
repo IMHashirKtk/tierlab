@@ -6,7 +6,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
 
     const title = searchParams.get("title") || "Community Tier List";
-    const author = searchParams.get("author") || "TierLab Creator";
+    const author = searchParams.get("author") || "Tier List Maker Creator";
     const category = searchParams.get("category") || "Tier List";
     const topTier = searchParams.get("topTier") || "S";
     const topItemsRaw = searchParams.get("topItems") || "";
@@ -71,17 +71,17 @@ export async function GET(request: NextRequest) {
               <div style={{ display: "flex", alignItems: "baseline", gap: "4px" }}>
                 <span
                   style={{
-                    fontSize: "28px",
+                    fontSize: "26px",
                     fontWeight: 900,
                     letterSpacing: "-0.5px",
                     color: "#ffffff",
                   }}
                 >
-                  TIER
+                  TIER LIST
                 </span>
                 <span
                   style={{
-                    fontSize: "28px",
+                    fontSize: "26px",
                     fontWeight: 900,
                     letterSpacing: "-0.5px",
                     background: "linear-gradient(135deg, #818cf8 0%, #c084fc 100%)",
@@ -89,7 +89,7 @@ export async function GET(request: NextRequest) {
                     color: "#a855f7",
                   }}
                 >
-                  LAB
+                  MAKER
                 </span>
                 <span
                   style={{
@@ -294,7 +294,7 @@ export async function GET(request: NextRequest) {
               }}
             >
               <span>⚔️ Compare, Duel & Remix this Tier List at</span>
-              <span style={{ color: "#a5b4fc", fontWeight: 700 }}>tierlab.app</span>
+              <span style={{ color: "#a5b4fc", fontWeight: 700 }}>tierlistmaker.app</span>
             </div>
 
             <div

@@ -13,8 +13,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!ranking) {
     return {
-      title: "Shared Tier List | TierLab",
-      description: "Explore community tier lists and rankings on TierLab.",
+      title: "Shared Tier List | Tier List Maker",
+      description: "Explore community tier lists and rankings on Tier List Maker.",
     };
   }
 
@@ -28,13 +28,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   )}&totalRanked=${encodeURIComponent(totalRanked + " items ranked")}&mode=ranking`;
 
   const pageTitle = `${ranking.title} - Ranked by @${ranking.authorName}`;
-  const pageDescription = `Check out @${ranking.authorName}'s "${ranking.title}" tier list. View placements, duel head-to-head, or remix your own version on TierLab.`;
+  const pageDescription = `Check out @${ranking.authorName}'s "${ranking.title}" tier list. View placements, duel head-to-head, or remix your own version on Tier List Maker.`;
 
   return {
     title: pageTitle,
     description: pageDescription,
     openGraph: {
-      title: `${pageTitle} | TierLab`,
+      title: `${pageTitle} | Tier List Maker`,
       description: pageDescription,
       images: [
         {

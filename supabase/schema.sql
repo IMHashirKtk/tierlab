@@ -1,4 +1,4 @@
--- TierLab UGC Platform - Supabase PostgreSQL Schema
+-- Tier List Maker UGC Platform - Supabase PostgreSQL Schema
 -- Run this in your Supabase SQL Editor (Dashboard > SQL Editor > New query)
 
 -- 1. Create Templates Table

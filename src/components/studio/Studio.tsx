@@ -49,9 +49,11 @@ import {
   Shuffle,
   SlidersHorizontal,
   Film,
+  ShieldCheck,
 } from "lucide-react";
 import type { TierRow, Item, Project, Template } from "@/types";
 import { compressBatchImages } from "@/utils/image-compression";
+import { usePwa } from "@/components/pwa/PwaProvider";
 
 // Dynamically split heavy modals to keep core studio initial bundle ultra-light
 const WebImageSearchModal = dynamic(
@@ -126,6 +128,7 @@ interface StudioProps {
 }
 
 export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
+  const { openPrivacyModal } = usePwa();
   const [projectId, setProjectId] = useState<string>(() => initialProjectId || createId("proj"));
   const [title, setTitle] = useState<string>("Untitled Tier List");
   const [board, setBoard] = useState<Board>(() => {
@@ -205,6 +208,19 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
       isCancelled = true;
     };
   }, [initialProjectId]);
+
+  // Synchronize state when backup is restored or storage is cleared
+  useEffect(() => {
+    const handleSync = async () => {
+      const p = await getProject(projectId);
+      if (p) {
+        setTitle(p.title);
+        setBoard({ tiers: p.tiers, unranked: p.unranked });
+      }
+    };
+    window.addEventListener("tierlistmaker-data-synced", handleSync);
+    return () => window.removeEventListener("tierlistmaker-data-synced", handleSync);
+  }, [projectId]);
 
   // Set template if passed
   useEffect(() => {
@@ -662,6 +678,7 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
 
   return (
     <DndContext
+      id="studio-board-dnd"
       sensors={sensors}
       collisionDetection={collisionDetectionStrategy}
       onDragStart={handleDragStart}
@@ -699,8 +716,12 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
                 title="Click to rename"
               />
 
-              {/* Live Save Status Indicator */}
-              <div className="hidden sm:flex items-center gap-1.5 text-[11px] font-mono text-zinc-500 whitespace-nowrap pl-1">
+              {/* Live Save Status & Local Privacy Hub Indicator */}
+              <button
+                onClick={openPrivacyModal}
+                className="hidden sm:flex items-center gap-1.5 text-[11px] font-mono text-zinc-500 hover:text-white whitespace-nowrap pl-1.5 pr-2 py-0.5 rounded-md hover:bg-zinc-900 border border-transparent hover:border-zinc-800 transition-colors cursor-pointer"
+                title="Local-First Storage & Privacy Hub (Click to inspect device storage & backups)"
+              >
                 {saveStatus === "saving" ? (
                   <>
                     <Loader2 className="w-3 h-3 animate-spin text-indigo-400" />
@@ -708,13 +729,13 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
                   </>
                 ) : saveStatus === "saved" ? (
                   <>
-                    <CheckCircle2 className="w-3 h-3 text-emerald-400" />
-                    <span className="text-zinc-400">Saved to device</span>
+                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                    <span className="text-zinc-400 group-hover:text-zinc-200">Saved to device</span>
                   </>
                 ) : (
                   <span>Offline</span>
                 )}
-              </div>
+              </button>
             </div>
           </div>
 

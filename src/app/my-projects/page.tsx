@@ -2,10 +2,11 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { ArrowLeft, Plus, Trash2, Edit3, Layers, Calendar, Loader2 } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Edit3, Layers, Calendar, Loader2, ShieldCheck } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { PublishModal } from "@/components/PublishModal";
+import { usePwa } from "@/components/pwa/PwaProvider";
 import type { Project } from "@/types";
 import { listProjects, deleteProject } from "@/lib/storage";
 
@@ -21,26 +22,32 @@ function formatRelativeTime(timestamp: number): string {
 }
 
 export default function MyProjectsPage() {
+  const { openPrivacyModal } = usePwa();
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
 
-  useEffect(() => {
-    let isCancelled = false;
+  const loadProjects = () => {
+    setIsLoading(true);
     listProjects()
       .then((data) => {
-        if (!isCancelled) {
-          setProjects(data);
-          setIsLoading(false);
-        }
+        setProjects(data);
+        setIsLoading(false);
       })
       .catch((err) => {
         console.error("Failed to load projects", err);
-        if (!isCancelled) setIsLoading(false);
+        setIsLoading(false);
       });
-    return () => {
-      isCancelled = true;
+  };
+
+  useEffect(() => {
+    loadProjects();
+
+    const handleSync = () => {
+      loadProjects();
     };
+    window.addEventListener("tierlistmaker-data-synced", handleSync);
+    return () => window.removeEventListener("tierlistmaker-data-synced", handleSync);
   }, []);
 
   const handleDelete = async (id: string) => {
@@ -76,13 +83,24 @@ export default function MyProjectsPage() {
             </p>
           </div>
 
-          <Link
-            href="/create"
-            className="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-500 shadow-md shadow-indigo-600/30 flex items-center gap-2 self-start sm:self-auto transition-all cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            <span>New Tier List</span>
-          </Link>
+          <div className="flex items-center gap-2.5 self-start sm:self-auto">
+            <button
+              onClick={openPrivacyModal}
+              className="px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-zinc-300 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 hover:border-zinc-600 flex items-center gap-2 transition-all cursor-pointer"
+              title="Open Privacy & Storage Hub"
+            >
+              <ShieldCheck className="w-4 h-4 text-emerald-400" />
+              <span>Backup & Storage</span>
+            </button>
+
+            <Link
+              href="/create"
+              className="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-500 shadow-md shadow-indigo-600/30 flex items-center gap-2 transition-all cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              <span>New Tier List</span>
+            </Link>
+          </div>
         </div>
 
         {/* Content */}

@@ -2,8 +2,9 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { Search, Plus, Layers, User, Sparkles, Swords } from "lucide-react";
+import { Search, Plus, Layers, User, Sparkles, Swords, ShieldCheck } from "lucide-react";
 import { fetchTemplates } from "@/lib/community";
+import { usePwa } from "@/components/pwa/PwaProvider";
 import type { Template } from "@/types";
 
 interface NavbarProps {
@@ -11,6 +12,7 @@ interface NavbarProps {
 }
 
 export function Navbar({ onOpenPublish }: NavbarProps) {
+  const { openPrivacyModal } = usePwa();
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
@@ -154,6 +156,16 @@ export function Navbar({ onOpenPublish }: NavbarProps) {
               <span>Drop FX</span>
             </a>
           </nav>
+
+          {/* Privacy & Device Storage Hub */}
+          <button
+            onClick={openPrivacyModal}
+            className="hidden md:flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold text-zinc-300 bg-zinc-900 hover:bg-zinc-800 border border-zinc-750 hover:border-zinc-600 transition-all cursor-pointer"
+            title="Privacy & Device Storage Hub"
+          >
+            <ShieldCheck className="w-4 h-4 text-emerald-400" />
+            <span className="hidden xl:inline">Local-First</span>
+          </button>
 
           {/* Secondary CTA: Publish Template */}
           <button

@@ -48,6 +48,7 @@ import {
   ArrowDownAZ,
   Eraser,
   Shuffle,
+  SlidersHorizontal,
 } from "lucide-react";
 import type { TierRow, Item, Project, Template } from "@/types";
 import { compressBatchImages } from "@/utils/image-compression";
@@ -130,6 +131,7 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
   const [isBlindModalOpen, setIsBlindModalOpen] = useState(false);
   const [isPresentationModalOpen, setIsPresentationModalOpen] = useState(false);
   const [isPresetsModalOpen, setIsPresetsModalOpen] = useState(false);
+  const [isMobileToolsOpen, setIsMobileToolsOpen] = useState(false);
   const [unrankedSearch, setUnrankedSearch] = useState("");
 
   // Compression & Upload State
@@ -660,7 +662,7 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="bg-transparent border border-transparent hover:border-zinc-700 focus:border-indigo-500 rounded-md px-2 py-1 font-bold text-sm sm:text-base text-zinc-100 focus:outline-none transition-colors truncate max-w-[180px] sm:max-w-md"
+                className="bg-transparent border border-transparent hover:border-zinc-700 focus:border-indigo-500 rounded-md px-2 py-1 font-bold text-sm sm:text-base text-zinc-100 focus:outline-none transition-colors truncate max-w-[120px] sm:max-w-[170px] lg:max-w-xs"
                 title="Click to rename"
               />
 
@@ -683,8 +685,8 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
             </div>
           </div>
 
-          {/* Studio Actions */}
-          <div className="flex items-center gap-1.5 sm:gap-2">
+          {/* Studio Actions: Desktop View */}
+          <div className="hidden lg:flex items-center gap-1.5 sm:gap-2">
             {/* Undo & Redo */}
             <button
               onClick={handleUndo}
@@ -714,7 +716,7 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
               title="Toggle S-Tier screen shake and particle confetti"
             >
               <Sparkles className="w-3.5 h-3.5" />
-              <span className="hidden md:inline">Drop FX: {dropFxEnabled ? "ON" : "OFF"}</span>
+              <span className="hidden xl:inline">Drop FX: {dropFxEnabled ? "ON" : "OFF"}</span>
             </button>
 
             {/* Reset */}
@@ -724,7 +726,7 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
               title="Move all items back to unranked"
             >
               <RotateCcw className="w-3.5 h-3.5" />
-              <span className="hidden md:inline">Reset</span>
+              <span className="hidden xl:inline">Reset</span>
             </button>
 
             {/* Blind Rank Mode (TikTok / Shorts Mystery Challenge) */}
@@ -734,7 +736,7 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
               title="Play TikTok Blind Ranking Game Mode"
             >
               <Dices className="w-3.5 h-3.5 text-amber-400" />
-              <span className="hidden lg:inline">Blind Rank</span>
+              <span className="hidden xl:inline">Blind Rank</span>
             </button>
 
             {/* Streamer & Presenter View */}
@@ -744,7 +746,7 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
               title="Clean Presenter View for Streamers & Screen Recording (Hotkey: P)"
             >
               <Tv className="w-3.5 h-3.5 text-cyan-400" />
-              <span className="hidden lg:inline">Present</span>
+              <span className="hidden xl:inline">Present</span>
             </button>
 
             {/* Tier Presets (1-Click Curated Presets) */}
@@ -754,7 +756,7 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
               title="Apply curated tier presets (S-F, Buyer's Guide, Gaming, Taste, etc.)"
             >
               <Wand2 className="w-3.5 h-3.5 text-violet-400" />
-              <span className="hidden lg:inline">Presets</span>
+              <span className="hidden xl:inline">Presets</span>
             </button>
 
             {/* Community Consensus Button (if template exists) */}
@@ -765,7 +767,7 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
                 title="Compare your tier placements with global community consensus"
               >
                 <BrainCircuit className="w-3.5 h-3.5" />
-                <span className="hidden md:inline">Consensus</span>
+                <span className="hidden xl:inline">Consensus</span>
               </button>
             )}
 
@@ -787,7 +789,185 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
               <span>Export</span>
             </button>
           </div>
+
+          {/* Studio Actions: Mobile & Tablet Compact View */}
+          <div className="flex lg:hidden items-center gap-1.5">
+            {/* Undo */}
+            <button
+              onClick={handleUndo}
+              disabled={history.length === 0}
+              className="p-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-300 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+              title="Undo"
+            >
+              <Undo2 className="w-4 h-4" />
+            </button>
+
+            {/* Redo */}
+            <button
+              onClick={handleRedo}
+              disabled={future.length === 0}
+              className="p-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-300 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+              title="Redo"
+            >
+              <Redo2 className="w-4 h-4" />
+            </button>
+
+            {/* Mobile Tools Drawer Trigger */}
+            <button
+              onClick={() => setIsMobileToolsOpen(true)}
+              className="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-700/80 flex items-center gap-1 transition-colors cursor-pointer"
+              title="Open Creator Tools Menu"
+            >
+              <SlidersHorizontal className="w-3.5 h-3.5 text-indigo-400" />
+              <span>Tools</span>
+            </button>
+
+            {/* Export Button */}
+            <button
+              onClick={() => setIsExportModalOpen(true)}
+              className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 text-white shadow-sm flex items-center gap-1 transition-all cursor-pointer"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Export</span>
+            </button>
+          </div>
         </header>
+
+        {/* Mobile Tools Bottom Sheet / Drawer */}
+        {isMobileToolsOpen && (
+          <div
+            className="fixed inset-0 z-50 lg:hidden flex flex-col justify-end bg-black/75 backdrop-blur-sm animate-in fade-in"
+            onClick={() => setIsMobileToolsOpen(false)}
+          >
+            <div
+              className="bg-zinc-900 border-t border-zinc-800 rounded-t-3xl p-5 space-y-4 shadow-2xl max-h-[80vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between border-b border-zinc-800/80 pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+                    <SlidersHorizontal className="w-3.5 h-3.5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-white">Creator Studio Tools</h3>
+                    <p className="text-[11px] text-zinc-400">Power tools & board modes</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setIsMobileToolsOpen(false)}
+                  className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                {/* 1-Click Presets */}
+                <button
+                  onClick={() => {
+                    setIsPresetsModalOpen(true);
+                    setIsMobileToolsOpen(false);
+                  }}
+                  className="flex items-center gap-2 p-3 rounded-xl bg-zinc-950/70 hover:bg-zinc-800 border border-zinc-800 text-left font-semibold text-zinc-200 transition-colors"
+                >
+                  <Wand2 className="w-4 h-4 text-violet-400 flex-shrink-0" />
+                  <div>
+                    <div className="text-white text-xs">1-Click Presets</div>
+                    <div className="text-[10px] text-zinc-500 font-normal">S-F, Gaming, Buyers</div>
+                  </div>
+                </button>
+
+                {/* Blind Rank Mode */}
+                <button
+                  onClick={() => {
+                    setIsBlindModalOpen(true);
+                    setIsMobileToolsOpen(false);
+                  }}
+                  className="flex items-center gap-2 p-3 rounded-xl bg-zinc-950/70 hover:bg-zinc-800 border border-zinc-800 text-left font-semibold text-zinc-200 transition-colors"
+                >
+                  <Dices className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                  <div>
+                    <div className="text-white text-xs">Blind Rank</div>
+                    <div className="text-[10px] text-zinc-500 font-normal">TikTok Mystery Mode</div>
+                  </div>
+                </button>
+
+                {/* Consensus (if available) */}
+                {initialTemplate && (
+                  <button
+                    onClick={() => {
+                      setIsConsensusModalOpen(true);
+                      setIsMobileToolsOpen(false);
+                    }}
+                    className="flex items-center gap-2 p-3 rounded-xl bg-zinc-950/70 hover:bg-zinc-800 border border-zinc-800 text-left font-semibold text-zinc-200 transition-colors"
+                  >
+                    <BrainCircuit className="w-4 h-4 text-indigo-400 flex-shrink-0" />
+                    <div>
+                      <div className="text-white text-xs">Consensus</div>
+                      <div className="text-[10px] text-zinc-500 font-normal">Crowd agreement %</div>
+                    </div>
+                  </button>
+                )}
+
+                {/* Presenter Mode */}
+                <button
+                  onClick={() => {
+                    setIsPresentationModalOpen(true);
+                    setIsMobileToolsOpen(false);
+                  }}
+                  className="flex items-center gap-2 p-3 rounded-xl bg-zinc-950/70 hover:bg-zinc-800 border border-zinc-800 text-left font-semibold text-zinc-200 transition-colors"
+                >
+                  <Tv className="w-4 h-4 text-cyan-400 flex-shrink-0" />
+                  <div>
+                    <div className="text-white text-xs">Presenter View</div>
+                    <div className="text-[10px] text-zinc-500 font-normal">Streamer clean UI</div>
+                  </div>
+                </button>
+
+                {/* Drop FX Toggle */}
+                <button
+                  onClick={() => setDropFxEnabled(!dropFxEnabled)}
+                  className="flex items-center gap-2 p-3 rounded-xl bg-zinc-950/70 hover:bg-zinc-800 border border-zinc-800 text-left font-semibold text-zinc-200 transition-colors"
+                >
+                  <Sparkles className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                  <div>
+                    <div className="text-white text-xs">Drop FX</div>
+                    <div className="text-[10px] text-zinc-500 font-normal">
+                      {dropFxEnabled ? "Confetti & Shake: ON" : "Effects: OFF"}
+                    </div>
+                  </div>
+                </button>
+
+                {/* Share Modal */}
+                <button
+                  onClick={() => {
+                    setIsShareModalOpen(true);
+                    setIsMobileToolsOpen(false);
+                  }}
+                  className="flex items-center gap-2 p-3 rounded-xl bg-zinc-950/70 hover:bg-zinc-800 border border-zinc-800 text-left font-semibold text-zinc-200 transition-colors"
+                >
+                  <Share2 className="w-4 h-4 text-indigo-400 flex-shrink-0" />
+                  <div>
+                    <div className="text-white text-xs">Share & Publish</div>
+                    <div className="text-[10px] text-zinc-500 font-normal">Generate viral link</div>
+                  </div>
+                </button>
+
+                {/* Reset Board */}
+                <button
+                  onClick={() => {
+                    handleReset();
+                    setIsMobileToolsOpen(false);
+                  }}
+                  className="col-span-2 flex items-center justify-center gap-2 p-2.5 rounded-xl bg-zinc-950/50 hover:bg-rose-950/30 border border-zinc-800/80 hover:border-rose-900/50 text-zinc-400 hover:text-rose-400 transition-colors"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span className="text-xs">Reset All Items to Unranked</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Main Studio Area */}
         <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-4 gap-6">

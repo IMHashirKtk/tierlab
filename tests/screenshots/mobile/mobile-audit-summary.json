@@ -1,0 +1,243 @@
+{
+  "passed": [
+    {
+      "testName": "Zero Horizontal Overflow [Homepage (iPhone)]",
+      "details": "Viewport 401px cleanly contained"
+    },
+    {
+      "testName": "Mobile Category Bar",
+      "details": "Horizontal scroll tray rendered"
+    },
+    {
+      "testName": "Mobile Homepage Screenshot",
+      "details": "Saved mobile_01_home_iphone.png"
+    },
+    {
+      "testName": "Zero Horizontal Overflow [Studio (iPhone)]",
+      "details": "Viewport 390px cleanly contained"
+    },
+    {
+      "testName": "Mobile Studio Tier Rows",
+      "details": "Found 41 rendered tier rows"
+    },
+    {
+      "testName": "Mobile Studio Screenshot",
+      "details": "Saved mobile_02_studio_iphone.png"
+    },
+    {
+      "testName": "Mobile Tools Drawer Open",
+      "details": "Bottom sheet opened with all creator tools"
+    },
+    {
+      "testName": "Mobile Tools Drawer Screenshot",
+      "details": "Saved mobile_03_tools_drawer_iphone.png"
+    },
+    {
+      "testName": "Mobile Presets Modal Open",
+      "details": "Modal displayed from mobile drawer"
+    },
+    {
+      "testName": "Mobile Presets Modal Screenshot",
+      "details": "Saved mobile_03_presets_modal_iphone.png"
+    },
+    {
+      "testName": "Mobile Export Modal Open",
+      "details": "Export modal responsive on mobile"
+    },
+    {
+      "testName": "Mobile Export Modal Screenshot",
+      "details": "Saved mobile_04_export_modal_iphone.png"
+    },
+    {
+      "testName": "Mobile Export Aspect Toggles",
+      "details": "Found 3 aspect ratio buttons"
+    },
+    {
+      "testName": "Zero Horizontal Overflow [Shared Tier List (iPhone)]",
+      "details": "Viewport 390px cleanly contained"
+    },
+    {
+      "testName": "Touch Target Ergonomics [Shared Tier List (iPhone)]",
+      "details": "Checked 1 targets, touch-ergonomic"
+    },
+    {
+      "testName": "Mobile Shared Page Screenshot",
+      "details": "Saved mobile_06_shared_page_iphone.png"
+    },
+    {
+      "testName": "Zero Horizontal Overflow [Versus Arena (iPhone)]",
+      "details": "Viewport 390px cleanly contained"
+    },
+    {
+      "testName": "Touch Target Ergonomics [Versus Arena (iPhone)]",
+      "details": "Checked 3 targets, touch-ergonomic"
+    },
+    {
+      "testName": "Mobile Versus Screenshot",
+      "details": "Saved mobile_07_versus_iphone.png"
+    },
+    {
+      "testName": "Zero Horizontal Overflow [Creator Profile (iPhone)]",
+      "details": "Viewport 390px cleanly contained"
+    },
+    {
+      "testName": "Touch Target Ergonomics [Creator Profile (iPhone)]",
+      "details": "Checked 5 targets, touch-ergonomic"
+    },
+    {
+      "testName": "Mobile Profile Screenshot",
+      "details": "Saved mobile_08_profile_iphone.png"
+    },
+    {
+      "testName": "Zero Horizontal Overflow [My Projects (iPhone)]",
+      "details": "Viewport 401px cleanly contained"
+    },
+    {
+      "testName": "Mobile My Projects Screenshot",
+      "details": "Saved mobile_09_my_projects_iphone.png"
+    },
+    {
+      "testName": "Zero Horizontal Overflow [Homepage (iPhone SE)]",
+      "details": "Viewport 401px cleanly contained"
+    },
+    {
+      "testName": "Zero Horizontal Overflow [Studio (iPhone SE)]",
+      "details": "Viewport 375px cleanly contained"
+    },
+    {
+      "testName": "Small Viewport (375px) Studio Test",
+      "details": "Zero horizontal scroll blowout on compact screen"
+    },
+    {
+      "testName": "Zero Horizontal Overflow [Studio (iPad Tablet)]",
+      "details": "Viewport 768px cleanly contained"
+    },
+    {
+      "testName": "Tablet Studio Screenshot",
+      "details": "Saved mobile_10_tablet_studio.png"
+    }
+  ],
+  "failed": [],
+  "warnings": [
+    {
+      "testName": "Touch Target Ergonomics [Homepage (iPhone)]",
+      "details": "6 interactive items below 28px threshold (checked 60)"
+    },
+    {
+      "testName": "Touch Target Ergonomics [Studio (iPhone)]",
+      "details": "29 interactive items below 28px threshold (checked 74)"
+    },
+    {
+      "testName": "Touch Target Ergonomics [My Projects (iPhone)]",
+      "details": "7 interactive items below 28px threshold (checked 31)"
+    }
+  ],
+  "overflowViolations": [],
+  "touchTargetViolations": [
+    {
+      "routeName": "Homepage (iPhone)",
+      "totalChecked": 60,
+      "issuesCount": 6,
+      "sampleIssues": [
+        {
+          "tag": "A",
+          "text": "",
+          "width": 25,
+          "height": 36,
+          "class": "w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-800 flex i"
+        },
+        {
+          "tag": "A",
+          "text": "Roblox Games",
+          "width": 102,
+          "height": 26,
+          "class": "px-2.5 py-1 rounded-lg bg-zinc-900 hover:bg-zinc-800 border "
+        },
+        {
+          "tag": "A",
+          "text": "Elden Ring Bosses",
+          "width": 124,
+          "height": 26,
+          "class": "px-2.5 py-1 rounded-lg bg-zinc-900 hover:bg-zinc-800 border "
+        },
+        {
+          "tag": "A",
+          "text": "Anime of the Year",
+          "width": 119,
+          "height": 26,
+          "class": "px-2.5 py-1 rounded-lg bg-zinc-900 hover:bg-zinc-800 border "
+        }
+      ]
+    },
+    {
+      "routeName": "Studio (iPhone)",
+      "totalChecked": 74,
+      "issuesCount": 29,
+      "sampleIssues": [
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "width": 20,
+          "height": 20,
+          "class": "absolute bottom-1.5 right-1.5 p-1 rounded bg-black/40 hover:"
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "width": 22,
+          "height": 22,
+          "class": "p-1 rounded text-zinc-400 hover:text-indigo-400 disabled:opa"
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "width": 22,
+          "height": 22,
+          "class": "p-1 rounded text-zinc-400 hover:text-amber-400 disabled:opac"
+        },
+        {
+          "tag": "BUTTON",
+          "text": "",
+          "width": 22,
+          "height": 22,
+          "class": "p-1 rounded text-zinc-400 hover:text-orange-400 disabled:opa"
+        }
+      ]
+    },
+    {
+      "routeName": "My Projects (iPhone)",
+      "totalChecked": 31,
+      "issuesCount": 7,
+      "sampleIssues": [
+        {
+          "tag": "A",
+          "text": "",
+          "width": 25,
+          "height": 36,
+          "class": "w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-800 flex i"
+        },
+        {
+          "tag": "A",
+          "text": "Home",
+          "width": 50,
+          "height": 16,
+          "class": "text-xs text-zinc-400 hover:text-white flex items-center gap"
+        },
+        {
+          "tag": "A",
+          "text": "TierLab",
+          "width": 358,
+          "height": 24,
+          "class": "flex items-center gap-2 mb-3 group"
+        },
+        {
+          "tag": "A",
+          "text": "Trending Templates",
+          "width": 107,
+          "height": 16,
+          "class": "hover:text-zinc-300"
+        }
+      ]
+    }
+  ]
+}

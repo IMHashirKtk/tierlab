@@ -15,7 +15,6 @@ import {
   ArrowRight,
   ExternalLink,
 } from "lucide-react";
-import { toPng } from "html-to-image";
 import { fetchSharedTierList, toggleUpvote } from "@/lib/community";
 import { CommentsSection } from "@/components/share/CommentsSection";
 import type { PublishedTierList } from "@/types";
@@ -64,6 +63,7 @@ export function SharedTierListClient({ id }: SharedTierListClientProps) {
     if (!boardRef.current || !ranking) return;
     setIsExporting(true);
     try {
+      const { toPng } = await import("html-to-image");
       const dataUrl = await toPng(boardRef.current, { quality: 0.95, pixelRatio: 2 });
       const link = document.createElement("a");
       link.download = `${ranking.title.replace(/[^a-z0-9]/gi, "-").toLowerCase()}-tierlist.png`;

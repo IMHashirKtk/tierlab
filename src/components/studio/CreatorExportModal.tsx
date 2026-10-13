@@ -2,7 +2,6 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { X, Download, Smartphone, Monitor, Square, Sparkles, Check, Image as ImageIcon, ShieldCheck } from "lucide-react";
-import { toPng } from "html-to-image";
 import type { TierRow } from "@/types";
 
 interface CreatorExportModalProps {
@@ -47,6 +46,7 @@ export function CreatorExportModal({
     setIsExporting(true);
 
     try {
+      const { toPng } = await import("html-to-image");
       const pixelRatio = resolution === "4k" ? 2.5 : 1.5;
       const dataUrl = await toPng(captureRef.current, {
         quality: 0.98,

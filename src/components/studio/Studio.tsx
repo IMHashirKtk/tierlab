@@ -2,8 +2,7 @@
 
 import React, { useState, useEffect, useRef, useTransition, useCallback, useMemo } from "react";
 import Link from "next/link";
-import confetti from "canvas-confetti";
-import { toPng } from "html-to-image";
+import dynamic from "next/dynamic";
 import {
   DndContext,
   DragOverlay,
@@ -52,13 +51,37 @@ import {
 } from "lucide-react";
 import type { TierRow, Item, Project, Template } from "@/types";
 import { compressBatchImages } from "@/utils/image-compression";
-import { WebImageSearchModal } from "@/components/WebImageSearchModal";
-import { ShareModal } from "@/components/ShareModal";
-import { ConsensusComparisonModal } from "@/components/studio/ConsensusComparisonModal";
-import { CreatorExportModal } from "@/components/studio/CreatorExportModal";
-import { BlindRankModal } from "@/components/studio/BlindRankModal";
-import { PresentationModal } from "@/components/studio/PresentationModal";
-import { TierPresetsModal, type TierPresetConfig } from "@/components/studio/TierPresetsModal";
+
+// Dynamically split heavy modals to keep core studio initial bundle ultra-light
+const WebImageSearchModal = dynamic(
+  () => import("@/components/WebImageSearchModal").then((mod) => mod.WebImageSearchModal),
+  { ssr: false }
+);
+const ShareModal = dynamic(
+  () => import("@/components/ShareModal").then((mod) => mod.ShareModal),
+  { ssr: false }
+);
+const ConsensusComparisonModal = dynamic(
+  () => import("@/components/studio/ConsensusComparisonModal").then((mod) => mod.ConsensusComparisonModal),
+  { ssr: false }
+);
+const CreatorExportModal = dynamic(
+  () => import("@/components/studio/CreatorExportModal").then((mod) => mod.CreatorExportModal),
+  { ssr: false }
+);
+const BlindRankModal = dynamic(
+  () => import("@/components/studio/BlindRankModal").then((mod) => mod.BlindRankModal),
+  { ssr: false }
+);
+const PresentationModal = dynamic(
+  () => import("@/components/studio/PresentationModal").then((mod) => mod.PresentationModal),
+  { ssr: false }
+);
+const TierPresetsModal = dynamic(
+  () => import("@/components/studio/TierPresetsModal").then((mod) => mod.TierPresetsModal),
+  { ssr: false }
+);
+import type { TierPresetConfig } from "@/components/studio/TierPresetsModal";
 import {
   UNRANKED,
   type Board,
@@ -247,17 +270,20 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
     setBoard(next);
   };
 
-  // Drop FX celebration
-  const triggerDropFx = (tierLabel: string) => {
+  // Drop FX celebration (dynamically load confetti library on demand)
+  const triggerDropFx = async (tierLabel: string) => {
     if (!dropFxEnabled) return;
     const upper = tierLabel.trim().toUpperCase();
     if (upper === "S" || upper === "S+" || upper.includes("GOD")) {
-      confetti({
-        particleCount: 80,
-        spread: 70,
-        origin: { y: 0.5 },
-        colors: ["#f43f5e", "#fbbf24", "#6366f1", "#10b981", "#ec4899"],
-      });
+      try {
+        const confetti = (await import("canvas-confetti")).default;
+        confetti({
+          particleCount: 80,
+          spread: 70,
+          origin: { y: 0.5 },
+          colors: ["#f43f5e", "#fbbf24", "#6366f1", "#10b981", "#ec4899"],
+        });
+      } catch {}
       if (boardRef.current) {
         boardRef.current.classList.add("translate-x-1");
         setTimeout(() => boardRef.current?.classList.remove("translate-x-1"), 80);
@@ -607,11 +633,12 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
     }));
   };
 
-  // Export 4K PNG
+  // Export 4K PNG (dynamically loads html-to-image on demand)
   const handleExportPng = async () => {
     if (!boardRef.current) return;
     setIsExporting(true);
     try {
+      const { toPng } = await import("html-to-image");
       const dataUrl = await toPng(boardRef.current, { quality: 0.95, pixelRatio: 2 });
       const link = document.createElement("a");
       link.download = `${title.replace(/[^a-z0-9]/gi, "-").toLowerCase()}-tierlist.png`;

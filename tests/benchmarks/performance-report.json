@@ -1,0 +1,112 @@
+[
+  {
+    "routeName": "Homepage",
+    "routePath": "/",
+    "totalNavMs": 3666,
+    "ttfbMs": 1622,
+    "domContentLoadedMs": 2616,
+    "loadCompleteMs": 3133,
+    "firstPaintMs": 2756,
+    "firstContentfulPaintMs": 2756,
+    "domNodes": 604,
+    "memory": {
+      "usedJSHeapSizeMB": 14.58,
+      "totalJSHeapSizeMB": 18.9
+    },
+    "transferredStats": {
+      "requestCount": 29,
+      "totalTransferredKB": 150.5,
+      "jsKB": 1.1,
+      "cssKB": 0,
+      "imgKB": 0
+    }
+  },
+  {
+    "routeName": "Studio",
+    "routePath": "/template/elden-ring-bosses",
+    "totalNavMs": 2079,
+    "ttfbMs": 663,
+    "domContentLoadedMs": 968,
+    "loadCompleteMs": 1677,
+    "firstPaintMs": 976,
+    "firstContentfulPaintMs": 976,
+    "domNodes": 512,
+    "memory": {
+      "usedJSHeapSizeMB": 23.72,
+      "totalJSHeapSizeMB": 34.6
+    },
+    "transferredStats": {
+      "requestCount": 43,
+      "totalTransferredKB": 149.1,
+      "jsKB": 0,
+      "cssKB": 0,
+      "imgKB": 0
+    }
+  },
+  {
+    "routeName": "Versus Arena",
+    "routePath": "/versus",
+    "totalNavMs": 1344,
+    "ttfbMs": 231,
+    "domContentLoadedMs": 293,
+    "loadCompleteMs": 428,
+    "firstPaintMs": 312,
+    "firstContentfulPaintMs": 312,
+    "domNodes": 245,
+    "memory": {
+      "usedJSHeapSizeMB": 27.98,
+      "totalJSHeapSizeMB": 42.18
+    },
+    "transferredStats": {
+      "requestCount": 31,
+      "totalTransferredKB": 149.5,
+      "jsKB": 0.4,
+      "cssKB": 0,
+      "imgKB": 0
+    }
+  },
+  {
+    "routeName": "Creator Profile",
+    "routePath": "/user/hashir",
+    "totalNavMs": 1273,
+    "ttfbMs": 182,
+    "domContentLoadedMs": 220,
+    "loadCompleteMs": 479,
+    "firstPaintMs": 244,
+    "firstContentfulPaintMs": 244,
+    "domNodes": 58,
+    "memory": {
+      "usedJSHeapSizeMB": 35.23,
+      "totalJSHeapSizeMB": 45.24
+    },
+    "transferredStats": {
+      "requestCount": 23,
+      "totalTransferredKB": 51.6,
+      "jsKB": 0.4,
+      "cssKB": 0,
+      "imgKB": 0
+    }
+  },
+  {
+    "routeName": "My Projects",
+    "routePath": "/my-projects",
+    "totalNavMs": 1204,
+    "ttfbMs": 118,
+    "domContentLoadedMs": 163,
+    "loadCompleteMs": 321,
+    "firstPaintMs": 280,
+    "firstContentfulPaintMs": 280,
+    "domNodes": 197,
+    "memory": {
+      "usedJSHeapSizeMB": 31.36,
+      "totalJSHeapSizeMB": 49.83
+    },
+    "transferredStats": {
+      "requestCount": 23,
+      "totalTransferredKB": 51.6,
+      "jsKB": 0.4,
+      "cssKB": 0,
+      "imgKB": 0
+    }
+  }
+]

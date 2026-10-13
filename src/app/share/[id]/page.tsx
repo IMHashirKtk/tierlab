@@ -27,14 +27,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     topItems
   )}&totalRanked=${encodeURIComponent(totalRanked + " items ranked")}&mode=ranking`;
 
-  const pageTitle = `${ranking.title} - Ranked by @${ranking.authorName} | TierLab`;
+  const pageTitle = `${ranking.title} - Ranked by @${ranking.authorName}`;
   const pageDescription = `Check out @${ranking.authorName}'s "${ranking.title}" tier list. View placements, duel head-to-head, or remix your own version on TierLab.`;
 
   return {
     title: pageTitle,
     description: pageDescription,
     openGraph: {
-      title: pageTitle,
+      title: `${pageTitle} | TierLab`,
       description: pageDescription,
       images: [
         {

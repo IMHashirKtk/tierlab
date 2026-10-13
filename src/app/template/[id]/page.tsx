@@ -29,14 +29,14 @@ export async function generateMetadata({
     template.items.length + " items"
   )}&mode=template`;
 
-  const pageTitle = `${template.title} Tier List Maker & Ranking | TierLab`;
+  const pageTitle = `${template.title} Tier List Maker & Ranking`;
   const pageDescription = `Rank ${template.title} with drag-and-drop tiers. View community consensus, compare similarity, and duel friends on TierLab.`;
 
   return {
     title: pageTitle,
     description: pageDescription,
     openGraph: {
-      title: pageTitle,
+      title: `${pageTitle} | TierLab`,
       description: pageDescription,
       images: [
         {

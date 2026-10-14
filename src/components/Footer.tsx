@@ -31,31 +31,31 @@ export function Footer() {
 
           <div>
             <h4 className="text-white font-semibold mb-3">Explore</h4>
-            <ul className="space-y-2 text-zinc-500">
-              <li><Link href="/create" className="hover:text-zinc-300">Free Tier List Maker</Link></li>
-              <li><Link href="/versus" className="hover:text-zinc-300">Versus Arena</Link></li>
-              <li><a href="#trending" className="hover:text-zinc-300">Trending Templates</a></li>
-              <li><a href="#feed" className="hover:text-zinc-300">Live Activity Feed</a></li>
+            <ul className="space-y-1 text-zinc-500">
+              <li><Link href="/create" className="hover:text-zinc-300 py-1 inline-flex items-center min-h-[28px]">Free Tier List Maker</Link></li>
+              <li><Link href="/versus" className="hover:text-zinc-300 py-1 inline-flex items-center min-h-[28px]">Versus Arena</Link></li>
+              <li><a href="#trending" className="hover:text-zinc-300 py-1 inline-flex items-center min-h-[28px]">Trending Templates</a></li>
+              <li><a href="#feed" className="hover:text-zinc-300 py-1 inline-flex items-center min-h-[28px]">Live Activity Feed</a></li>
             </ul>
           </div>
 
           <div>
             <h4 className="text-white font-semibold mb-3">Fandoms</h4>
-            <ul className="space-y-2 text-zinc-500">
-              <li><Link href="/categories/gaming" className="hover:text-zinc-300">Gaming Tier Lists</Link></li>
-              <li><Link href="/categories/anime" className="hover:text-zinc-300">Anime & Manga</Link></li>
-              <li><Link href="/categories/food" className="hover:text-zinc-300">Food & Fast Food</Link></li>
-              <li><Link href="/categories/movies" className="hover:text-zinc-300">MCU & Movies</Link></li>
+            <ul className="space-y-1 text-zinc-500">
+              <li><Link href="/categories/gaming" className="hover:text-zinc-300 py-1 inline-flex items-center min-h-[28px]">Gaming Tier Lists</Link></li>
+              <li><Link href="/categories/anime" className="hover:text-zinc-300 py-1 inline-flex items-center min-h-[28px]">Anime & Manga</Link></li>
+              <li><Link href="/categories/food" className="hover:text-zinc-300 py-1 inline-flex items-center min-h-[28px]">Food & Fast Food</Link></li>
+              <li><Link href="/categories/movies" className="hover:text-zinc-300 py-1 inline-flex items-center min-h-[28px]">MCU & Movies</Link></li>
             </ul>
           </div>
 
           <div>
             <h4 className="text-white font-semibold mb-3">Privacy & App</h4>
-            <ul className="space-y-2 text-zinc-500">
+            <ul className="space-y-1 text-zinc-500">
               <li>
                 <button
                   onClick={openPrivacyModal}
-                  className="hover:text-zinc-300 text-left cursor-pointer flex items-center gap-1.5"
+                  className="hover:text-zinc-300 text-left cursor-pointer flex items-center gap-1.5 py-1 min-h-[28px]"
                 >
                   <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
                   <span>Privacy & Storage Hub</span>
@@ -64,7 +64,7 @@ export function Footer() {
               <li>
                 <button
                   onClick={openPrivacyModal}
-                  className="hover:text-zinc-300 text-left cursor-pointer"
+                  className="hover:text-zinc-300 text-left cursor-pointer py-1 inline-flex items-center min-h-[28px]"
                 >
                   Export Data Backup
                 </button>
@@ -72,7 +72,7 @@ export function Footer() {
               <li>
                 <button
                   onClick={openPrivacyModal}
-                  className="hover:text-zinc-300 text-left cursor-pointer"
+                  className="hover:text-zinc-300 text-left cursor-pointer py-1 inline-flex items-center min-h-[28px]"
                 >
                   Install PWA App
                 </button>
@@ -80,7 +80,7 @@ export function Footer() {
               <li>
                 <button
                   onClick={openPrivacyModal}
-                  className="hover:text-zinc-300 text-left cursor-pointer"
+                  className="hover:text-zinc-300 text-left cursor-pointer py-1 inline-flex items-center min-h-[28px]"
                 >
                   Local-First Drafts
                 </button>
@@ -94,20 +94,20 @@ export function Footer() {
           <div className="flex items-center gap-4">
             <button
               onClick={openPrivacyModal}
-              className="hover:text-emerald-400 text-zinc-400 cursor-pointer flex items-center gap-1 transition-colors"
+              className="hover:text-emerald-400 text-zinc-400 cursor-pointer flex items-center gap-1 transition-colors py-1 min-h-[28px]"
             >
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
               <span>Local-First Privacy</span>
             </button>
             <button
               onClick={() => setLegalModal("terms")}
-              className="hover:text-zinc-400 cursor-pointer transition-colors"
+              className="hover:text-zinc-400 cursor-pointer transition-colors py-1 min-h-[28px] inline-flex items-center"
             >
               Terms
             </button>
             <button
               onClick={() => setLegalModal("dmca")}
-              className="hover:text-zinc-400 cursor-pointer transition-colors"
+              className="hover:text-zinc-400 cursor-pointer transition-colors py-1 min-h-[28px] inline-flex items-center"
             >
               DMCA
             </button>

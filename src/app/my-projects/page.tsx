@@ -69,7 +69,7 @@ export default function MyProjectsPage() {
             <div className="flex items-center gap-2 mb-1">
               <Link
                 href="/"
-                className="text-xs text-zinc-400 hover:text-white flex items-center gap-1 transition-colors"
+                className="text-xs text-zinc-400 hover:text-white py-1.5 px-2 min-h-[30px] inline-flex items-center gap-1 rounded-lg hover:bg-zinc-900 transition-colors"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
                 <span>Home</span>
@@ -173,7 +173,7 @@ export default function MyProjectsPage() {
                   <div className="pt-4 border-t border-zinc-800/80 flex items-center justify-between">
                     <button
                       onClick={() => handleDelete(proj.id)}
-                      className="p-1.5 rounded-lg text-zinc-500 hover:text-red-400 hover:bg-zinc-800 transition-colors cursor-pointer"
+                      className="p-2 min-w-[32px] min-h-[32px] flex items-center justify-center rounded-lg text-zinc-500 hover:text-red-400 hover:bg-zinc-800 transition-colors cursor-pointer"
                       title="Delete project"
                     >
                       <Trash2 className="w-4 h-4" />

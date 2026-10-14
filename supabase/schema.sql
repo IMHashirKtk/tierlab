@@ -125,30 +125,37 @@ alter table public.tier_lists enable row level security;
 alter table public.upvotes enable row level security;
 
 -- Public Read Policies
+drop policy if exists "Allow public read on templates" on public.templates;
 create policy "Allow public read on templates"
   on public.templates for select
   using (true);
 
+drop policy if exists "Allow public insert on templates" on public.templates;
 create policy "Allow public insert on templates"
   on public.templates for insert
   with check (true);
 
+drop policy if exists "Allow public read on tier_lists" on public.tier_lists;
 create policy "Allow public read on tier_lists"
   on public.tier_lists for select
   using (true);
 
+drop policy if exists "Allow public insert on tier_lists" on public.tier_lists;
 create policy "Allow public insert on tier_lists"
   on public.tier_lists for insert
   with check (true);
 
+drop policy if exists "Allow public read on upvotes" on public.upvotes;
 create policy "Allow public read on upvotes"
   on public.upvotes for select
   using (true);
 
+drop policy if exists "Allow public insert on upvotes" on public.upvotes;
 create policy "Allow public insert on upvotes"
   on public.upvotes for insert
   with check (true);
 
+drop policy if exists "Allow public delete on upvotes" on public.upvotes;
 create policy "Allow public delete on upvotes"
   on public.upvotes for delete
   using (true);
@@ -168,10 +175,12 @@ create index if not exists idx_comments_created_at on public.comments(created_at
 
 alter table public.comments enable row level security;
 
+drop policy if exists "Allow public read on comments" on public.comments;
 create policy "Allow public read on comments"
   on public.comments for select
   using (true);
 
+drop policy if exists "Allow public insert on comments" on public.comments;
 create policy "Allow public insert on comments"
   on public.comments for insert
   with check (true);

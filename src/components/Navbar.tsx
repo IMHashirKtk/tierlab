@@ -200,7 +200,7 @@ export function Navbar({ onOpenPublish }: NavbarProps) {
           {/* Profile Button */}
           <Link
             href={`/user/${encodeURIComponent(creatorHandle)}`}
-            className="w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white hover:border-zinc-700 transition-colors"
+            className="w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white hover:border-zinc-700 transition-colors flex-shrink-0"
             title={`Creator Profile (${creatorHandle})`}
           >
             <User className="w-4 h-4" />

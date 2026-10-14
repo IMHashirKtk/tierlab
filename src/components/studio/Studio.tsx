@@ -166,6 +166,9 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
   const [isMobileToolsOpen, setIsMobileToolsOpen] = useState(false);
   const [unrankedSearch, setUnrankedSearch] = useState("");
 
+  // Tap-to-rank quick selection state
+  const [selectedItem, setSelectedItem] = useState<Item | null>(null);
+
   // Compression & Upload State
   const [isCompressing, setIsCompressing] = useState(false);
   const [compressionProgress, setCompressionProgress] = useState({ done: 0, total: 0 });
@@ -437,9 +440,8 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
     setOverContainerId(null);
   }, []);
 
-  // Image Upload with WebP Compressor
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
+  // Image Processing & WebP Compression (File Input, Drag-and-Drop, or Clipboard Paste)
+  const processAndAddImages = async (files: FileList | File[]) => {
     if (!files || files.length === 0) return;
 
     setIsCompressing(true);
@@ -461,12 +463,169 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
         unranked: [...newItems, ...prev.unranked],
       }));
     } catch (err) {
-      console.error("Image upload failed", err);
+      console.error("Image upload/compression failed", err);
     } finally {
       setIsCompressing(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      processAndAddImages(e.target.files);
+    }
+  };
+
+  // Clipboard Image Pasting (Ctrl+V / Cmd+V)
+  useEffect(() => {
+    const handlePaste = (e: ClipboardEvent) => {
+      const activeEl = document.activeElement;
+      if (
+        activeEl &&
+        (activeEl.tagName === "INPUT" ||
+          activeEl.tagName === "TEXTAREA" ||
+          activeEl.getAttribute("contenteditable") === "true")
+      ) {
+        return;
+      }
+
+      const files: File[] = [];
+      if (e.clipboardData?.files && e.clipboardData.files.length > 0) {
+        for (let i = 0; i < e.clipboardData.files.length; i++) {
+          const file = e.clipboardData.files[i];
+          if (file.type.startsWith("image/")) {
+            files.push(file);
+          }
+        }
+      } else if (e.clipboardData?.items) {
+        for (let i = 0; i < e.clipboardData.items.length; i++) {
+          const item = e.clipboardData.items[i];
+          if (item.type.startsWith("image/")) {
+            const blob = item.getAsFile();
+            if (blob) files.push(blob);
+          }
+        }
+      }
+
+      if (files.length > 0) {
+        e.preventDefault();
+        processAndAddImages(files);
+      }
+    };
+
+    window.addEventListener("paste", handlePaste);
+    return () => window.removeEventListener("paste", handlePaste);
+  }, []);
+
+  // File Drag-and-Drop over Unranked tray
+  const handleDragOverFiles = (e: React.DragEvent) => {
+    if (e.dataTransfer.types.includes("Files")) {
+      e.preventDefault();
+    }
+  };
+
+  const handleDropFiles = (e: React.DragEvent) => {
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const files: File[] = [];
+      for (let i = 0; i < e.dataTransfer.files.length; i++) {
+        const file = e.dataTransfer.files[i];
+        if (file.type.startsWith("image/")) {
+          files.push(file);
+        }
+      }
+      if (files.length > 0) {
+        e.preventDefault();
+        e.stopPropagation();
+        processAndAddImages(files);
+      }
+    }
+  };
+
+  // Tap-to-select quick rank assignment
+  const handleQuickAssignTier = (tierId: string) => {
+    if (!selectedItem) return;
+
+    commitBoardChange((prev) => {
+      const sourceContainer = findContainer(prev, selectedItem.id);
+      if (!sourceContainer) return prev;
+
+      const sourceItems = getItems(prev, sourceContainer);
+      const targetItems = getItems(prev, tierId);
+
+      const movingItem = sourceItems.find((i) => i.id === selectedItem.id);
+      if (!movingItem) return prev;
+
+      const newSource = sourceItems.filter((i) => i.id !== selectedItem.id);
+      const filteredTarget = targetItems.filter((i) => i.id !== selectedItem.id);
+      const newTarget = [...filteredTarget, movingItem];
+
+      let updated = setItems(prev, sourceContainer, newSource);
+      updated = setItems(updated, tierId, newTarget);
+      return updated;
+    });
+
+    const targetTier = board.tiers.find((t) => t.id === tierId);
+    if (targetTier) triggerDropFx(targetTier.label);
+
+    // Automatically advance to next unranked item (if any)
+    const nextUnranked = board.unranked.filter((it) => it.id !== selectedItem.id);
+    setSelectedItem(nextUnranked.length > 0 ? nextUnranked[0] : null);
+  };
+
+  const handleReturnToUnranked = () => {
+    if (!selectedItem) return;
+    commitBoardChange((prev) => {
+      const sourceContainer = findContainer(prev, selectedItem.id);
+      if (!sourceContainer || sourceContainer === UNRANKED) return prev;
+
+      const sourceItems = getItems(prev, sourceContainer);
+      const movingItem = sourceItems.find((i) => i.id === selectedItem.id);
+      if (!movingItem) return prev;
+
+      const newSource = sourceItems.filter((i) => i.id !== selectedItem.id);
+      const newUnranked = [movingItem, ...prev.unranked.filter((i) => i.id !== selectedItem.id)];
+
+      let updated = setItems(prev, sourceContainer, newSource);
+      updated = setItems(updated, UNRANKED, newUnranked);
+      return updated;
+    });
+    setSelectedItem(null);
+  };
+
+  // Keyboard Shortcuts for Tap-to-Rank Dock (1-9 to assign tier, Backspace to unrank, Esc to deselect)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!selectedItem) return;
+      const activeEl = document.activeElement;
+      if (
+        activeEl &&
+        (activeEl.tagName === "INPUT" ||
+          activeEl.tagName === "TEXTAREA" ||
+          activeEl.getAttribute("contenteditable") === "true")
+      ) {
+        return;
+      }
+
+      if (e.key === "Escape") {
+        setSelectedItem(null);
+        return;
+      }
+
+      if (e.key === "Backspace" || e.key === "Delete") {
+        handleReturnToUnranked();
+        return;
+      }
+
+      const num = parseInt(e.key, 10);
+      if (!isNaN(num) && num >= 1 && num <= board.tiers.length) {
+        e.preventDefault();
+        handleQuickAssignTier(board.tiers[num - 1].id);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedItem, board.tiers]);
 
   // Tier Row Operations
   const handleUpdateTierLabel = (tierId: string, newLabel: string) => {
@@ -860,7 +1019,7 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
             <button
               onClick={handleUndo}
               disabled={history.length === 0}
-              className="p-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-300 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+              className="p-2 min-w-[32px] min-h-[32px] flex items-center justify-center rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-300 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
               title="Undo"
             >
               <Undo2 className="w-4 h-4" />
@@ -870,7 +1029,7 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
             <button
               onClick={handleRedo}
               disabled={future.length === 0}
-              className="p-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-300 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+              className="p-2 min-w-[32px] min-h-[32px] flex items-center justify-center rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-300 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
               title="Redo"
             >
               <Redo2 className="w-4 h-4" />
@@ -1074,14 +1233,14 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
                       />
                     </div>
 
-                    {/* Palette icon trigger on hover */}
+                    {/* Palette icon trigger on hover (desktop only) */}
                     <button
                       onClick={() =>
                         setActiveColorPickerTierId(
                           activeColorPickerTierId === tier.id ? null : tier.id
                         )
                       }
-                      className="absolute bottom-1.5 right-1.5 p-1 rounded bg-black/40 hover:bg-black/70 text-white/80 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                      className="hidden sm:flex absolute bottom-1.5 right-1.5 p-1 rounded bg-black/40 hover:bg-black/70 text-white/80 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                       title="Change tier color"
                     >
                       <Palette className="w-3 h-3" />
@@ -1115,10 +1274,12 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
                     }
                     onRemoveItem={(item) => handleRemoveItemFromTier(item, tier.id)}
                     removeLabel="Return to unranked"
+                    selectedItemId={selectedItem?.id}
+                    onSelectItem={(item) => setSelectedItem((prev) => (prev?.id === item.id ? null : item))}
                   />
 
                   {/* Tier Row Operations (Sort, Shuffle, Clear, Move, Delete) */}
-                  <div className="flex flex-col justify-center items-center px-1.5 py-1 border-l border-zinc-800/80 gap-1 opacity-30 group-hover:opacity-100 transition-opacity">
+                  <div className="hidden sm:flex flex-col justify-center items-center px-1.5 py-1 border-l border-zinc-800/80 gap-1 opacity-30 group-hover:opacity-100 transition-opacity">
                     <button
                       onClick={() => handleSortTierAlphabetical(tier.id)}
                       disabled={tier.items.length <= 1}
@@ -1183,7 +1344,11 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
           </div>
 
           {/* Unranked Items Tray & Uploader (1 Column) */}
-          <div className="rounded-2xl bg-zinc-900/80 border border-zinc-800 p-5 flex flex-col justify-between h-fit space-y-4">
+          <div
+            onDragOver={handleDragOverFiles}
+            onDrop={handleDropFiles}
+            className="rounded-2xl bg-zinc-900/80 border border-zinc-800 p-5 flex flex-col justify-between h-fit space-y-4"
+          >
             <div>
               <div className="flex items-center justify-between pb-3 border-b border-zinc-800 mb-4">
                 <div className="flex items-center gap-2">
@@ -1193,12 +1358,15 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
                   <span className="px-1.5 py-0.5 rounded bg-zinc-800 text-[11px] font-mono text-zinc-400">
                     {board.unranked.length}
                   </span>
+                  <span className="hidden xl:inline text-[10px] text-zinc-500 font-medium">
+                    Auto-WebP • Ctrl+V Paste
+                  </span>
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1.5">
                   {/* Instant Web Search Trigger */}
                   <button
                     onClick={() => setIsWebSearchOpen(true)}
-                    className="p-1.5 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-400 hover:text-indigo-300 transition-colors cursor-pointer border border-indigo-500/30"
+                    className="p-2 min-w-[32px] min-h-[32px] flex items-center justify-center rounded-lg bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-400 hover:text-indigo-300 transition-colors cursor-pointer border border-indigo-500/30"
                     title="Search Web & Icons"
                   >
                     <Globe className="w-3.5 h-3.5" />
@@ -1206,7 +1374,7 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
                   {/* Local Upload */}
                   <button
                     onClick={() => fileInputRef.current?.click()}
-                    className="p-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-750 text-indigo-400 hover:text-indigo-300 transition-colors cursor-pointer"
+                    className="p-2 min-w-[32px] min-h-[32px] flex items-center justify-center rounded-lg bg-zinc-800 hover:bg-zinc-750 text-indigo-400 hover:text-indigo-300 transition-colors cursor-pointer"
                     title="Upload Batch Images"
                   >
                     <Upload className="w-3.5 h-3.5" />
@@ -1214,7 +1382,7 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
                   {/* Add Text */}
                   <button
                     onClick={() => setIsAddingText(!isAddingText)}
-                    className="p-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-750 text-zinc-300 hover:text-white transition-colors cursor-pointer"
+                    className="p-2 min-w-[32px] min-h-[32px] flex items-center justify-center rounded-lg bg-zinc-800 hover:bg-zinc-750 text-zinc-300 hover:text-white transition-colors cursor-pointer"
                     title="Add Text Item"
                   >
                     <Type className="w-3.5 h-3.5" />
@@ -1280,15 +1448,15 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
                     placeholder={`Filter ${board.unranked.length} unranked items...`}
                     value={unrankedSearch}
                     onChange={(e) => setUnrankedSearch(e.target.value)}
-                    className="w-full bg-zinc-950/80 border border-zinc-800 rounded-lg pl-8 pr-7 py-1.5 text-xs text-zinc-200 placeholder:text-zinc-500 focus:outline-none focus:border-indigo-500 transition-colors"
+                    className="w-full bg-zinc-950/80 border border-zinc-800 rounded-lg pl-8 pr-8 py-1.5 text-xs text-zinc-200 placeholder:text-zinc-500 focus:outline-none focus:border-indigo-500 transition-colors"
                   />
                   {unrankedSearch && (
                     <button
                       onClick={() => setUnrankedSearch("")}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 p-0.5 cursor-pointer"
+                      className="absolute right-1 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 min-w-[28px] min-h-[28px] flex items-center justify-center cursor-pointer"
                       title="Clear search"
                     >
-                      <X className="w-3 h-3" />
+                      <X className="w-3.5 h-3.5" />
                     </button>
                   )}
                 </div>
@@ -1300,6 +1468,10 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
                   id={UNRANKED}
                   items={filteredUnranked}
                   highlighted={overContainerId === UNRANKED}
+                  selectedItemId={selectedItem?.id}
+                  onSelectItem={(item) =>
+                    setSelectedItem((prev) => (prev?.id === item.id ? null : item))
+                  }
                   className="min-h-[140px] p-1"
                   emptyHint={
                     board.unranked.length > 0 && filteredUnranked.length === 0 ? (
@@ -1441,6 +1613,70 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
           onClose={() => setIsPresetsModalOpen(false)}
           onApplyPreset={handleApplyPreset}
         />
+
+        {/* Tap-to-Rank Dock (Mobile & Desktop Rapid Ranking) */}
+        {selectedItem && (
+          <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-2xl bg-zinc-900/95 backdrop-blur-xl border border-indigo-500/40 shadow-2xl shadow-indigo-950/60 rounded-2xl p-3 flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 animate-in fade-in slide-in-from-bottom-4 duration-200">
+            <div className="flex items-center gap-2.5 min-w-0 pr-2">
+              <div className="w-10 h-10 rounded-lg overflow-hidden bg-zinc-800 flex-shrink-0 border border-zinc-700 relative">
+                {selectedItem.imageUrl ? (
+                  <img
+                    src={selectedItem.imageUrl}
+                    alt={selectedItem.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-[10px] text-zinc-300 font-bold p-1 text-center bg-zinc-800">
+                    {selectedItem.name}
+                  </div>
+                )}
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-semibold text-white truncate max-w-[140px] sm:max-w-[180px]">
+                  {selectedItem.name}
+                </p>
+                <span className="text-[10px] text-zinc-400">
+                  Tap tier to assign • 1-{board.tiers.length} keys
+                </span>
+              </div>
+            </div>
+
+            {/* Tier quick-assign pills */}
+            <div className="flex items-center gap-1.5 flex-wrap sm:flex-nowrap overflow-x-auto py-1 max-w-full">
+              {board.tiers.map((t, idx) => (
+                <button
+                  key={t.id}
+                  onClick={() => handleQuickAssignTier(t.id)}
+                  style={{ backgroundColor: t.color }}
+                  className="min-w-[34px] min-h-[34px] px-2.5 py-1 rounded-lg text-xs font-black text-black/90 shadow-sm hover:scale-105 active:scale-95 transition-all flex items-center justify-center cursor-pointer"
+                  title={`Assign to ${t.label} (Press ${idx + 1})`}
+                >
+                  {t.label}
+                </button>
+              ))}
+
+              {/* Return to unranked */}
+              {findContainer(board, selectedItem.id) !== UNRANKED && (
+                <button
+                  onClick={handleReturnToUnranked}
+                  className="min-w-[34px] min-h-[34px] px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-750 text-zinc-300 text-xs font-semibold shadow-sm hover:scale-105 active:scale-95 transition-all flex items-center justify-center cursor-pointer"
+                  title="Return to unranked (Press Backspace)"
+                >
+                  Unrank
+                </button>
+              )}
+
+              {/* Deselect / Cancel */}
+              <button
+                onClick={() => setSelectedItem(null)}
+                className="min-w-[34px] min-h-[34px] p-2 rounded-lg bg-zinc-800/80 hover:bg-zinc-800 text-zinc-400 hover:text-white transition-colors flex items-center justify-center cursor-pointer ml-1"
+                title="Deselect (Press Esc)"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </DndContext>
   );

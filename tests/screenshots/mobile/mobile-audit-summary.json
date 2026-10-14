@@ -5,6 +5,10 @@
       "details": "Viewport 469px cleanly contained"
     },
     {
+      "testName": "Touch Target Ergonomics [Homepage (iPhone)]",
+      "details": "Checked 92 targets, touch-ergonomic"
+    },
+    {
       "testName": "Mobile Category Bar",
       "details": "Horizontal scroll tray rendered"
     },
@@ -15,6 +19,10 @@
     {
       "testName": "Zero Horizontal Overflow [Studio (iPhone)]",
       "details": "Viewport 390px cleanly contained"
+    },
+    {
+      "testName": "Touch Target Ergonomics [Studio (iPhone)]",
+      "details": "Checked 81 targets, touch-ergonomic"
     },
     {
       "testName": "Mobile Studio Tier Rows",
@@ -93,6 +101,10 @@
       "details": "Viewport 469px cleanly contained"
     },
     {
+      "testName": "Touch Target Ergonomics [My Projects (iPhone)]",
+      "details": "Checked 33 targets, touch-ergonomic"
+    },
+    {
       "testName": "Mobile My Projects Screenshot",
       "details": "Saved mobile_09_my_projects_iphone.png"
     },
@@ -118,126 +130,7 @@
     }
   ],
   "failed": [],
-  "warnings": [
-    {
-      "testName": "Touch Target Ergonomics [Homepage (iPhone)]",
-      "details": "6 interactive items below 28px threshold (checked 80)"
-    },
-    {
-      "testName": "Touch Target Ergonomics [Studio (iPhone)]",
-      "details": "29 interactive items below 28px threshold (checked 81)"
-    },
-    {
-      "testName": "Touch Target Ergonomics [My Projects (iPhone)]",
-      "details": "12 interactive items below 28px threshold (checked 33)"
-    }
-  ],
+  "warnings": [],
   "overflowViolations": [],
-  "touchTargetViolations": [
-    {
-      "routeName": "Homepage (iPhone)",
-      "totalChecked": 80,
-      "issuesCount": 6,
-      "sampleIssues": [
-        {
-          "tag": "A",
-          "text": "",
-          "width": 25,
-          "height": 36,
-          "class": "w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-800 flex i"
-        },
-        {
-          "tag": "A",
-          "text": "Roblox Games",
-          "width": 102,
-          "height": 26,
-          "class": "px-2.5 py-1 rounded-lg bg-zinc-900 hover:bg-zinc-800 border "
-        },
-        {
-          "tag": "A",
-          "text": "Elden Ring Bosses",
-          "width": 124,
-          "height": 26,
-          "class": "px-2.5 py-1 rounded-lg bg-zinc-900 hover:bg-zinc-800 border "
-        },
-        {
-          "tag": "A",
-          "text": "Anime of the Year",
-          "width": 119,
-          "height": 26,
-          "class": "px-2.5 py-1 rounded-lg bg-zinc-900 hover:bg-zinc-800 border "
-        }
-      ]
-    },
-    {
-      "routeName": "Studio (iPhone)",
-      "totalChecked": 81,
-      "issuesCount": 29,
-      "sampleIssues": [
-        {
-          "tag": "BUTTON",
-          "text": "",
-          "width": 20,
-          "height": 20,
-          "class": "absolute bottom-1.5 right-1.5 p-1 rounded bg-black/40 hover:"
-        },
-        {
-          "tag": "BUTTON",
-          "text": "",
-          "width": 22,
-          "height": 22,
-          "class": "p-1 rounded text-zinc-400 hover:text-indigo-400 disabled:opa"
-        },
-        {
-          "tag": "BUTTON",
-          "text": "",
-          "width": 22,
-          "height": 22,
-          "class": "p-1 rounded text-zinc-400 hover:text-amber-400 disabled:opac"
-        },
-        {
-          "tag": "BUTTON",
-          "text": "",
-          "width": 22,
-          "height": 22,
-          "class": "p-1 rounded text-zinc-400 hover:text-orange-400 disabled:opa"
-        }
-      ]
-    },
-    {
-      "routeName": "My Projects (iPhone)",
-      "totalChecked": 33,
-      "issuesCount": 12,
-      "sampleIssues": [
-        {
-          "tag": "A",
-          "text": "",
-          "width": 25,
-          "height": 36,
-          "class": "w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-800 flex i"
-        },
-        {
-          "tag": "A",
-          "text": "Home",
-          "width": 50,
-          "height": 16,
-          "class": "text-xs text-zinc-400 hover:text-white flex items-center gap"
-        },
-        {
-          "tag": "A",
-          "text": "Tier List Maker",
-          "width": 358,
-          "height": 24,
-          "class": "flex items-center gap-2 mb-3 group"
-        },
-        {
-          "tag": "A",
-          "text": "Free Tier List Maker",
-          "width": 108,
-          "height": 16,
-          "class": "hover:text-zinc-300"
-        }
-      ]
-    }
-  ]
+  "touchTargetViolations": []
 }

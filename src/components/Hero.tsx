@@ -45,7 +45,7 @@ export function Hero({ onOpenPublish }: HeroProps) {
           <Link
             key={tag.name}
             href={tag.href}
-            className="px-2.5 py-1 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-xs text-zinc-300 hover:text-white transition-colors"
+            className="px-3 py-1.5 min-h-[30px] inline-flex items-center rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-xs text-zinc-300 hover:text-white transition-colors"
           >
             {tag.name}
           </Link>

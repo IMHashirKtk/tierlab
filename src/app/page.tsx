@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { ActivityTicker } from "@/components/ActivityTicker";
 import { Navbar } from "@/components/Navbar";
 import { Hero } from "@/components/Hero";
+import { QuickRankBoard } from "@/components/QuickRankBoard";
 import { TrendingTemplates } from "@/components/TrendingTemplates";
 import { LiveFeed } from "@/components/LiveFeed";
 import { ConsensusShowcase } from "@/components/ConsensusShowcase";
@@ -30,6 +31,7 @@ export default function Home() {
       {/* Main Content */}
       <main className="flex-1 relative z-10">
         <Hero onOpenPublish={() => setIsPublishModalOpen(true)} />
+        <QuickRankBoard />
         <TrendingTemplates />
         <LiveFeed />
         <ConsensusShowcase />

@@ -6,7 +6,7 @@
     },
     {
       "testName": "Category Filters Present",
-      "details": "Found 4 category filter pills"
+      "details": "Found 6 category filter pills"
     },
     {
       "testName": "Category Filter Click",
@@ -14,7 +14,7 @@
     },
     {
       "testName": "Homepage Search Filter",
-      "details": "Filtered by 'Elden Ring', found 12 matching card(s)"
+      "details": "Filtered by 'Elden Ring', found 11 matching card(s)"
     },
     {
       "testName": "Navbar Versus Link",

@@ -39,6 +39,14 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "**.mzstatic.com",
       },
+      {
+        protocol: "https",
+        hostname: "media.valorant-api.com",
+      },
+      {
+        protocol: "https",
+        hostname: "raw.githubusercontent.com",
+      },
     ],
   },
   async headers() {

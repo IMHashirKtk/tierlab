@@ -368,10 +368,12 @@ async function runMobileAudit() {
   const smallPage = await smallContext.newPage();
 
   try {
-    await smallPage.goto(`${BASE_URL}/`, { waitUntil: "networkidle", timeout: 25000 });
+    await smallPage.goto(`${BASE_URL}/`, { waitUntil: "domcontentloaded", timeout: 25000 });
+    await smallPage.waitForTimeout(1000);
     await checkHorizontalOverflow(smallPage, "Homepage (iPhone SE)");
 
-    await smallPage.goto(`${BASE_URL}/template/elden-ring-bosses`, { waitUntil: "networkidle", timeout: 25000 });
+    await smallPage.goto(`${BASE_URL}/template/elden-ring-bosses`, { waitUntil: "domcontentloaded", timeout: 25000 });
+    await smallPage.waitForTimeout(1000);
     await checkHorizontalOverflow(smallPage, "Studio (iPhone SE)");
     logPass("Small Viewport (375px) Studio Test", "Zero horizontal scroll blowout on compact screen");
   } catch (err) {

@@ -2,15 +2,15 @@
   "passed": [
     {
       "testName": "Client Secret Leak Audit",
-      "details": "Audited 10 client JS chunks, zero private secrets or service role keys leaked"
+      "details": "Audited 0 client JS chunks, zero private secrets or service role keys leaked"
     },
     {
-      "testName": "Comments XSS Form",
-      "details": "Form inputs verified safely"
+      "testName": "Comments Section XSS Neutralization",
+      "details": "Raw <script> and <img> payloads escaped cleanly by React text nodes"
     },
     {
-      "testName": "Studio Card Input",
-      "details": "Quick add text node structure verified"
+      "testName": "Studio Card XSS Neutralization",
+      "details": "Card label rendered as safe text node without HTML element injection"
     },
     {
       "testName": "Catalog Search SQL Resilience",

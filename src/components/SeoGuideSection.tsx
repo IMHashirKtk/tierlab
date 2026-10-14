@@ -221,6 +221,15 @@ export function SeoGuideSection() {
               </tbody>
             </table>
           </div>
+
+          <div className="mt-4 text-center">
+            <Link
+              href="/tiermaker-alternative"
+              className="inline-flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300 font-semibold transition-colors py-1 min-h-[28px]"
+            >
+              <span>See our in-depth 10-point TierMaker Alternative breakdown &rarr;</span>
+            </Link>
+          </div>
         </div>
 
         {/* Frequently Asked Questions (FAQ) Accordion */}

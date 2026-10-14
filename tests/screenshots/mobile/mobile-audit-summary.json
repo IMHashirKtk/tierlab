@@ -6,7 +6,7 @@
     },
     {
       "testName": "Touch Target Ergonomics [Homepage (iPhone)]",
-      "details": "Checked 106 targets, touch-ergonomic"
+      "details": "Checked 108 targets, touch-ergonomic"
     },
     {
       "testName": "Mobile Category Bar",
@@ -102,7 +102,7 @@
     },
     {
       "testName": "Touch Target Ergonomics [My Projects (iPhone)]",
-      "details": "Checked 33 targets, touch-ergonomic"
+      "details": "Checked 34 targets, touch-ergonomic"
     },
     {
       "testName": "Mobile My Projects Screenshot",
@@ -110,7 +110,7 @@
     },
     {
       "testName": "Zero Horizontal Overflow [Homepage (iPhone SE)]",
-      "details": "Viewport 468px cleanly contained"
+      "details": "Viewport 476px cleanly contained"
     },
     {
       "testName": "Zero Horizontal Overflow [Studio (iPhone SE)]",

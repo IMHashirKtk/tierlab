@@ -81,7 +81,8 @@ export function ShareModal({
 
   const origin = typeof window !== "undefined" ? window.location.origin : "https://tierlistmaker.app";
   const shareUrl = shareId ? `${origin}/share/${shareId}` : (typeof window !== "undefined" ? window.location.href : "");
-  const embedCode = `<iframe src="${shareUrl}" width="100%" height="600" frameborder="0"></iframe>`;
+  const embedUrl = `${origin}/embed/${shareId || (templateId ? templateId : "demo")}`;
+  const embedCode = `<iframe src="${embedUrl}" width="100%" height="520" style="border:0;border-radius:16px;overflow:hidden;" loading="lazy"></iframe>\n<p style="font-size:12px;margin-top:6px;">Interactive ranking powered by <a href="${origin}" target="_blank" rel="noopener">Tier List Maker</a> — <a href="${shareUrl}" target="_blank" rel="noopener">Remix or duel this tier list</a>.</p>`;
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(shareUrl);

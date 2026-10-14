@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { CATEGORIES } from "@/data/seed-templates";
 
 export function CategoryExplorer() {
@@ -18,16 +19,16 @@ export function CategoryExplorer() {
               Explore over 45,000 public templates across top fandoms.
             </p>
           </div>
-          <a href="#trending" className="text-xs font-semibold text-indigo-400 hover:text-indigo-300">
+          <Link href="/categories/gaming" className="text-xs font-semibold text-indigo-400 hover:text-indigo-300">
             View All Categories &rarr;
-          </a>
+          </Link>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
           {categoriesList.map((cat) => (
-            <a
+            <Link
               key={cat.id}
-              href="#trending"
+              href={`/categories/${cat.id}`}
               className="p-4 rounded-xl bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 hover:border-indigo-500/40 text-center transition-all group"
             >
               <div className="text-2xl mb-1 group-hover:scale-110 transition-transform">
@@ -37,7 +38,7 @@ export function CategoryExplorer() {
               <div className="text-[11px] text-zinc-500 mt-0.5">
                 {cat.count.toLocaleString()} templates
               </div>
-            </a>
+            </Link>
           ))}
         </div>
       </div>

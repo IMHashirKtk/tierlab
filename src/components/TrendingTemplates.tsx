@@ -3,15 +3,15 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { ArrowBigUp, RefreshCw, Layers, Sparkles } from "lucide-react";
-import { CATEGORIES } from "@/data/seed-templates";
+import { CATEGORIES, SEED_TEMPLATES } from "@/data/seed-templates";
 import { fetchTemplates, toggleUpvote } from "@/lib/community";
 import type { Template } from "@/types";
 
 export function TrendingTemplates() {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [activeSort, setActiveSort] = useState<"most-ranked" | "newest" | "top-rated">("most-ranked");
-  const [templates, setTemplates] = useState<Template[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [templates, setTemplates] = useState<Template[]>(SEED_TEMPLATES);
+  const [loading, setLoading] = useState(false);
   const [upvotedIds, setUpvotedIds] = useState<Record<string, boolean>>({});
 
   useEffect(() => {

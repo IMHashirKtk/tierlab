@@ -17,6 +17,9 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://tierlistmaker.app";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
+  alternates: {
+    canonical: "/",
+  },
   title: {
     default: "Tier List Maker — The Next-Gen Community Tier List Platform",
     template: "%s | Tier List Maker",
@@ -82,6 +85,30 @@ export const metadata: Metadata = {
   },
 };
 
+const webAppJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  name: "Tier List Maker",
+  alternateName: "TierListMaker.app",
+  url: "https://tierlistmaker.app",
+  applicationCategory: "EntertainmentApplication",
+  operatingSystem: "Any",
+  browserRequirements: "Requires JavaScript. Supports offline PWA mode.",
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "USD",
+  },
+  featureList: [
+    "Drag-and-drop S to F tier ranking",
+    "Zero watermark 4K PNG export",
+    "9:16 TikTok & Shorts animated reveal video export",
+    "Global mathematical community consensus",
+    "1v1 Versus Duel taste comparison",
+    "100% local-first IndexedDB storage",
+  ],
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -93,6 +120,10 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
     >
       <body className="min-h-full flex flex-col bg-[#09090b] text-[#f4f4f5]">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(webAppJsonLd) }}
+        />
         <PwaProvider>{children}</PwaProvider>
       </body>
     </html>

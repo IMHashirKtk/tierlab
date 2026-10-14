@@ -18,7 +18,7 @@
     },
     {
       "testName": "Mobile Studio Tier Rows",
-      "details": "Found 11 rendered tier rows"
+      "details": "Found 44 rendered tier rows"
     },
     {
       "testName": "Mobile Studio Screenshot",
@@ -121,11 +121,11 @@
   "warnings": [
     {
       "testName": "Touch Target Ergonomics [Homepage (iPhone)]",
-      "details": "6 interactive items below 28px threshold (checked 61)"
+      "details": "6 interactive items below 28px threshold (checked 80)"
     },
     {
       "testName": "Touch Target Ergonomics [Studio (iPhone)]",
-      "details": "29 interactive items below 28px threshold (checked 76)"
+      "details": "29 interactive items below 28px threshold (checked 81)"
     },
     {
       "testName": "Touch Target Ergonomics [My Projects (iPhone)]",
@@ -136,7 +136,7 @@
   "touchTargetViolations": [
     {
       "routeName": "Homepage (iPhone)",
-      "totalChecked": 61,
+      "totalChecked": 80,
       "issuesCount": 6,
       "sampleIssues": [
         {
@@ -171,7 +171,7 @@
     },
     {
       "routeName": "Studio (iPhone)",
-      "totalChecked": 76,
+      "totalChecked": 81,
       "issuesCount": 29,
       "sampleIssues": [
         {
@@ -232,8 +232,8 @@
         },
         {
           "tag": "A",
-          "text": "Trending Templates",
-          "width": 107,
+          "text": "Free Tier List Maker",
+          "width": 108,
           "height": 16,
           "class": "hover:text-zinc-300"
         }

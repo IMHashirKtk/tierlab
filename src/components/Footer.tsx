@@ -32,20 +32,20 @@ export function Footer() {
           <div>
             <h4 className="text-white font-semibold mb-3">Explore</h4>
             <ul className="space-y-2 text-zinc-500">
+              <li><Link href="/create" className="hover:text-zinc-300">Free Tier List Maker</Link></li>
+              <li><Link href="/versus" className="hover:text-zinc-300">Versus Arena</Link></li>
               <li><a href="#trending" className="hover:text-zinc-300">Trending Templates</a></li>
               <li><a href="#feed" className="hover:text-zinc-300">Live Activity Feed</a></li>
-              <li><a href="#categories" className="hover:text-zinc-300">All Categories</a></li>
-              <li><a href="#dropfx" className="hover:text-zinc-300">Drop FX Mode</a></li>
             </ul>
           </div>
 
           <div>
             <h4 className="text-white font-semibold mb-3">Fandoms</h4>
             <ul className="space-y-2 text-zinc-500">
-              <li><a href="#trending" className="hover:text-zinc-300">Gaming Tier Lists</a></li>
-              <li><a href="#trending" className="hover:text-zinc-300">Anime & Manga</a></li>
-              <li><a href="#trending" className="hover:text-zinc-300">Food & Fast Food</a></li>
-              <li><a href="#trending" className="hover:text-zinc-300">MCU & Movies</a></li>
+              <li><Link href="/categories/gaming" className="hover:text-zinc-300">Gaming Tier Lists</Link></li>
+              <li><Link href="/categories/anime" className="hover:text-zinc-300">Anime & Manga</Link></li>
+              <li><Link href="/categories/food" className="hover:text-zinc-300">Food & Fast Food</Link></li>
+              <li><Link href="/categories/movies" className="hover:text-zinc-300">MCU & Movies</Link></li>
             </ul>
           </div>
 

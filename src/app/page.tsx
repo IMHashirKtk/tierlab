@@ -9,6 +9,7 @@ import { LiveFeed } from "@/components/LiveFeed";
 import { ConsensusShowcase } from "@/components/ConsensusShowcase";
 import { DropFxTeaser } from "@/components/DropFxTeaser";
 import { CategoryExplorer } from "@/components/CategoryExplorer";
+import { SeoGuideSection } from "@/components/SeoGuideSection";
 import { Footer } from "@/components/Footer";
 import { PublishModal } from "@/components/PublishModal";
 
@@ -34,6 +35,7 @@ export default function Home() {
         <ConsensusShowcase />
         <DropFxTeaser />
         <CategoryExplorer />
+        <SeoGuideSection />
       </main>
 
       {/* Footer */}

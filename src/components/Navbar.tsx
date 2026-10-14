@@ -8,7 +8,7 @@ import { usePwa } from "@/components/pwa/PwaProvider";
 import type { Template } from "@/types";
 
 interface NavbarProps {
-  onOpenPublish: () => void;
+  onOpenPublish?: () => void;
 }
 
 export function Navbar({ onOpenPublish }: NavbarProps) {
@@ -179,7 +179,10 @@ export function Navbar({ onOpenPublish }: NavbarProps) {
 
           {/* Secondary CTA: Publish Template */}
           <button
-            onClick={onOpenPublish}
+            onClick={() => {
+              if (onOpenPublish) onOpenPublish();
+              else window.location.href = "/create";
+            }}
             className="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold text-zinc-300 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700/80 hover:border-zinc-600 flex items-center gap-2 transition-all cursor-pointer"
           >
             <Plus className="w-4 h-4 text-indigo-400" />

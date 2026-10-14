@@ -2,7 +2,7 @@
   "passed": [
     {
       "testName": "Homepage Hero Title",
-      "details": "Found text: \"The community platform where rankings become debates.\""
+      "details": "Found text: \"Free Tier List Maker — Rank Anything & Spark Debates.\""
     },
     {
       "testName": "Category Filters Present",
@@ -14,7 +14,7 @@
     },
     {
       "testName": "Homepage Search Filter",
-      "details": "Filtered by 'Elden Ring', found 9 matching card(s)"
+      "details": "Filtered by 'Elden Ring', found 12 matching card(s)"
     },
     {
       "testName": "Navbar Versus Link",
@@ -34,7 +34,7 @@
     },
     {
       "testName": "Unranked Tray Search",
-      "details": "Filtered for 'Messmer', found 1 matching card(s)"
+      "details": "Filtered for 'Messmer', found 3 matching card(s)"
     },
     {
       "testName": "Unranked Search Clear",

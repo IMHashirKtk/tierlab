@@ -1,5 +1,6 @@
 import { MetadataRoute } from "next";
-import { SEED_TEMPLATES } from "@/data/seed-templates";
+import { CATEGORIES, SEED_TEMPLATES } from "@/data/seed-templates";
+import { isSupabaseConfigured, supabase } from "@/lib/supabase";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://tierlistmaker.app";
@@ -23,20 +24,54 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly",
       priority: 0.85,
     },
-    {
-      url: `${siteUrl}/my-projects`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
   ];
 
-  const templateRoutes: MetadataRoute.Sitemap = SEED_TEMPLATES.map((t) => ({
-    url: `${siteUrl}/template/${t.id}`,
+  // Category Hub Routes
+  const categoryRoutes: MetadataRoute.Sitemap = CATEGORIES.filter(
+    (c) => c.id !== "all"
+  ).map((c) => ({
+    url: `${siteUrl}/categories/${c.id}`,
     lastModified: new Date(),
     changeFrequency: "weekly",
-    priority: 0.8,
+    priority: 0.85,
   }));
 
-  return [...staticRoutes, ...templateRoutes];
+  // Fetch Supabase templates + SEED_TEMPLATES deduplicated
+  const templateMap = new Map<string, { id: string; lastModified: Date }>();
+
+  SEED_TEMPLATES.forEach((t) => {
+    templateMap.set(t.id, { id: t.id, lastModified: new Date() });
+  });
+
+  if (isSupabaseConfigured() && supabase) {
+    try {
+      const { data, error } = await supabase
+        .from("templates")
+        .select("id, updated_at")
+        .order("rank_count", { ascending: false })
+        .limit(500);
+
+      if (!error && data) {
+        data.forEach((row) => {
+          templateMap.set(row.id, {
+            id: row.id,
+            lastModified: row.updated_at ? new Date(row.updated_at) : new Date(),
+          });
+        });
+      }
+    } catch (err) {
+      console.warn("Sitemap: Supabase query failed, falling back to seed templates", err);
+    }
+  }
+
+  const templateRoutes: MetadataRoute.Sitemap = Array.from(templateMap.values()).map(
+    (item) => ({
+      url: `${siteUrl}/template/${item.id}`,
+      lastModified: item.lastModified,
+      changeFrequency: "weekly",
+      priority: 0.8,
+    })
+  );
+
+  return [...staticRoutes, ...categoryRoutes, ...templateRoutes];
 }

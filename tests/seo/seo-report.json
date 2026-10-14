@@ -109,7 +109,7 @@
       "metaDescription": "Design and customize your tier lists with drag-and-drop tiers, streamer mode, color themes, and 4K lossless exports.",
       "ogTitle": "Tier List Maker Studio | Tier List Maker",
       "ogDesc": "Design and customize your tier lists with drag-and-drop tiers, streamer mode, color themes, and 4K lossless exports.",
-      "ogImage": null,
+      "ogImage": "https://tierlistmaker.app/api/og?title=Tier%20List%20Maker%20Studio&author=Creator%20Studio&category=Studio&mode=template",
       "twitterCard": "summary_large_image"
     },
     "/versus": {
@@ -117,7 +117,7 @@
       "metaDescription": "Compare your tier list head-to-head against friends and community consensus. Calculate algorithmic similarity scores and debate hot takes.",
       "ogTitle": "Head-to-Head Versus Duel | Tier List Maker",
       "ogDesc": "Compare your tier list head-to-head against friends and community consensus. Calculate algorithmic similarity scores and debate hot takes.",
-      "ogImage": null,
+      "ogImage": "https://tierlistmaker.app/api/og?title=Head-to-Head%20Versus%20Duel&author=Versus%20Arena&category=Duel&mode=versus",
       "twitterCard": "summary_large_image"
     },
     "/my-projects": {
@@ -125,7 +125,7 @@
       "metaDescription": "Manage your local-first tier lists, drafts, and published rankings stored securely in your browser.",
       "ogTitle": "My Saved Projects | Tier List Maker",
       "ogDesc": "Manage your local-first tier lists, drafts, and published rankings stored securely in your browser.",
-      "ogImage": null,
+      "ogImage": "https://tierlistmaker.app/api/og?title=My%20Saved%20Projects&author=Local-First%20Vault&category=Projects&mode=template",
       "twitterCard": "summary_large_image"
     },
     "/template/elden-ring-bosses": {

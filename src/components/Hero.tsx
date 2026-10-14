@@ -10,11 +10,11 @@ interface HeroProps {
 
 export function Hero({ onOpenPublish }: HeroProps) {
   const popularTags = [
-    "Roblox Games",
-    "Elden Ring Bosses",
-    "Anime of the Year",
-    "Fast Food French Fries",
-    "MCU Movie Phases",
+    { name: "Roblox Games", href: "/categories/gaming" },
+    { name: "Elden Ring Bosses", href: "/template/elden-ring-bosses" },
+    { name: "Anime of the Year", href: "/categories/anime" },
+    { name: "Fast Food French Fries", href: "/categories/food" },
+    { name: "MCU Movie Phases", href: "/template/mcu-movies" },
   ];
 
   return (
@@ -28,9 +28,9 @@ export function Hero({ onOpenPublish }: HeroProps) {
 
       {/* Main Headline */}
       <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white max-w-4xl mx-auto leading-[1.1] mb-6">
-        The community platform where <br className="hidden sm:inline" />
+        Free Tier List Maker — <br className="hidden sm:inline" />
         <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-300 to-cyan-300">
-          rankings become debates.
+          Rank Anything & Spark Debates.
         </span>
       </h1>
 
@@ -42,31 +42,38 @@ export function Hero({ onOpenPublish }: HeroProps) {
       <div className="flex flex-wrap items-center justify-center gap-2 max-w-3xl mx-auto mb-10">
         <span className="text-xs text-zinc-500 font-medium">Popular now:</span>
         {popularTags.map((tag) => (
-          <a
-            key={tag}
-            href="#trending"
+          <Link
+            key={tag.name}
+            href={tag.href}
             className="px-2.5 py-1 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-xs text-zinc-300 hover:text-white transition-colors"
           >
-            {tag}
-          </a>
+            {tag.name}
+          </Link>
         ))}
       </div>
 
-      {/* Dual Hero CTAs */}
-      <div className="flex flex-wrap justify-center gap-4 mb-16">
+      {/* Hero CTAs */}
+      <div className="flex flex-wrap justify-center items-center gap-3 sm:gap-4 mb-16">
+        <Link
+          href="/create"
+          className="px-6 py-3.5 rounded-xl font-semibold text-white bg-indigo-600 hover:bg-indigo-500 shadow-xl shadow-indigo-600/30 flex items-center gap-2.5 transition-all text-sm sm:text-base group"
+        >
+          <Sparkles className="w-5 h-5 group-hover:rotate-12 transition-transform" />
+          <span>Launch Free Tier List Maker</span>
+        </Link>
         <a
           href="#trending"
-          className="px-6 py-3.5 rounded-xl font-semibold text-white bg-indigo-600 hover:bg-indigo-500 shadow-xl shadow-indigo-600/30 flex items-center gap-2.5 transition-all text-sm sm:text-base"
+          className="px-6 py-3.5 rounded-xl font-semibold text-zinc-200 bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-700/80 hover:border-zinc-600 flex items-center gap-2.5 transition-all text-sm sm:text-base"
         >
-          <Layers className="w-5 h-5" />
+          <Layers className="w-5 h-5 text-indigo-400" />
           <span>Explore 45,000+ Templates</span>
         </a>
         <button
           onClick={onOpenPublish}
-          className="px-6 py-3.5 rounded-xl font-semibold text-zinc-200 bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-700/80 hover:border-zinc-600 flex items-center gap-2.5 transition-all text-sm sm:text-base cursor-pointer"
+          className="px-6 py-3.5 rounded-xl font-semibold text-zinc-300 bg-zinc-900/50 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 flex items-center gap-2.5 transition-all text-sm sm:text-base cursor-pointer"
         >
-          <Upload className="w-5 h-5 text-indigo-400" />
-          <span>Publish Your Own Template</span>
+          <Upload className="w-5 h-5 text-zinc-400" />
+          <span>Publish Template</span>
         </button>
       </div>
 

@@ -9,6 +9,9 @@ const ALLOWED_MIME_TYPES = new Set([
   "image/svg+xml",
 ]);
 
+const MAX_ITEMS_PER_BATCH = 60;
+const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB per file
+
 export async function POST(req: NextRequest) {
   if (!isR2Configured()) {
     return NextResponse.json(
@@ -34,6 +37,37 @@ export async function POST(req: NextRequest) {
           { success: false, error: "Invalid payload: 'items' array required." },
           { status: 400 }
         );
+      }
+
+      if (items.length > MAX_ITEMS_PER_BATCH) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: `Batch limit exceeded: maximum ${MAX_ITEMS_PER_BATCH} items per upload.`,
+          },
+          { status: 400 }
+        );
+      }
+
+      // Check all base64 sizes before uploading
+      for (const item of items) {
+        const rawUrl = item.dataUrl || item.imageUrl || "";
+        if (rawUrl.startsWith("data:")) {
+          const commaIdx = rawUrl.indexOf(",");
+          if (commaIdx !== -1) {
+            const base64Len = rawUrl.length - commaIdx - 1;
+            const approxBytes = Math.ceil((base64Len * 3) / 4);
+            if (approxBytes > MAX_FILE_SIZE_BYTES) {
+              return NextResponse.json(
+                {
+                  success: false,
+                  error: `Payload too large: item "${item.name || "unnamed"}" exceeds 5 MB limit.`,
+                },
+                { status: 413 }
+              );
+            }
+          }
+        }
       }
 
       const uploadedItems = await Promise.all(
@@ -102,6 +136,28 @@ export async function POST(req: NextRequest) {
           { success: false, error: "No files found in form data." },
           { status: 400 }
         );
+      }
+
+      if (files.length > MAX_ITEMS_PER_BATCH) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: `Batch limit exceeded: maximum ${MAX_ITEMS_PER_BATCH} files per upload.`,
+          },
+          { status: 400 }
+        );
+      }
+
+      for (const file of files) {
+        if (file.size > MAX_FILE_SIZE_BYTES) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: `Payload too large: file "${file.name}" exceeds 5 MB limit.`,
+            },
+            { status: 413 }
+          );
+        }
       }
 
       const uploadedFiles = await Promise.all(

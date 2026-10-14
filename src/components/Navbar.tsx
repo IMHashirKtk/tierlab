@@ -18,6 +18,16 @@ export function Navbar({ onOpenPublish }: NavbarProps) {
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [matchingTemplates, setMatchingTemplates] = useState<Template[]>([]);
+  const [creatorHandle, setCreatorHandle] = useState("Creator");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("tl_commenter_name");
+      if (saved && saved.trim()) {
+        setCreatorHandle(saved.trim());
+      }
+    }
+  }, []);
 
   useEffect(() => {
     if (!searchQuery.trim()) {
@@ -186,9 +196,9 @@ export function Navbar({ onOpenPublish }: NavbarProps) {
 
           {/* Profile Button */}
           <Link
-            href="/user/Creator"
+            href={`/user/${encodeURIComponent(creatorHandle)}`}
             className="w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white hover:border-zinc-700 transition-colors"
-            title="Creator Profile"
+            title={`Creator Profile (${creatorHandle})`}
           >
             <User className="w-4 h-4" />
           </Link>

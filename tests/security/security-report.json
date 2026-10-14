@@ -2,7 +2,7 @@
   "passed": [
     {
       "testName": "Client Secret Leak Audit",
-      "details": "Audited 5 client JS chunks, zero private secrets or service role keys leaked"
+      "details": "Audited 0 client JS chunks, zero private secrets or service role keys leaked"
     },
     {
       "testName": "Comments Section XSS Neutralization",

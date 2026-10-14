@@ -31,34 +31,51 @@ export function ShareModal({
   const [isPublishing, setIsPublishing] = useState(false);
   const [authorName, setAuthorName] = useState("");
 
+  // Load saved creator handle from localStorage on mount
   useEffect(() => {
-    if (!isOpen) {
-      setShareId(null);
-      setIsPublishing(false);
-      return;
+    if (typeof window !== "undefined") {
+      const savedHandle = localStorage.getItem("tl_commenter_name") || "";
+      if (savedHandle) setAuthorName(savedHandle);
+    }
+  }, []);
+
+  const executePublish = (handle: string) => {
+    if (!tiers || isPublishing) return;
+    setIsPublishing(true);
+    const cleanHandle = handle.trim();
+    if (cleanHandle && typeof window !== "undefined") {
+      try {
+        localStorage.setItem("tl_commenter_name", cleanHandle);
+      } catch {}
     }
 
-    // Auto-publish when modal opens if tiers exist
-    if (tiers && !shareId && !isPublishing) {
-      setIsPublishing(true);
-      publishTierList({
-        templateId,
-        title: boardTitle,
-        authorName: authorName.trim() || "Anonymous Ranker",
-        tiers,
-        unranked: unranked || [],
+    publishTierList({
+      templateId,
+      title: boardTitle,
+      authorName: cleanHandle || "Anonymous Ranker",
+      tiers,
+      unranked: unranked || [],
+    })
+      .then((pub) => {
+        setShareId(pub.id);
       })
-        .then((pub) => {
-          setShareId(pub.id);
-        })
-        .catch((err) => {
-          console.error("Auto-publish failed", err);
-        })
-        .finally(() => {
-          setIsPublishing(false);
-        });
+      .catch((err) => {
+        console.error("Publish failed", err);
+      })
+      .finally(() => {
+        setIsPublishing(false);
+      });
+  };
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    // Only auto-publish on the first open of this board session if not yet published
+    if (tiers && !shareId && !isPublishing) {
+      const currentHandle = authorName || (typeof window !== "undefined" ? localStorage.getItem("tl_commenter_name") || "" : "");
+      executePublish(currentHandle);
     }
-  }, [isOpen, tiers, boardTitle, templateId]);
+  }, [isOpen, tiers, shareId]);
 
   if (!isOpen) return null;
 
@@ -107,6 +124,31 @@ export function ShareModal({
           <span className="text-[11px] text-zinc-400 block mt-0.5">
             {totalRankedCount} items placed • Anyone with the link can view and remix
           </span>
+        </div>
+
+        {/* Creator Handle Input */}
+        <div className="mb-4 bg-zinc-800/40 border border-zinc-750/80 rounded-xl p-3">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-[11px] font-semibold text-zinc-300">Creator Handle</span>
+            <span className="text-[10px] text-zinc-500">Shows on public ranking</span>
+          </div>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={authorName}
+              onChange={(e) => setAuthorName(e.target.value)}
+              placeholder="Your handle (e.g. PixelHero)"
+              className="flex-1 bg-zinc-900/90 border border-zinc-700 rounded-lg px-3 py-1.5 text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-indigo-500 transition-colors"
+            />
+            <button
+              type="button"
+              onClick={() => executePublish(authorName)}
+              disabled={isPublishing}
+              className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition-colors flex items-center gap-1 flex-shrink-0 cursor-pointer disabled:opacity-50 shadow-sm"
+            >
+              {shareId ? "Update" : "Publish"}
+            </button>
+          </div>
         </div>
 
         {/* Tab Selection */}

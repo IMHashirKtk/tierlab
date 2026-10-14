@@ -176,6 +176,24 @@ create policy "Allow public insert on comments"
   on public.comments for insert
   with check (true);
 
-create policy "Allow public update on comments"
-  on public.comments for update
-  using (true);
+-- SECURITY: No public UPDATE policy on comments. Anonymous clients must never be able to
+-- rewrite comment content or upvote counts directly. Revoke it on existing deployments:
+drop policy if exists "Allow public update on comments" on public.comments;
+
+-- 8. Atomic Function: Increment / Decrement Comment Upvotes
+-- Runs as SECURITY DEFINER so it can bypass RLS for this single, narrowly-scoped mutation.
+-- Delta is clamped to [-1, 1] so a client cannot inflate counts with an arbitrary delta.
+create or replace function public.increment_comment_upvote(c_id text, delta int default 1)
+returns int as $$
+declare
+  updated_count int;
+  safe_delta int := greatest(-1, least(1, coalesce(delta, 1)));
+begin
+  update public.comments
+  set upvotes = greatest(0, upvotes + safe_delta)
+  where id = c_id
+  returning upvotes into updated_count;
+
+  return coalesce(updated_count, 0);
+end;
+$$ language plpgsql security definer set search_path = public;

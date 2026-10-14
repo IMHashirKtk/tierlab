@@ -363,36 +363,124 @@ export async function toggleUpvote(
   return { isUpvoted: newUpvoted, newCount };
 }
 
+/** Format a timestamp (ms) into a compact relative label like "5m ago" / "2h ago". */
+function formatRelativeTimestamp(ms: number): string {
+  if (!Number.isFinite(ms)) return "Recently";
+  const diffSec = Math.max(0, Math.floor((Date.now() - ms) / 1000));
+  if (diffSec < 60) return "Just now";
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) return `${diffMin}m ago`;
+  const diffHour = Math.floor(diffMin / 60);
+  if (diffHour < 24) return `${diffHour}h ago`;
+  const diffDay = Math.floor(diffHour / 24);
+  if (diffDay < 30) return `${diffDay}d ago`;
+  return new Date(ms).toLocaleDateString();
+}
+
+/** Map a raw Supabase `tier_lists` row into a PublishedTierList. */
+function mapTierListRow(d: any): PublishedTierList {
+  return {
+    id: d.id,
+    templateId: d.template_id || undefined,
+    title: d.title,
+    authorName: d.author_name || "Community",
+    tiers: Array.isArray(d.tiers) ? d.tiers : [],
+    unranked: Array.isArray(d.unranked) ? d.unranked : [],
+    upvotes: d.upvotes || 0,
+    createdAt: new Date(d.created_at).getTime(),
+  };
+}
+
+/** Convert a PublishedTierList into a compact UserRanking card for the live feed. */
+function toUserRanking(p: PublishedTierList): UserRanking {
+  const tiers = Array.isArray(p.tiers) ? p.tiers : [];
+  const sTier = tiers.find((t) => t.label?.toUpperCase().startsWith("S")) || tiers[0];
+  const totalItems = tiers.reduce((sum, t) => sum + (t.items?.length || 0), 0);
+
+  return {
+    id: p.id,
+    templateId: p.templateId || "custom",
+    templateTitle: p.title,
+    title: p.title,
+    author: { username: p.authorName },
+    upvotes: p.upvotes,
+    commentsCount: 0,
+    createdAt: formatRelativeTimestamp(p.createdAt),
+    tierSummary: [
+      {
+        tier: sTier?.label || "Top",
+        items: sTier && sTier.items.length > 0 ? sTier.items.map((i) => i.name).slice(0, 3) : ["None"],
+      },
+    ],
+    totalItems,
+    totalTiers: tiers.length,
+  };
+}
+
 /**
- * Fetch live activity feed
+ * Fetch live activity feed (real cloud submissions first, then local, then seeds)
  */
 export async function fetchLiveActivity(): Promise<UserRanking[]> {
-  const localPublished = getLocalPublishedRankings();
-  const convertedLocal: UserRanking[] = localPublished.map((p) => {
-    const sTier = p.tiers.find((t) => t.label.toUpperCase().startsWith("S")) || p.tiers[0];
-    const totalItems = p.tiers.reduce((sum, t) => sum + t.items.length, 0);
+  const convertedLocal: UserRanking[] = getLocalPublishedRankings().map(toUserRanking);
 
-    return {
-      id: p.id,
-      templateId: p.templateId || "custom",
-      templateTitle: p.title,
-      title: p.title,
-      author: { username: p.authorName },
-      upvotes: p.upvotes,
-      commentsCount: 0,
-      createdAt: "Recently",
-      tierSummary: [
-        {
-          tier: sTier?.label || "Top",
-          items: sTier ? sTier.items.map((i) => i.name).slice(0, 3) : ["None"],
-        },
-      ],
-      totalItems,
-      totalTiers: p.tiers.length,
-    };
-  });
+  let cloudRankings: UserRanking[] = [];
+  if (isSupabaseConfigured() && supabase) {
+    try {
+      const { data, error } = await supabase
+        .from("tier_lists")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(20);
+      if (!error && data) {
+        cloudRankings = data.map((d) => toUserRanking(mapTierListRow(d)));
+      }
+    } catch (err) {
+      console.warn("Supabase live activity query failed, using local fallback", err);
+    }
+  }
 
-  return [...convertedLocal, ...SEED_RECENT_RANKINGS];
+  // Deduplicate by id — first occurrence wins (local > cloud > seed ordering)
+  const seen = new Set<string>();
+  const merged: UserRanking[] = [];
+  for (const r of [...convertedLocal, ...cloudRankings, ...SEED_RECENT_RANKINGS]) {
+    if (seen.has(r.id)) continue;
+    seen.add(r.id);
+    merged.push(r);
+  }
+  return merged;
+}
+
+/**
+ * Fetch all real published rankings for a given template (local + Supabase), newest first.
+ * Used to drive the Community Consensus calculation with genuine user placements.
+ */
+export async function fetchSubmissionsForTemplate(templateId: string): Promise<PublishedTierList[]> {
+  if (!templateId) return [];
+
+  const local = getLocalPublishedRankings().filter((r) => r.templateId === templateId);
+
+  let cloud: PublishedTierList[] = [];
+  if (isSupabaseConfigured() && supabase) {
+    try {
+      const { data, error } = await supabase
+        .from("tier_lists")
+        .select("*")
+        .eq("template_id", templateId)
+        .order("created_at", { ascending: false })
+        .limit(100);
+      if (!error && data) {
+        cloud = data.map(mapTierListRow);
+      }
+    } catch (err) {
+      console.warn("Supabase submissions query failed, using local fallback", err);
+    }
+  }
+
+  const map = new Map<string, PublishedTierList>();
+  cloud.forEach((r) => map.set(r.id, r));
+  local.forEach((r) => map.set(r.id, r));
+
+  return Array.from(map.values()).sort((a, b) => b.createdAt - a.createdAt);
 }
 
 /**
@@ -576,10 +664,17 @@ export async function toggleCommentUpvote(
 
   if (isSupabaseConfigured() && supabase) {
     try {
-      if (newStatus) {
-        await supabase.rpc("increment_comment_upvote", { c_id: commentId });
+      const { data } = await supabase.rpc("increment_comment_upvote", {
+        c_id: commentId,
+        delta: newStatus ? 1 : -1,
+      });
+      // Seed placeholder comments don't exist in Postgres (RPC returns 0) — keep local count for those.
+      if (typeof data === "number" && !commentId.startsWith("seed-")) {
+        newCount = data;
       }
-    } catch {}
+    } catch (err) {
+      console.warn("Supabase increment_comment_upvote RPC failed", err);
+    }
   }
 
   return { isUpvoted: newStatus, newCount };

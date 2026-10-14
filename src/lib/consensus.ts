@@ -1,5 +1,6 @@
 import type { Item, TierRow, Template, PublishedTierList } from "@/types";
 import type { Board } from "@/lib/board";
+import { SEED_TEMPLATES } from "@/data/seed-templates";
 
 export interface ConsensusItemRank {
   item: Item;
@@ -118,6 +119,41 @@ const SEED_ITEM_BASELINES: Record<string, { score: number; variance: number }> =
   "ff-10": { score: 2.80, variance: 0.48 }, // Taco Bell
 };
 
+/** Resolve a tier label (e.g. "S", "s tier", "A+") to a numeric weight; unknown labels → 3.0 (B). */
+function resolveTierWeight(label: string | undefined): number {
+  const clean = (label || "").trim().toUpperCase();
+  if (TIER_WEIGHTS[clean] !== undefined) return TIER_WEIGHTS[clean];
+  const first = clean.charAt(0);
+  if (TIER_WEIGHTS[first] !== undefined) return TIER_WEIGHTS[first];
+  return 3.0;
+}
+
+/**
+ * Deterministic pseudo-score in [2.2, 4.7] for items with no baseline and no placements yet.
+ * Stable across renders and SSR/CSR (no Math.random), so hydration never mismatches.
+ */
+function deterministicBaselineScore(item: Item, index: number): number {
+  const seed = `${item.id}|${item.name || ""}`;
+  let hash = 2166136261; // FNV-1a
+  for (let i = 0; i < seed.length; i++) {
+    hash ^= seed.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  // Blend hash with index so adjacent items spread out even with similar ids
+  const fraction = (((hash >>> 0) % 1000) / 1000 + ((index * 0.618034) % 1)) % 1;
+  return Number((2.2 + fraction * 2.5).toFixed(2));
+}
+
+/** Map standard deviation of tier weights (0 … ~2.35) into the 0–1 variance scale used by the UI. */
+function normalizeVariance(values: number[]): number {
+  if (values.length < 2) return 0.25;
+  const mean = values.reduce((a, b) => a + b, 0) / values.length;
+  const sqDiff = values.reduce((acc, v) => acc + (v - mean) ** 2, 0) / values.length;
+  return Math.min(1, Math.sqrt(sqDiff) / 2);
+}
+
+const SEED_TEMPLATE_IDS = new Set(SEED_TEMPLATES.map((t) => t.id));
+
 /**
  * Calculates consensus tiers for a template
  */
@@ -126,36 +162,63 @@ export function calculateConsensus(
   userSubmissions: PublishedTierList[] = []
 ): ConsensusResult {
   const itemScores: Record<string, { sum: number; count: number; variance: number }> = {};
+  const placements: Record<string, number[]> = {};
+  const hasSubmissions = userSubmissions.length > 0;
+  const items = Array.isArray(template.items) ? template.items : [];
 
-  // Seed baseline scores
-  template.items.forEach((item) => {
-    const baseline = SEED_ITEM_BASELINES[item.id] || { score: 3.5, variance: 0.3 };
-    // Weight baseline as 50 historical submissions
-    itemScores[item.id] = {
-      sum: baseline.score * 50,
-      count: 50,
-      variance: baseline.variance,
-    };
+  // 1. Initialise baselines
+  items.forEach((item, index) => {
+    const baseline = SEED_ITEM_BASELINES[item.id];
+    placements[item.id] = [];
+
+    if (baseline) {
+      // Curated seed item: weighted as 50 historical submissions
+      itemScores[item.id] = { sum: baseline.score * 50, count: 50, variance: baseline.variance };
+    } else if (hasSubmissions) {
+      // Custom item: let real user placements drive the score
+      itemScores[item.id] = { sum: 0, count: 0, variance: 0.25 };
+    } else {
+      // Custom item with no data yet: realistic deterministic spread instead of everything in B
+      itemScores[item.id] = {
+        sum: deterministicBaselineScore(item, index),
+        count: 1,
+        variance: 0.25,
+      };
+    }
   });
 
-  // Incorporate real user submissions
+  // 2. Incorporate real user submissions
   userSubmissions.forEach((submission) => {
-    submission.tiers.forEach((tier) => {
-      const tierWeight = TIER_WEIGHTS[tier.label.toUpperCase()] || 3.0;
-      tier.items.forEach((item) => {
-        if (itemScores[item.id]) {
-          itemScores[item.id].sum += tierWeight;
-          itemScores[item.id].count += 1;
-        }
+    (submission.tiers || []).forEach((tier) => {
+      const tierWeight = resolveTierWeight(tier.label);
+      (tier.items || []).forEach((item) => {
+        const entry = itemScores[item.id];
+        if (!entry) return;
+        entry.sum += tierWeight;
+        entry.count += 1;
+        placements[item.id].push(tierWeight);
       });
     });
   });
 
+  // 3. Finalise custom items: real variance, or deterministic fallback for never-placed items
+  items.forEach((item, index) => {
+    if (SEED_ITEM_BASELINES[item.id]) return;
+    const entry = itemScores[item.id];
+    if (entry.count === 0) {
+      entry.sum = deterministicBaselineScore(item, index);
+      entry.count = 1;
+      entry.variance = 0.25;
+    } else {
+      entry.variance = normalizeVariance(placements[item.id]);
+    }
+  });
+
   // Compute final scores and bucket into tiers
-  const rankedItems: ConsensusItemRank[] = template.items.map((item) => {
+  const rankedItems: ConsensusItemRank[] = items.map((item) => {
     const data = itemScores[item.id];
     const avgScore = Number((data.sum / data.count).toFixed(2));
-    const agreementPct = Math.min(99, Math.round(75 + (1 - data.variance) * 22));
+    const agreementPct = Math.max(50, Math.min(99, Math.round(75 + (1 - data.variance) * 22)));
 
     let tierLabel = "C";
     if (avgScore >= 4.5) tierLabel = "S";
@@ -183,9 +246,9 @@ export function calculateConsensus(
   }));
 
   // Find most controversial item (highest variance)
-  let mostControversialItem = template.items[0];
+  let mostControversialItem = items[0];
   let maxVariance = 0;
-  template.items.forEach((it) => {
+  items.forEach((it) => {
     const v = itemScores[it.id]?.variance || 0;
     if (v > maxVariance) {
       maxVariance = v;
@@ -193,14 +256,20 @@ export function calculateConsensus(
     }
   });
 
-  const overallAgreement = Math.round(
-    rankedItems.reduce((acc, it) => acc + it.agreementPct, 0) / rankedItems.length
-  );
+  const overallAgreement =
+    rankedItems.length > 0
+      ? Math.round(rankedItems.reduce((acc, it) => acc + it.agreementPct, 0) / rankedItems.length)
+      : 0;
+
+  // Real submission count; legacy 12,450 fallback only for the curated seed templates
+  const realCount = Math.max(template.remixCount || 0, userSubmissions.length);
+  const totalSubmissions =
+    realCount > 0 ? realCount : SEED_TEMPLATE_IDS.has(template.id) ? 12450 : 0;
 
   return {
     templateId: template.id,
     templateTitle: template.title,
-    totalSubmissions: template.remixCount || 12450,
+    totalSubmissions,
     overallAgreementPct: overallAgreement,
     tiers,
     mostControversial: {

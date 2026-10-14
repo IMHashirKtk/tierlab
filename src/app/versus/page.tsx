@@ -14,7 +14,7 @@ import {
   Share2,
   ExternalLink,
 } from "lucide-react";
-import { fetchSharedTierList, fetchTemplateById } from "@/lib/community";
+import { fetchSharedTierList, fetchTemplateById, fetchSubmissionsForTemplate } from "@/lib/community";
 import { calculateConsensus, compareTwoTierLists, type VersusMatchup } from "@/lib/consensus";
 import { SEED_TEMPLATES } from "@/data/seed-templates";
 import type { PublishedTierList, TierRow } from "@/types";
@@ -80,7 +80,8 @@ function VersusContent() {
         // Build consensus tier board from template
         const tplId = targetA.templateId || SEED_TEMPLATES[0].id;
         const tpl = (await fetchTemplateById(tplId)) || SEED_TEMPLATES[0];
-        const consensusResult = calculateConsensus(tpl);
+        const submissions = await fetchSubmissionsForTemplate(tpl.id);
+        const consensusResult = calculateConsensus(tpl, submissions);
 
         const consensusTiers: TierRow[] = consensusResult.tiers.map((t) => ({
           id: t.id,

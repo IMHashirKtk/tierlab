@@ -2,7 +2,7 @@
   "passed": [
     {
       "testName": "Zero Horizontal Overflow [Homepage (iPhone)]",
-      "details": "Viewport 401px cleanly contained"
+      "details": "Viewport 469px cleanly contained"
     },
     {
       "testName": "Mobile Category Bar",
@@ -18,7 +18,7 @@
     },
     {
       "testName": "Mobile Studio Tier Rows",
-      "details": "Found 41 rendered tier rows"
+      "details": "Found 11 rendered tier rows"
     },
     {
       "testName": "Mobile Studio Screenshot",
@@ -90,7 +90,7 @@
     },
     {
       "testName": "Zero Horizontal Overflow [My Projects (iPhone)]",
-      "details": "Viewport 401px cleanly contained"
+      "details": "Viewport 469px cleanly contained"
     },
     {
       "testName": "Mobile My Projects Screenshot",
@@ -98,7 +98,7 @@
     },
     {
       "testName": "Zero Horizontal Overflow [Homepage (iPhone SE)]",
-      "details": "Viewport 401px cleanly contained"
+      "details": "Viewport 468px cleanly contained"
     },
     {
       "testName": "Zero Horizontal Overflow [Studio (iPhone SE)]",
@@ -121,22 +121,22 @@
   "warnings": [
     {
       "testName": "Touch Target Ergonomics [Homepage (iPhone)]",
-      "details": "6 interactive items below 28px threshold (checked 60)"
+      "details": "6 interactive items below 28px threshold (checked 61)"
     },
     {
       "testName": "Touch Target Ergonomics [Studio (iPhone)]",
-      "details": "29 interactive items below 28px threshold (checked 74)"
+      "details": "29 interactive items below 28px threshold (checked 76)"
     },
     {
       "testName": "Touch Target Ergonomics [My Projects (iPhone)]",
-      "details": "7 interactive items below 28px threshold (checked 31)"
+      "details": "12 interactive items below 28px threshold (checked 33)"
     }
   ],
   "overflowViolations": [],
   "touchTargetViolations": [
     {
       "routeName": "Homepage (iPhone)",
-      "totalChecked": 60,
+      "totalChecked": 61,
       "issuesCount": 6,
       "sampleIssues": [
         {
@@ -171,7 +171,7 @@
     },
     {
       "routeName": "Studio (iPhone)",
-      "totalChecked": 74,
+      "totalChecked": 76,
       "issuesCount": 29,
       "sampleIssues": [
         {
@@ -206,8 +206,8 @@
     },
     {
       "routeName": "My Projects (iPhone)",
-      "totalChecked": 31,
-      "issuesCount": 7,
+      "totalChecked": 33,
+      "issuesCount": 12,
       "sampleIssues": [
         {
           "tag": "A",
@@ -225,7 +225,7 @@
         },
         {
           "tag": "A",
-          "text": "TierLab",
+          "text": "Tier List Maker",
           "width": 358,
           "height": 24,
           "class": "flex items-center gap-2 mb-3 group"

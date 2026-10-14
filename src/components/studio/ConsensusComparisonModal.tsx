@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { X, BrainCircuit, CheckCircle2, Zap, Flame, Sparkles } from "lucide-react";
 import type { Board } from "@/lib/board";
-import type { Template } from "@/types";
+import type { Template, PublishedTierList } from "@/types";
 import { calculateConsensus, compareUserBoardWithConsensus } from "@/lib/consensus";
+import { fetchSubmissionsForTemplate } from "@/lib/community";
 
 interface ConsensusComparisonModalProps {
   isOpen: boolean;
@@ -19,7 +20,23 @@ export function ConsensusComparisonModal({
   board,
   template,
 }: ConsensusComparisonModalProps) {
-  const consensus = useMemo(() => calculateConsensus(template), [template]);
+  const [submissions, setSubmissions] = useState<PublishedTierList[]>([]);
+
+  useEffect(() => {
+    if (!isOpen || !template?.id) return;
+    let cancelled = false;
+    fetchSubmissionsForTemplate(template.id).then((data) => {
+      if (!cancelled) setSubmissions(data);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, template?.id]);
+
+  const consensus = useMemo(
+    () => calculateConsensus(template, submissions),
+    [template, submissions]
+  );
   const comparison = useMemo(
     () => compareUserBoardWithConsensus(board, consensus),
     [board, consensus]

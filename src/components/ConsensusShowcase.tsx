@@ -1,17 +1,35 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { BrainCircuit, CheckCircle2, Zap, Sparkles, ChevronRight, HelpCircle, X } from "lucide-react";
 import { SEED_TEMPLATES } from "@/data/seed-templates";
 import { calculateConsensus } from "@/lib/consensus";
+import { fetchSubmissionsForTemplate } from "@/lib/community";
+import type { PublishedTierList } from "@/types";
 
 export function ConsensusShowcase() {
   const [activeTemplateIndex, setActiveTemplateIndex] = useState(1); // Default to MCU
   const [showFormulaModal, setShowFormulaModal] = useState(false);
+  const [submissions, setSubmissions] = useState<PublishedTierList[]>([]);
 
   const selectedTemplate = SEED_TEMPLATES[activeTemplateIndex] || SEED_TEMPLATES[0];
-  const consensus = useMemo(() => calculateConsensus(selectedTemplate), [selectedTemplate]);
+
+  useEffect(() => {
+    if (!selectedTemplate?.id) return;
+    let cancelled = false;
+    fetchSubmissionsForTemplate(selectedTemplate.id).then((data) => {
+      if (!cancelled) setSubmissions(data);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedTemplate?.id]);
+
+  const consensus = useMemo(
+    () => calculateConsensus(selectedTemplate, submissions),
+    [selectedTemplate, submissions]
+  );
 
   return (
     <section className="py-16 border-t border-zinc-800/80 relative z-10">

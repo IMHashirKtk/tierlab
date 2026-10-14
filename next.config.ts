@@ -27,6 +27,18 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "**.supabase.co",
       },
+      {
+        protocol: "https",
+        hostname: "upload.wikimedia.org",
+      },
+      {
+        protocol: "https",
+        hostname: "cdn.myanimelist.net",
+      },
+      {
+        protocol: "https",
+        hostname: "**.mzstatic.com",
+      },
     ],
   },
   async headers() {

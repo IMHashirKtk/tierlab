@@ -117,6 +117,102 @@ const SEED_ITEM_BASELINES: Record<string, { score: number; variance: number }> =
   "ff-8": { score: 3.15, variance: 0.35 }, // Shake Shack
   "ff-9": { score: 2.90, variance: 0.55 }, // In-N-Out
   "ff-10": { score: 2.80, variance: 0.48 }, // Taco Bell
+
+  // Roblox Games
+  "rb-1": { score: 4.85, variance: 0.15 }, // Blox Fruits
+  "rb-2": { score: 4.70, variance: 0.28 }, // Dress to Impress
+  "rb-3": { score: 4.45, variance: 0.22 }, // Anime Defenders
+  "rb-4": { score: 4.35, variance: 0.30 }, // Blade Ball
+  "rb-5": { score: 4.10, variance: 0.45 }, // Brookhaven RP
+  "rb-6": { score: 4.05, variance: 0.25 }, // Doors
+  "rb-7": { score: 3.75, variance: 0.40 }, // Pet Simulator 99
+  "rb-8": { score: 3.65, variance: 0.35 }, // Murder Mystery 2
+  "rb-9": { score: 3.50, variance: 0.32 }, // Fisch
+  "rb-10": { score: 3.25, variance: 0.42 }, // Arsenal
+
+  // Hip-Hop 2020s
+  "hh-1": { score: 4.88, variance: 0.15 }, // Mr. Morale & The Big Steppers
+  "hh-2": { score: 4.75, variance: 0.22 }, // Call Me If You Get Lost
+  "hh-3": { score: 4.55, variance: 0.32 }, // Utopia
+  "hh-4": { score: 4.40, variance: 0.25 }, // Heroes & Villains
+  "hh-5": { score: 4.20, variance: 0.28 }, // The Melodic Blue
+  "hh-6": { score: 4.05, variance: 0.35 }, // We Don't Trust You
+  "hh-7": { score: 3.85, variance: 0.26 }, // The Off-Season
+  "hh-8": { score: 3.65, variance: 0.42 }, // Her Loss
+  "hh-9": { score: 3.55, variance: 0.38 }, // Chromakopia
+  "hh-10": { score: 3.40, variance: 0.50 }, // Donda
+
+  // NBA All-Time GOAT Legends
+  "nba-1": { score: 4.95, variance: 0.08 }, // Michael Jordan
+  "nba-2": { score: 4.92, variance: 0.12 }, // LeBron James
+  "nba-3": { score: 4.72, variance: 0.20 }, // Kareem Abdul-Jabbar
+  "nba-4": { score: 4.60, variance: 0.25 }, // Magic Johnson
+  "nba-5": { score: 4.55, variance: 0.30 }, // Stephen Curry
+  "nba-6": { score: 4.50, variance: 0.35 }, // Kobe Bryant
+  "nba-7": { score: 4.35, variance: 0.28 }, // Larry Bird
+  "nba-8": { score: 4.30, variance: 0.32 }, // Shaquille O'Neal
+  "nba-9": { score: 4.25, variance: 0.22 }, // Tim Duncan
+  "nba-10": { score: 3.90, variance: 0.40 }, // Nikola Jokić
+
+  // World Football GOATs
+  "wf-1": { score: 4.96, variance: 0.06 }, // Lionel Messi
+  "wf-2": { score: 4.94, variance: 0.10 }, // Cristiano Ronaldo
+  "wf-3": { score: 4.75, variance: 0.18 }, // Zinedine Zidane
+  "wf-4": { score: 4.68, variance: 0.24 }, // Ronaldinho
+  "wf-5": { score: 4.45, variance: 0.35 }, // Kylian Mbappé
+  "wf-6": { score: 4.40, variance: 0.22 }, // Luka Modrić
+  "wf-7": { score: 4.38, variance: 0.20 }, // Andrés Iniesta
+  "wf-8": { score: 4.25, variance: 0.28 }, // Thierry Henry
+  "wf-9": { score: 3.95, variance: 0.45 }, // Neymar Jr
+  "wf-10": { score: 3.85, variance: 0.38 }, // Erling Haaland
+
+  // AI Models & Tools 2026
+  "ai-1": { score: 4.92, variance: 0.10 }, // Claude
+  "ai-2": { score: 4.78, variance: 0.22 }, // Gemini
+  "ai-3": { score: 4.75, variance: 0.20 }, // ChatGPT
+  "ai-4": { score: 4.70, variance: 0.18 }, // Cursor / Antigravity
+  "ai-5": { score: 4.45, variance: 0.25 }, // Midjourney
+  "ai-6": { score: 4.40, variance: 0.20 }, // Perplexity
+  "ai-7": { score: 4.10, variance: 0.32 }, // Suno AI
+  "ai-8": { score: 4.05, variance: 0.28 }, // ElevenLabs
+  "ai-9": { score: 3.95, variance: 0.35 }, // v0
+  "ai-10": { score: 3.80, variance: 0.30 }, // NotebookLM
+
+  // Programming Languages Meta 2026
+  "pl-1": { score: 4.90, variance: 0.12 }, // TypeScript
+  "pl-2": { score: 4.82, variance: 0.18 }, // Python
+  "pl-3": { score: 4.76, variance: 0.24 }, // Rust
+  "pl-4": { score: 4.45, variance: 0.20 }, // Go
+  "pl-5": { score: 4.20, variance: 0.35 }, // C++
+  "pl-6": { score: 3.85, variance: 0.42 }, // Java
+  "pl-7": { score: 3.80, variance: 0.28 }, // C#
+  "pl-8": { score: 3.70, variance: 0.30 }, // Swift
+  "pl-9": { score: 3.65, variance: 0.32 }, // Kotlin
+  "pl-10": { score: 2.75, variance: 0.55 }, // PHP
+
+  // GTA Franchise Games
+  "gta-1": { score: 4.95, variance: 0.08 }, // GTA: San Andreas
+  "gta-2": { score: 4.88, variance: 0.14 }, // GTA V
+  "gta-3": { score: 4.76, variance: 0.22 }, // GTA IV
+  "gta-4": { score: 4.65, variance: 0.20 }, // GTA: Vice City
+  "gta-5": { score: 4.15, variance: 0.30 }, // GTA III
+  "gta-6": { score: 3.75, variance: 0.28 }, // GTA: Liberty City Stories
+  "gta-7": { score: 3.70, variance: 0.26 }, // GTA: Vice City Stories
+  "gta-8": { score: 3.55, variance: 0.34 }, // GTA: Chinatown Wars
+  "gta-9": { score: 3.50, variance: 0.52 }, // GTA Online
+  "gta-10": { score: 4.25, variance: 0.25 }, // GTA: The Ballad of Gay Tony
+
+  // Energy Drinks Showdown
+  "ed-1": { score: 4.85, variance: 0.16 }, // Monster Ultra White
+  "ed-2": { score: 4.78, variance: 0.22 }, // Red Bull Original
+  "ed-3": { score: 4.60, variance: 0.28 }, // Celsius Peach Vibe
+  "ed-4": { score: 4.52, variance: 0.25 }, // Ghost Sour Patch
+  "ed-5": { score: 4.15, variance: 0.32 }, // Reign Orange Dreamsicle
+  "ed-6": { score: 4.10, variance: 0.30 }, // C4 Frozen Bombsicle
+  "ed-7": { score: 3.85, variance: 0.38 }, // Alani Nu Cosmic Stardust
+  "ed-8": { score: 3.45, variance: 0.40 }, // Rockstar Punched
+  "ed-9": { score: 3.20, variance: 0.50 }, // Bang Blue Razz
+  "ed-10": { score: 3.10, variance: 0.48 }, // G Fuel PewDiePie
 };
 
 /** Resolve a tier label (e.g. "S", "s tier", "A+") to a numeric weight; unknown labels → 3.0 (B). */

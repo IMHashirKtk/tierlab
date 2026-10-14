@@ -47,16 +47,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     try {
       const { data, error } = await supabase
         .from("templates")
-        .select("id, updated_at")
+        .select("id, updated_at, items")
         .order("rank_count", { ascending: false })
         .limit(500);
 
       if (!error && data) {
         data.forEach((row) => {
-          templateMap.set(row.id, {
-            id: row.id,
-            lastModified: row.updated_at ? new Date(row.updated_at) : new Date(),
-          });
+          if (!Array.isArray(row.items) || row.items.length >= 3) {
+            templateMap.set(row.id, {
+              id: row.id,
+              lastModified: row.updated_at ? new Date(row.updated_at) : new Date(),
+            });
+          }
         });
       }
     } catch (err) {

@@ -188,6 +188,19 @@ export async function fetchTemplateById(id: string): Promise<Template | null> {
 }
 
 /**
+ * Generate a keyword-rich, SEO-friendly URL slug for user-published templates
+ */
+export function generateTemplateSlug(title: string): string {
+  const base = title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 48);
+  const suffix = Math.random().toString(36).slice(2, 6);
+  return base ? `${base}-${suffix}` : `tpl-${createId("ugc")}`;
+}
+
+/**
  * Publish a new template created by the user
  */
 export async function publishTemplate(payload: {
@@ -198,7 +211,7 @@ export async function publishTemplate(payload: {
   defaultTiers?: { label: string; color: string }[];
   authorName?: string;
 }): Promise<Template> {
-  const id = `tpl-${createId("ugc")}`;
+  const id = generateTemplateSlug(payload.title);
   const now = new Date();
 
   const newTemplate: Template = {

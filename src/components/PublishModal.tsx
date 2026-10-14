@@ -2,10 +2,11 @@
 
 import React, { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { X, Upload, Check, Loader2, Sparkles, Plus, Image as ImageIcon } from "lucide-react";
+import { X, Upload, Check, Loader2, Sparkles, Plus, Image as ImageIcon, Globe } from "lucide-react";
 import { publishTemplate } from "@/lib/community";
 import { compressBatchImages } from "@/utils/image-compression";
 import { uploadItemsToCloud } from "@/lib/upload";
+import { WebImageSearchModal } from "@/components/WebImageSearchModal";
 import type { Item } from "@/types";
 
 interface PublishModalProps {
@@ -25,6 +26,7 @@ export function PublishModal({ isOpen, onClose }: PublishModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStep, setSubmitStep] = useState<string | null>(null);
   const [createdTemplateId, setCreatedTemplateId] = useState<string | null>(null);
+  const [isWebSearchOpen, setIsWebSearchOpen] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -110,6 +112,7 @@ export function PublishModal({ isOpen, onClose }: PublishModalProps) {
     setAuthorName("");
     setItems([]);
     setCreatedTemplateId(null);
+    setIsWebSearchOpen(false);
     onClose();
   };
 
@@ -123,7 +126,7 @@ export function PublishModal({ isOpen, onClose }: PublishModalProps) {
           </div>
           <button
             onClick={handleResetAndClose}
-            className="text-zinc-400 hover:text-white p-1 rounded-lg hover:bg-zinc-800 transition-colors cursor-pointer"
+            className="text-zinc-400 hover:text-white p-1 rounded-lg hover:bg-zinc-800 transition-colors cursor-pointer min-w-[28px] min-h-[28px] flex items-center justify-center"
           >
             <X className="w-5 h-5" />
           </button>
@@ -143,7 +146,7 @@ export function PublishModal({ isOpen, onClose }: PublishModalProps) {
             <div className="flex justify-center gap-3 pt-2">
               <button
                 onClick={handleResetAndClose}
-                className="px-4 py-2 rounded-xl text-xs font-medium text-zinc-400 bg-zinc-800 hover:bg-zinc-750 cursor-pointer"
+                className="px-4 py-2 rounded-xl text-xs font-medium text-zinc-400 bg-zinc-800 hover:bg-zinc-750 cursor-pointer min-h-[32px]"
               >
                 Close
               </button>
@@ -152,7 +155,7 @@ export function PublishModal({ isOpen, onClose }: PublishModalProps) {
                   handleResetAndClose();
                   router.push(`/template/${createdTemplateId}`);
                 }}
-                className="px-5 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/30 cursor-pointer flex items-center gap-1.5"
+                className="px-5 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/30 cursor-pointer flex items-center gap-1.5 min-h-[32px]"
               >
                 <span>Rank This Template Now &rarr;</span>
               </button>
@@ -234,32 +237,53 @@ export function PublishModal({ isOpen, onClose }: PublishModalProps) {
 
             {/* Item Upload Area */}
             <div>
-              <div className="flex justify-between items-center mb-1">
+              <div className="flex flex-wrap justify-between items-center mb-1.5 gap-2">
                 <label className="font-semibold uppercase text-zinc-300">
                   Template Items ({items.length} items added)
                 </label>
-                <span className="text-[11px] text-zinc-500">Minimum 2 items</span>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsWebSearchOpen(true)}
+                    className="min-h-[28px] px-2.5 py-1 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-400 hover:text-indigo-300 border border-indigo-500/30 font-semibold cursor-pointer flex items-center gap-1.5 transition-colors"
+                  >
+                    <Globe className="w-3.5 h-3.5" />
+                    <span>Search Web & Icons</span>
+                  </button>
+                  <span className="text-[11px] text-zinc-500">Min 2 items</span>
+                </div>
               </div>
 
-              {/* Upload Dropzone */}
-              <div
-                onClick={() => fileInputRef.current?.click()}
-                className="border-2 border-dashed border-zinc-700 rounded-xl p-5 text-center hover:border-indigo-500 transition-colors cursor-pointer bg-zinc-800/40"
-              >
-                {isCompressing ? (
-                  <div className="flex items-center justify-center gap-2 py-2 text-indigo-400">
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    <span>Compressing image thumbnails into WebP...</span>
-                  </div>
-                ) : (
-                  <>
-                    <Upload className="w-6 h-6 text-zinc-500 mx-auto mb-1.5" />
-                    <p className="text-zinc-300 font-medium">Click to upload image cards</p>
-                    <p className="text-[11px] text-zinc-500 mt-0.5">
-                      Batch PNG, JPEG, WebP supported • Auto-compressed for performance
-                    </p>
-                  </>
-                )}
+              {/* Upload Dropzone + Search Web Action */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  className="sm:col-span-2 border-2 border-dashed border-zinc-700 rounded-xl p-4 text-center hover:border-indigo-500 transition-colors cursor-pointer bg-zinc-800/40 flex flex-col items-center justify-center min-h-[90px]"
+                >
+                  {isCompressing ? (
+                    <div className="flex items-center justify-center gap-2 py-2 text-indigo-400">
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <span>Compressing image thumbnails into WebP...</span>
+                    </div>
+                  ) : (
+                    <>
+                      <Upload className="w-5 h-5 text-zinc-500 mx-auto mb-1" />
+                      <p className="text-zinc-300 font-medium">Click to upload local images</p>
+                      <p className="text-[10px] text-zinc-500 mt-0.5">
+                        PNG, JPEG, WebP • Auto-compressed
+                      </p>
+                    </>
+                  )}
+                </div>
+
+                <div
+                  onClick={() => setIsWebSearchOpen(true)}
+                  className="border-2 border-dashed border-indigo-500/40 hover:border-indigo-500 bg-indigo-600/10 hover:bg-indigo-600/20 rounded-xl p-4 text-center transition-colors cursor-pointer flex flex-col items-center justify-center min-h-[90px]"
+                >
+                  <Globe className="w-5 h-5 text-indigo-400 mx-auto mb-1" />
+                  <p className="text-indigo-300 font-semibold">Web Search</p>
+                  <p className="text-[10px] text-zinc-400 mt-0.5">Wikipedia, Anime & Music</p>
+                </div>
               </div>
 
               {/* Quick Text Items Input */}
@@ -284,7 +308,7 @@ export function PublishModal({ isOpen, onClose }: PublishModalProps) {
                   <button
                     type="button"
                     onClick={handleAddTextItems}
-                    className="px-3 py-1.5 rounded-lg bg-zinc-750 hover:bg-zinc-700 text-zinc-200 font-semibold cursor-pointer flex items-center gap-1"
+                    className="min-h-[28px] px-3 py-1.5 rounded-lg bg-zinc-750 hover:bg-zinc-700 text-zinc-200 font-semibold cursor-pointer flex items-center gap-1"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>Add</span>
@@ -329,14 +353,14 @@ export function PublishModal({ isOpen, onClose }: PublishModalProps) {
               <button
                 type="button"
                 onClick={handleResetAndClose}
-                className="px-4 py-2 rounded-xl text-xs font-medium text-zinc-400 hover:text-white bg-zinc-800 cursor-pointer"
+                className="min-h-[32px] px-4 py-2 rounded-xl text-xs font-medium text-zinc-400 hover:text-white bg-zinc-800 cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting || items.length < 2}
-                className="px-5 py-2 rounded-xl text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer flex items-center gap-2 shadow-md shadow-indigo-600/30"
+                className="min-h-[32px] px-5 py-2 rounded-xl text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer flex items-center gap-2 shadow-md shadow-indigo-600/30"
               >
                 {isSubmitting ? (
                   <>
@@ -350,6 +374,12 @@ export function PublishModal({ isOpen, onClose }: PublishModalProps) {
             </div>
           </form>
         )}
+
+        <WebImageSearchModal
+          isOpen={isWebSearchOpen}
+          onClose={() => setIsWebSearchOpen(false)}
+          onAddItems={(newItems) => setItems((prev) => [...prev, ...newItems])}
+        />
       </div>
     </div>
   );

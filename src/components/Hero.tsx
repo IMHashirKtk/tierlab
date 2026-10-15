@@ -21,9 +21,9 @@ export function Hero({ onOpenPublish }: HeroProps) {
     <section className="relative pt-12 pb-16 md:pt-16 md:pb-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center z-10">
       {/* Eyebrow badge */}
       <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-zinc-900/90 border border-zinc-800 text-xs text-zinc-300 mb-6">
-        <span className="text-indigo-400 font-bold">120,000+ Creators</span>
+        <span className="text-indigo-400 font-bold">100% Free • Zero Watermarks</span>
         <span className="text-zinc-600">•</span>
-        <span>Zero Watermarks • 4K Export • Community Consensus</span>
+        <span>4K & 9:16 Video Export • Community Consensus</span>
       </div>
 
       {/* Main Headline */}
@@ -35,7 +35,7 @@ export function Hero({ onOpenPublish }: HeroProps) {
       </h1>
 
       <p className="text-base sm:text-lg text-zinc-400 max-w-2xl mx-auto mb-8 leading-relaxed">
-        Browse community templates, drag & drop your picks, vote against the crowd consensus, or publish your own template for millions of fans to rank.
+        Browse community templates, drag & drop your picks, vote against the crowd consensus, or publish your own template for the community to rank.
       </p>
 
       {/* Popular Fandom Tags */}
@@ -66,7 +66,7 @@ export function Hero({ onOpenPublish }: HeroProps) {
           className="px-6 py-3.5 rounded-xl font-semibold text-zinc-200 bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-700/80 hover:border-zinc-600 flex items-center gap-2.5 transition-all text-sm sm:text-base"
         >
           <Layers className="w-5 h-5 text-indigo-400" />
-          <span>Explore 45,000+ Templates</span>
+          <span>Explore Community Templates</span>
         </a>
         <button
           onClick={onOpenPublish}
@@ -82,7 +82,7 @@ export function Hero({ onOpenPublish }: HeroProps) {
         <div className="p-4 rounded-xl bg-zinc-900/60 border border-zinc-800/80">
           <div className="flex items-center gap-2 text-indigo-400 font-bold text-base sm:text-lg mb-1">
             <Flame className="w-4 h-4" />
-            <span>45k+ UGC</span>
+            <span>100% Free UGC</span>
           </div>
           <p className="text-xs text-zinc-400">Templates created by passionate fans and creators.</p>
         </div>

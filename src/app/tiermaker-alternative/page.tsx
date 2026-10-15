@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { safeJsonLd } from "@/lib/seo";
 import {
   Sparkles,
   CheckCircle2,
@@ -185,11 +186,11 @@ export default function TierMakerAlternativePage() {
     <div className="min-h-screen bg-[#09090b] text-white flex flex-col selection:bg-indigo-500 selection:text-white">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }}
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(faqJsonLd) }}
       />
 
       <Navbar />

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { X, Copy, Check, Share2, Code, ExternalLink, Loader2, Sparkles } from "lucide-react";
+import { X, Copy, Check, Share2, Code, ExternalLink, Loader2, Sparkles, AlertCircle, RefreshCw } from "lucide-react";
 import { publishTierList } from "@/lib/community";
 import type { TierRow, Item } from "@/types";
 
@@ -14,6 +14,8 @@ interface ShareModalProps {
   tiers?: TierRow[];
   unranked?: Item[];
   templateId?: string;
+  publishedShareId?: string;
+  onPublishSuccess?: (shareId: string) => void;
 }
 
 export function ShareModal({
@@ -24,12 +26,22 @@ export function ShareModal({
   tiers,
   unranked,
   templateId,
+  publishedShareId,
+  onPublishSuccess,
 }: ShareModalProps) {
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState<"link" | "embed">("link");
-  const [shareId, setShareId] = useState<string | null>(null);
+  const [shareId, setShareId] = useState<string | null>(publishedShareId || null);
   const [isPublishing, setIsPublishing] = useState(false);
+  const [publishError, setPublishError] = useState<string | null>(null);
   const [authorName, setAuthorName] = useState("");
+
+  // Keep shareId synced if parent passes an existing published id
+  useEffect(() => {
+    if (publishedShareId) {
+      setShareId(publishedShareId);
+    }
+  }, [publishedShareId]);
 
   // Load saved creator handle from localStorage on mount
   useEffect(() => {
@@ -42,6 +54,8 @@ export function ShareModal({
   const executePublish = (handle: string) => {
     if (!tiers || isPublishing) return;
     setIsPublishing(true);
+    setPublishError(null);
+
     const cleanHandle = handle.trim();
     if (cleanHandle && typeof window !== "undefined") {
       try {
@@ -55,12 +69,15 @@ export function ShareModal({
       authorName: cleanHandle || "Anonymous Ranker",
       tiers,
       unranked: unranked || [],
+      existingId: shareId || undefined,
     })
       .then((pub) => {
         setShareId(pub.id);
+        onPublishSuccess?.(pub.id);
       })
       .catch((err) => {
-        console.error("Publish failed", err);
+        console.error("Publish failed:", err);
+        setPublishError(err.message || "Failed to publish tier list to cloud.");
       })
       .finally(() => {
         setIsPublishing(false);
@@ -70,9 +87,11 @@ export function ShareModal({
   useEffect(() => {
     if (!isOpen) return;
 
-    // Only auto-publish on the first open of this board session if not yet published
-    if (tiers && !shareId && !isPublishing) {
-      const currentHandle = authorName || (typeof window !== "undefined" ? localStorage.getItem("tl_commenter_name") || "" : "");
+    // Auto-publish on open if not yet published
+    if (tiers && !shareId && !isPublishing && !publishError) {
+      const currentHandle =
+        authorName ||
+        (typeof window !== "undefined" ? localStorage.getItem("tl_commenter_name") || "" : "");
       executePublish(currentHandle);
     }
   }, [isOpen, tiers, shareId]);
@@ -80,11 +99,12 @@ export function ShareModal({
   if (!isOpen) return null;
 
   const origin = typeof window !== "undefined" ? window.location.origin : "https://tierlistmaker.app";
-  const shareUrl = shareId ? `${origin}/share/${shareId}` : (typeof window !== "undefined" ? window.location.href : "");
-  const embedUrl = `${origin}/embed/${shareId || (templateId ? templateId : "demo")}`;
-  const embedCode = `<iframe src="${embedUrl}" width="100%" height="520" style="border:0;border-radius:16px;overflow:hidden;" loading="lazy"></iframe>\n<p style="font-size:12px;margin-top:6px;">Interactive ranking powered by <a href="${origin}" target="_blank" rel="noopener">Tier List Maker</a> — <a href="${shareUrl}" target="_blank" rel="noopener">Remix or duel this tier list</a>.</p>`;
+  const shareUrl = shareId ? `${origin}/share/${shareId}` : "";
+  const embedUrl = `${origin}/embed/${shareId || templateId || "demo"}`;
+  const embedCode = `<iframe src="${embedUrl}" width="100%" height="520" style="border:0;border-radius:16px;overflow:hidden;" loading="lazy"></iframe>\n<p style="font-size:12px;margin-top:6px;">Interactive ranking powered by <a href="${origin}" target="_blank" rel="noopener">Tier List Maker</a> — <a href="${shareUrl || origin}" target="_blank" rel="noopener">Remix or duel this tier list</a>.</p>`;
 
   const handleCopyLink = () => {
+    if (!shareUrl) return;
     navigator.clipboard.writeText(shareUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -96,7 +116,9 @@ export function ShareModal({
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const tweetText = encodeURIComponent(`Check out my "${boardTitle}" tier list ranking on Tier List Maker! 🏆\n\n${shareUrl}`);
+  const tweetText = encodeURIComponent(
+    `Check out my "${boardTitle}" tier list ranking on Tier List Maker! 🏆\n\n${shareUrl}`
+  );
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -119,7 +141,7 @@ export function ShareModal({
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-white truncate max-w-[240px]">{boardTitle}</span>
             <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
-              Public Link
+              {shareId ? "Public Link" : "Draft"}
             </span>
           </div>
           <span className="text-[11px] text-zinc-400 block mt-0.5">
@@ -180,7 +202,24 @@ export function ShareModal({
         {isPublishing ? (
           <div className="py-8 text-center space-y-2">
             <Loader2 className="w-6 h-6 animate-spin text-indigo-400 mx-auto" />
-            <p className="text-xs text-zinc-400">Generating permanent shareable link...</p>
+            <p className="text-xs text-zinc-400">Publishing ranking to the cloud...</p>
+          </div>
+        ) : publishError ? (
+          <div className="py-6 text-center space-y-3">
+            <div className="w-10 h-10 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center mx-auto border border-rose-500/30">
+              <AlertCircle className="w-5 h-5" />
+            </div>
+            <div className="space-y-1">
+              <p className="text-xs font-semibold text-rose-300">Cloud Publishing Failed</p>
+              <p className="text-[11px] text-zinc-400 max-w-xs mx-auto">{publishError}</p>
+            </div>
+            <button
+              onClick={() => executePublish(authorName)}
+              className="px-4 py-2 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span>Retry Publish</span>
+            </button>
           </div>
         ) : activeTab === "link" ? (
           <div className="space-y-4">
@@ -190,79 +229,85 @@ export function ShareModal({
                 type="text"
                 readOnly
                 value={shareUrl}
+                placeholder="Publishing..."
                 className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-zinc-300 select-all focus:outline-none"
               />
               <button
                 onClick={handleCopyLink}
-                className="px-4 py-2 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white flex items-center gap-1.5 transition-colors cursor-pointer flex-shrink-0 shadow-md shadow-indigo-600/20"
+                disabled={!shareId}
+                className="px-4 py-2 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white flex items-center gap-1.5 transition-colors cursor-pointer flex-shrink-0 shadow-md shadow-indigo-600/20 disabled:opacity-50"
               >
                 {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                 <span>{copied ? "Copied!" : "Copy"}</span>
               </button>
             </div>
 
-            {/* View Shared Board CTA */}
-            {shareId && (
-              <Link
-                href={`/share/${shareId}`}
-                target="_blank"
-                className="w-full py-2 px-3 rounded-lg bg-zinc-800 hover:bg-zinc-750 text-indigo-300 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors border border-zinc-700"
-              >
-                <ExternalLink className="w-3.5 h-3.5" />
-                <span>Open Public View Page</span>
-              </Link>
-            )}
-
             {/* Social Share Buttons */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">
-                  Viral Social Share
-                </span>
-                <span className="text-[10px] text-indigo-400 font-medium">
-                  Auto OG Preview Card
-                </span>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
+            {shareId && (
+              <div className="grid grid-cols-2 gap-2 pt-1">
                 <a
                   href={`https://twitter.com/intent/tweet?text=${tweetText}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-2.5 rounded-xl bg-black hover:bg-zinc-950 text-white flex items-center justify-center gap-2 text-xs font-semibold transition-colors border border-zinc-800"
+                  className="p-2.5 rounded-xl border border-zinc-800 bg-zinc-800/40 hover:bg-zinc-800 text-zinc-300 hover:text-white text-xs font-medium flex items-center justify-center gap-2 transition-colors cursor-pointer"
                 >
-                  <span>𝕏 Share to Twitter</span>
+                  <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 24.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                  </svg>
+                  <span>Post on X</span>
                 </a>
                 <a
-                  href={`https://reddit.com/submit?url=${encodeURIComponent(shareUrl)}&title=${encodeURIComponent(boardTitle + " Tier List")}`}
+                  href={`https://reddit.com/submit?url=${encodeURIComponent(
+                    shareUrl
+                  )}&title=${encodeURIComponent(boardTitle)}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-2.5 rounded-xl bg-[#ff4500]/10 hover:bg-[#ff4500]/20 text-[#ff4500] flex items-center justify-center gap-2 text-xs font-semibold transition-colors border border-[#ff4500]/30"
+                  className="p-2.5 rounded-xl border border-zinc-800 bg-zinc-800/40 hover:bg-zinc-800 text-zinc-300 hover:text-white text-xs font-medium flex items-center justify-center gap-2 transition-colors cursor-pointer"
                 >
-                  <span>👾 Share to Reddit</span>
+                  <svg className="w-3.5 h-3.5 fill-current text-orange-500" viewBox="0 0 24 24">
+                    <path d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.56 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.01 1.614a3.111 3.111 0 0 1 .042.52c0 2.694-3.13 4.87-7.004 4.87-3.874 0-7.004-2.176-7.004-4.87 0-.183.015-.366.043-.534A1.748 1.748 0 0 1 4.028 12c0-.968.786-1.754 1.754-1.754.463 0 .898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342 0 0 1 .14-.197.35.35 0 0 1 .238-.042l2.906.617a1.214 1.214 0 0 1 1.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687 0 1.248-.561 1.248-1.249 0-.688-.561-1.249-1.249-1.249zm5.5 0c-.687 0-1.248.561-1.248 1.25 0 .687.561 1.248 1.249 1.248.688 0 1.249-.561 1.249-1.249 0-.688-.562-1.249-1.25-1.249zm-5.466 3.99a.327.327 0 0 0-.231.094.33.33 0 0 0 0 .463c.842.842 2.484.913 2.961.913.477 0 2.105-.056 2.961-.913a.361.361 0 0 0 .029-.463.33.33 0 0 0-.464 0c-.547.533-1.684.73-2.512.73-.828 0-1.979-.197-2.512-.73a.326.326 0 0 0-.232-.095z" />
+                  </svg>
+                  <span>Reddit</span>
                 </a>
               </div>
-              <p className="text-[10px] text-zinc-500 mt-2 text-center">
-                ✨ Links pasted into Discord, X, or Reddit automatically unfurl a dynamic S-Tier preview card.
-              </p>
-            </div>
+            )}
           </div>
         ) : (
           <div className="space-y-3">
-            <textarea
-              readOnly
-              rows={4}
-              value={embedCode}
-              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-2.5 font-mono text-[11px] text-zinc-300 select-all focus:outline-none"
-            />
+            <p className="text-[11px] text-zinc-400">
+              Paste this responsive HTML snippet into Substack, WordPress, Medium, or your blog:
+            </p>
+            <div className="relative">
+              <textarea
+                readOnly
+                rows={4}
+                value={embedCode}
+                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-2.5 font-mono text-[11px] text-zinc-300 resize-none select-all focus:outline-none"
+              />
+            </div>
             <button
               onClick={handleCopyEmbed}
-              className="w-full py-2 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+              className="w-full py-2 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-md shadow-indigo-600/20"
             >
               {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
               <span>{copied ? "Embed Code Copied!" : "Copy Embed Code"}</span>
             </button>
           </div>
         )}
+
+        <div className="mt-5 pt-4 border-t border-zinc-800 flex justify-between items-center text-xs text-zinc-400">
+          <span>{shareId ? "Permanent cloud ranking" : "Pending cloud publish"}</span>
+          {shareId && (
+            <Link
+              href={`/share/${shareId}`}
+              target="_blank"
+              className="hover:text-white flex items-center gap-1 text-indigo-400 hover:underline"
+            >
+              <span>Preview Page</span>
+              <ExternalLink className="w-3 h-3" />
+            </Link>
+          )}
+        </div>
       </div>
     </div>
   );

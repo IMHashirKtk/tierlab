@@ -320,7 +320,7 @@ async function runAudit() {
         logPass("Share Modal Opened", "Opened Share & Publish modal");
         await page.screenshot({ path: path.join(SCREENSHOT_DIR, "09_share_modal.png") });
 
-        const shareInput = await shareModal.$("input[readonly]");
+        const shareInput = await page.waitForSelector(".fixed.inset-0 input[readonly]", { timeout: 8000 }).catch(() => null);
         if (shareInput) {
           const val = await shareInput.inputValue();
           if (val && val.includes("/share/")) {
@@ -352,8 +352,28 @@ async function runAudit() {
     const sharedHeading = await page.$("h1, h2");
     if (sharedHeading) {
       const text = await sharedHeading.textContent();
-      logPass("Shared Page Rendered", `Heading: "${text.trim()}"`);
+      if (text.includes("Tier List Not Found")) {
+        logFail("Shared Page Rendered", `Failed: Page rendered "Tier List Not Found" for share id "${targetShareId}"`);
+      } else {
+        logPass("Shared Page Rendered", `Heading: "${text.trim()}"`);
+      }
+    } else {
+      logFail("Shared Page Rendered", `Failed: No heading found on /share/${targetShareId}`);
     }
+
+    // Verify in clean browser context without shared localStorage to prove authentic cloud persistence
+    const cleanContext = await browser.newContext();
+    const cleanPage = await cleanContext.newPage();
+    await cleanPage.goto(`${BASE_URL}/share/${targetShareId}`, { waitUntil: "domcontentloaded" });
+    await cleanPage.waitForSelector("header", { timeout: 6000 }).catch(() => null);
+    const cleanHeading = await cleanPage.$("h1, h2");
+    const cleanText = cleanHeading ? (await cleanHeading.textContent()).trim() : "";
+    if (cleanText.includes("Tier List Not Found") || !cleanText) {
+      logFail("Clean Browser Context Shared Page", `Expected shared list in fresh context without localStorage, but got: "${cleanText}"`);
+    } else {
+      logPass("Clean Browser Context Shared Page", `Authentic cloud load verified in fresh context: "${cleanText}"`);
+    }
+    await cleanContext.close();
 
     // Test Upvoting
     const upvoteBtn = await page.$("header button:has(svg.lucide-arrow-big-up)");

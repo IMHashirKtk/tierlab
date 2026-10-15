@@ -190,7 +190,7 @@ function VersusContent() {
           {/* Central Duel Gauge */}
           <div className="flex flex-col items-center justify-center text-center p-4 rounded-2xl bg-zinc-950/80 border border-zinc-800 shadow-xl min-w-[200px]">
             <span className="text-3xl sm:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-rose-400 to-indigo-400">
-              {matchup.similarityPct}%
+              {matchup.similarityPct !== null ? `${matchup.similarityPct}%` : "N/A"}
             </span>
             <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 mt-0.5">
               Taste Similarity Score

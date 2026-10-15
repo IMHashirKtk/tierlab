@@ -4,6 +4,7 @@ import Link from "next/link";
 import { SEED_TEMPLATES } from "@/data/seed-templates";
 import { fetchTemplateById } from "@/lib/community";
 import { calculateConsensus } from "@/lib/consensus";
+import { safeJsonLd } from "@/lib/seo";
 import { TemplateClientLoader } from "./TemplateClientLoader";
 import {
   ChevronRight,
@@ -130,7 +131,7 @@ async function TemplateContent({ params }: { params: Promise<{ id: string }> }) 
       {/* JSON-LD Schema */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
       />
 
       {/* Interactive Ranking Studio Experience */}
@@ -228,46 +229,56 @@ async function TemplateContent({ params }: { params: Promise<{ id: string }> }) 
               <span>Global Community Consensus for {template.title}</span>
             </h3>
             <span className="text-xs text-zinc-400">
-              {consensus.totalSubmissions.toLocaleString()} submissions
+              {consensus.totalSubmissions > 0
+                ? `${consensus.totalSubmissions.toLocaleString()} submissions`
+                : "No submissions yet"}
             </span>
           </div>
 
-          <div className="rounded-xl border border-zinc-800/80 bg-zinc-900/40 p-4 space-y-3">
-            {consensus.tiers.map((row) => (
-              <div key={row.id} className="flex items-center gap-3">
-                <div
-                  className={`w-9 h-9 rounded-lg font-bold text-xs flex items-center justify-center text-white flex-shrink-0 bg-gradient-to-br ${row.color}`}
-                >
-                  {row.label}
+          {consensus.totalSubmissions === 0 ? (
+            <div className="rounded-xl border border-zinc-800/80 bg-zinc-900/40 p-6 text-center space-y-2">
+              <p className="text-xs text-zinc-400">
+                No community rankings submitted yet — rank this template above to establish the first consensus!
+              </p>
+            </div>
+          ) : (
+            <div className="rounded-xl border border-zinc-800/80 bg-zinc-900/40 p-4 space-y-3">
+              {consensus.tiers.map((row) => (
+                <div key={row.id} className="flex items-center gap-3">
+                  <div
+                    className={`w-9 h-9 rounded-lg font-bold text-xs flex items-center justify-center text-white flex-shrink-0 bg-gradient-to-br ${row.color}`}
+                  >
+                    {row.label}
+                  </div>
+                  <div className="flex-1 flex flex-wrap gap-1.5 min-h-[36px] items-center p-1.5 rounded-lg bg-zinc-900/80 border border-zinc-800/60">
+                    {row.items.length === 0 ? (
+                      <span className="text-[11px] text-zinc-600 px-2 italic">No items</span>
+                    ) : (
+                      row.items.map((it) => (
+                        <span
+                          key={it.item.id}
+                          className="px-2 py-0.5 rounded text-[11px] font-medium bg-zinc-800 border border-zinc-700 text-zinc-200"
+                        >
+                          {it.item.name} ({it.avgScore.toFixed(1)})
+                        </span>
+                      ))
+                    )}
+                  </div>
                 </div>
-                <div className="flex-1 flex flex-wrap gap-1.5 min-h-[36px] items-center p-1.5 rounded-lg bg-zinc-900/80 border border-zinc-800/60">
-                  {row.items.length === 0 ? (
-                    <span className="text-[11px] text-zinc-600 px-2 italic">No items</span>
-                  ) : (
-                    row.items.map((it) => (
-                      <span
-                        key={it.item.id}
-                        className="px-2 py-0.5 rounded text-[11px] font-medium bg-zinc-800 border border-zinc-700 text-zinc-200"
-                      >
-                        {it.item.name} ({it.avgScore.toFixed(1)})
-                      </span>
-                    ))
-                  )}
-                </div>
-              </div>
-            ))}
+              ))}
 
-            {consensus.mostControversial?.item && (
-              <div className="pt-3 border-t border-zinc-800/60 flex items-center justify-between text-xs text-zinc-400">
-                <span className="flex items-center gap-1.5 text-amber-400 font-semibold">
-                  <Flame className="w-3.5 h-3.5" />
-                  <span>Most Controversial Item:</span>
-                  <span className="text-white">{consensus.mostControversial.item.name}</span>
-                </span>
-                <span>{consensus.overallAgreementPct}% Community Agreement</span>
-              </div>
-            )}
-          </div>
+              {consensus.mostControversial?.item && (
+                <div className="pt-3 border-t border-zinc-800/60 flex items-center justify-between text-xs text-zinc-400">
+                  <span className="flex items-center gap-1.5 text-amber-400 font-semibold">
+                    <Flame className="w-3.5 h-3.5" />
+                    <span>Most Controversial Item:</span>
+                    <span className="text-white">{consensus.mostControversial.item.name}</span>
+                  </span>
+                  <span>{consensus.overallAgreementPct}% Community Agreement</span>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Related Templates Grid */}

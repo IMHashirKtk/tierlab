@@ -63,7 +63,9 @@ export function ConsensusComparisonModal({
             <div>
               <h3 className="text-base font-bold text-white">Community Consensus Analysis</h3>
               <span className="text-[11px] text-zinc-400">
-                Based on {consensus.totalSubmissions.toLocaleString()} community rankings
+                {consensus.totalSubmissions > 0
+                  ? `Based on ${consensus.totalSubmissions.toLocaleString()} community rankings`
+                  : "Awaiting first community submission"}
               </span>
             </div>
           </div>
@@ -91,7 +93,7 @@ export function ConsensusComparisonModal({
 
           <div className="flex flex-col items-center justify-center w-20 h-20 rounded-2xl bg-zinc-900 border border-zinc-700/80 shadow-inner flex-shrink-0">
             <span className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">
-              {comparison.alignmentPct}%
+              {comparison.alignmentPct !== null ? `${comparison.alignmentPct}%` : "N/A"}
             </span>
             <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">
               Aligned

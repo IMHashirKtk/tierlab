@@ -1,4 +1,4 @@
-import { supabase, isSupabaseConfigured } from "@/lib/supabase";
+import { supabase, isSupabaseConfigured, ensureAuthenticatedSession } from "@/lib/supabase";
 import { SEED_TEMPLATES, SEED_RECENT_RANKINGS } from "@/data/seed-templates";
 import type { Template, PublishedTierList, UserRanking, Item, TierRow, Comment } from "@/types";
 import { createId } from "@/lib/board";
@@ -20,7 +20,7 @@ export function getVoterId(): string {
   return vid;
 }
 
-function getLocalUserTemplates(): Template[] {
+export function getLocalUserTemplates(): Template[] {
   if (typeof window === "undefined") return [];
   try {
     const raw = localStorage.getItem(USER_TEMPLATES_KEY);
@@ -30,7 +30,7 @@ function getLocalUserTemplates(): Template[] {
   }
 }
 
-function saveLocalUserTemplate(template: Template) {
+export function saveLocalUserTemplate(template: Template) {
   if (typeof window === "undefined") return;
   try {
     const existing = getLocalUserTemplates();
@@ -41,7 +41,7 @@ function saveLocalUserTemplate(template: Template) {
   }
 }
 
-function getLocalPublishedRankings(): PublishedTierList[] {
+export function getLocalPublishedRankings(): PublishedTierList[] {
   if (typeof window === "undefined") return [];
   try {
     const raw = localStorage.getItem(PUBLISHED_RANKINGS_KEY);
@@ -51,7 +51,7 @@ function getLocalPublishedRankings(): PublishedTierList[] {
   }
 }
 
-function saveLocalPublishedRanking(ranking: PublishedTierList) {
+export function saveLocalPublishedRanking(ranking: PublishedTierList) {
   if (typeof window === "undefined") return;
   try {
     const existing = getLocalPublishedRankings();
@@ -81,6 +81,9 @@ export async function fetchTemplates(options?: {
       let query = supabase.from("templates").select("*");
       if (category !== "all") {
         query = query.eq("category", category);
+      }
+      if (search) {
+        query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%,category.ilike.%${search}%`);
       }
       if (sortBy === "most-ranked") {
         query = query.order("rank_count", { ascending: false });
@@ -128,7 +131,7 @@ export async function fetchTemplates(options?: {
     result = result.filter((t) => t.category.toLowerCase() === category.toLowerCase());
   }
 
-  // Search filter
+  // Client-side search filter safety net
   if (search) {
     result = result.filter(
       (t) =>
@@ -153,7 +156,6 @@ export async function fetchTemplates(options?: {
  * Fetch a single template by ID
  */
 export async function fetchTemplateById(id: string): Promise<Template | null> {
-  // Check local cache/user templates first
   const local = getLocalUserTemplates().find((t) => t.id === id);
   if (local) return local;
 
@@ -201,7 +203,7 @@ export function generateTemplateSlug(title: string): string {
 }
 
 /**
- * Publish a new template created by the user
+ * Publish a new template created by the user with real cloud persistence
  */
 export async function publishTemplate(payload: {
   title: string;
@@ -210,9 +212,14 @@ export async function publishTemplate(payload: {
   items: Item[];
   defaultTiers?: { label: string; color: string }[];
   authorName?: string;
+  existingId?: string;
 }): Promise<Template> {
-  const id = generateTemplateSlug(payload.title);
-  const now = new Date();
+  if (!isSupabaseConfigured() || !supabase) {
+    throw new Error("Cloud publishing is unavailable because Supabase is not configured.");
+  }
+
+  const sessionUserId = await ensureAuthenticatedSession();
+  const id = payload.existingId || generateTemplateSlug(payload.title);
 
   const newTemplate: Template = {
     id,
@@ -226,17 +233,31 @@ export async function publishTemplate(payload: {
     },
     itemCount: payload.items.length,
     remixCount: 0,
-    upvotes: 1,
+    upvotes: 0,
     createdAt: "Just now",
     items: payload.items,
     defaultTiers: payload.defaultTiers,
   };
 
-  saveLocalUserTemplate(newTemplate);
+  let writeError: { message: string } | null = null;
 
-  if (isSupabaseConfigured() && supabase) {
-    try {
-      await supabase.from("templates").insert({
+  if (payload.existingId) {
+    const { data: existing } = await supabase.from("templates").select("id").eq("id", id).maybeSingle();
+    if (existing) {
+      const { error } = await supabase
+        .from("templates")
+        .update({
+          title: newTemplate.title,
+          description: newTemplate.description,
+          category: newTemplate.category,
+          items: newTemplate.items,
+          default_tiers: newTemplate.defaultTiers || [],
+          author_name: newTemplate.author.username,
+        })
+        .eq("id", id);
+      writeError = error;
+    } else {
+      const insertData: Record<string, any> = {
         id,
         title: newTemplate.title,
         description: newTemplate.description,
@@ -245,18 +266,53 @@ export async function publishTemplate(payload: {
         default_tiers: newTemplate.defaultTiers || [],
         author_name: newTemplate.author.username,
         rank_count: 0,
-        upvotes: 1,
-      });
-    } catch (err) {
-      console.error("Failed to insert template into Supabase", err);
+        upvotes: 0,
+      };
+      if (sessionUserId) {
+        insertData.author_id = sessionUserId;
+      }
+      let { error } = await supabase.from("templates").insert(insertData);
+      if (error && error.message?.includes("author_id")) {
+        delete insertData.author_id;
+        const retry = await supabase.from("templates").insert(insertData);
+        error = retry.error;
+      }
+      writeError = error;
     }
+  } else {
+    const insertData: Record<string, any> = {
+      id,
+      title: newTemplate.title,
+      description: newTemplate.description,
+      category: newTemplate.category,
+      items: newTemplate.items,
+      default_tiers: newTemplate.defaultTiers || [],
+      author_name: newTemplate.author.username,
+      rank_count: 0,
+      upvotes: 0,
+    };
+    if (sessionUserId) {
+      insertData.author_id = sessionUserId;
+    }
+    let { error } = await supabase.from("templates").insert(insertData);
+    if (error && error.message?.includes("author_id")) {
+      delete insertData.author_id;
+      const retry = await supabase.from("templates").insert(insertData);
+      error = retry.error;
+    }
+    writeError = error;
   }
 
+  if (writeError) {
+    throw new Error(`Cloud template publication failed: ${writeError.message}`);
+  }
+
+  saveLocalUserTemplate(newTemplate);
   return newTemplate;
 }
 
 /**
- * Publish a completed Tier List for public sharing & live feed
+ * Publish a completed Tier List for public sharing & live feed with true cloud semantics
  */
 export async function publishTierList(payload: {
   templateId?: string;
@@ -264,8 +320,14 @@ export async function publishTierList(payload: {
   authorName?: string;
   tiers: TierRow[];
   unranked: Item[];
+  existingId?: string;
 }): Promise<PublishedTierList> {
-  const id = `share-${createId("tier")}`;
+  if (!isSupabaseConfigured() || !supabase) {
+    throw new Error("Cloud publishing is unavailable because Supabase is not configured.");
+  }
+
+  const sessionUserId = await ensureAuthenticatedSession();
+  const id = payload.existingId || `share-${createId("tier")}`;
   const authorName = payload.authorName?.trim() || "Ranker";
   const now = Date.now();
 
@@ -276,33 +338,73 @@ export async function publishTierList(payload: {
     authorName,
     tiers: payload.tiers,
     unranked: payload.unranked,
-    upvotes: 1,
+    upvotes: 0,
     createdAt: now,
   };
 
-  saveLocalPublishedRanking(published);
+  let writeError: { message: string } | null = null;
 
-  if (isSupabaseConfigured() && supabase) {
-    try {
-      await supabase.from("tier_lists").insert({
+  if (payload.existingId) {
+    const { data: existing } = await supabase.from("tier_lists").select("id").eq("id", id).maybeSingle();
+    if (existing) {
+      const { error } = await supabase
+        .from("tier_lists")
+        .update({
+          title: published.title,
+          author_name: authorName,
+          tiers: published.tiers,
+          unranked: published.unranked,
+        })
+        .eq("id", id);
+      writeError = error;
+    } else {
+      const insertData: Record<string, any> = {
         id,
         template_id: payload.templateId || null,
         title: published.title,
         author_name: authorName,
         tiers: published.tiers,
         unranked: published.unranked,
-        upvotes: 1,
-      });
-
-      if (payload.templateId) {
-        // Increment template's rank count atomically
-        await supabase.rpc("increment_template_rank", { t_id: payload.templateId });
+        upvotes: 0,
+      };
+      if (sessionUserId) {
+        insertData.author_id = sessionUserId;
       }
-    } catch (err) {
-      console.error("Failed to publish tier list to Supabase", err);
+      let { error } = await supabase.from("tier_lists").insert(insertData);
+      if (error && error.message?.includes("author_id")) {
+        delete insertData.author_id;
+        const retry = await supabase.from("tier_lists").insert(insertData);
+        error = retry.error;
+      }
+      writeError = error;
     }
+  } else {
+    const insertData: Record<string, any> = {
+      id,
+      template_id: payload.templateId || null,
+      title: published.title,
+      author_name: authorName,
+      tiers: published.tiers,
+      unranked: published.unranked,
+      upvotes: 0,
+    };
+    if (sessionUserId) {
+      insertData.author_id = sessionUserId;
+    }
+    let { error } = await supabase.from("tier_lists").insert(insertData);
+    if (error && error.message?.includes("author_id")) {
+      delete insertData.author_id;
+      const retry = await supabase.from("tier_lists").insert(insertData);
+      error = retry.error;
+    }
+    writeError = error;
   }
 
+  if (writeError) {
+    throw new Error(`Cloud tier list publication failed: ${writeError.message}`);
+  }
+
+  saveLocalPublishedRanking(published);
   return published;
 }
 
@@ -337,43 +439,52 @@ export async function fetchSharedTierList(id: string): Promise<PublishedTierList
 }
 
 /**
- * Toggle upvote for a template or tier list
+ * Toggle upvote for a template or tier list via locked, idempotent set_vote RPC
  */
 export async function toggleUpvote(
   itemType: "template" | "tier_list",
   itemId: string
 ): Promise<{ isUpvoted: boolean; newCount: number }> {
-  const voterId = getVoterId();
-
-  // Handle local state tracking
   let localUpvotes: Record<string, boolean> = {};
   try {
     localUpvotes = JSON.parse(localStorage.getItem(USER_UPVOTES_KEY) || "{}");
   } catch {}
 
   const currentlyUpvoted = Boolean(localUpvotes[itemId]);
-  const newUpvoted = !currentlyUpvoted;
-  localUpvotes[itemId] = newUpvoted;
+  const desiredVote = !currentlyUpvoted;
+  let isUpvotedResult = desiredVote;
+  let newCount = 0;
+
+  if (isSupabaseConfigured() && supabase) {
+    await ensureAuthenticatedSession();
+    try {
+      const { data, error } = await supabase.rpc("set_vote", {
+        target_type: itemType,
+        target_id: itemId,
+        desired_vote: desiredVote,
+      });
+
+      if (error) {
+        console.warn("Supabase set_vote RPC error:", error.message);
+        return { isUpvoted: currentlyUpvoted, newCount: 0 };
+      }
+
+      if (data && typeof data === "object") {
+        isUpvotedResult = Boolean((data as any).isUpvoted);
+        newCount = Number((data as any).newCount) || 0;
+      }
+    } catch (err) {
+      console.warn("Supabase toggle upvote exception:", err);
+      return { isUpvoted: currentlyUpvoted, newCount: 0 };
+    }
+  }
+
+  localUpvotes[itemId] = isUpvotedResult;
   try {
     localStorage.setItem(USER_UPVOTES_KEY, JSON.stringify(localUpvotes));
   } catch {}
 
-  let newCount = 0;
-
-  if (isSupabaseConfigured() && supabase) {
-    try {
-      const { data } = await supabase.rpc("toggle_upvote", {
-        target_type: itemType,
-        target_id: itemId,
-        voter: voterId,
-      });
-      // Cloud handled the counter
-    } catch (err) {
-      console.warn("Supabase toggle_upvote RPC failed", err);
-    }
-  }
-
-  return { isUpvoted: newUpvoted, newCount };
+  return { isUpvoted: isUpvotedResult, newCount };
 }
 
 /** Format a timestamp (ms) into a compact relative label like "5m ago" / "2h ago". */
@@ -405,7 +516,7 @@ function mapTierListRow(d: any): PublishedTierList {
 }
 
 /** Convert a PublishedTierList into a compact UserRanking card for the live feed. */
-function toUserRanking(p: PublishedTierList): UserRanking {
+function toUserRanking(p: PublishedTierList, isDemo = false): UserRanking {
   const tiers = Array.isArray(p.tiers) ? p.tiers : [];
   const sTier = tiers.find((t) => t.label?.toUpperCase().startsWith("S")) || tiers[0];
   const totalItems = tiers.reduce((sum, t) => sum + (t.items?.length || 0), 0);
@@ -427,14 +538,15 @@ function toUserRanking(p: PublishedTierList): UserRanking {
     ],
     totalItems,
     totalTiers: tiers.length,
+    isDemo,
   };
 }
 
 /**
- * Fetch live activity feed (real cloud submissions first, then local, then seeds)
+ * Fetch live activity feed (real cloud submissions first, then local, then labeled demo seeds)
  */
 export async function fetchLiveActivity(): Promise<UserRanking[]> {
-  const convertedLocal: UserRanking[] = getLocalPublishedRankings().map(toUserRanking);
+  const convertedLocal: UserRanking[] = getLocalPublishedRankings().map((r) => toUserRanking(r, false));
 
   let cloudRankings: UserRanking[] = [];
   if (isSupabaseConfigured() && supabase) {
@@ -445,17 +557,20 @@ export async function fetchLiveActivity(): Promise<UserRanking[]> {
         .order("created_at", { ascending: false })
         .limit(20);
       if (!error && data) {
-        cloudRankings = data.map((d) => toUserRanking(mapTierListRow(d)));
+        cloudRankings = data.map((d) => toUserRanking(mapTierListRow(d), false));
       }
     } catch (err) {
       console.warn("Supabase live activity query failed, using local fallback", err);
     }
   }
 
-  // Deduplicate by id — first occurrence wins (local > cloud > seed ordering)
+  // Label fallback seeds explicitly as demo
+  const labeledSeedRankings = SEED_RECENT_RANKINGS.map((r) => ({ ...r, isDemo: true }));
+
+  // Deduplicate by id — real user submissions take precedence
   const seen = new Set<string>();
   const merged: UserRanking[] = [];
-  for (const r of [...convertedLocal, ...cloudRankings, ...SEED_RECENT_RANKINGS]) {
+  for (const r of [...convertedLocal, ...cloudRankings, ...labeledSeedRankings]) {
     if (seen.has(r.id)) continue;
     seen.add(r.id);
     merged.push(r);
@@ -499,7 +614,7 @@ export async function fetchSubmissionsForTemplate(templateId: string): Promise<P
 /**
  * Comments Storage & API
  */
-function getLocalCommentsAll(): Record<string, Comment[]> {
+export function getLocalCommentsAll(): Record<string, Comment[]> {
   if (typeof window === "undefined") return {};
   try {
     const raw = localStorage.getItem(COMMENTS_KEY);
@@ -509,7 +624,7 @@ function getLocalCommentsAll(): Record<string, Comment[]> {
   }
 }
 
-function saveLocalComment(comment: Comment) {
+export function saveLocalComment(comment: Comment) {
   if (typeof window === "undefined") return;
   try {
     const all = getLocalCommentsAll();
@@ -534,7 +649,7 @@ export function hasUpvotedComment(commentId: string): boolean {
 }
 
 /**
- * Fetch comments for a specific tier list
+ * Fetch comments for a specific tier list — never injects fake/fabricated comments.
  */
 export async function fetchComments(tierListId: string): Promise<Comment[]> {
   let cloudComments: Comment[] = [];
@@ -570,31 +685,7 @@ export async function fetchComments(tierListId: string): Promise<Comment[]> {
   cloudComments.forEach((c) => map.set(c.id, c));
   localList.forEach((c) => map.set(c.id, c));
 
-  let results = Array.from(map.values());
-
-  // If no comments exist yet, supply default conversational comments for lively UGC feel
-  if (results.length === 0) {
-    const seedTime = Date.now();
-    results = [
-      {
-        id: `seed-c1-${tierListId}`,
-        tierListId,
-        authorName: "TierEnthusiast",
-        content: "Honestly solid S-tier placements! That top pick has been carrying the category all year. 🔥",
-        upvotes: 4,
-        createdAt: seedTime - 1000 * 60 * 45, // 45m ago
-      },
-      {
-        id: `seed-c2-${tierListId}`,
-        tierListId,
-        authorName: "VortexGamer",
-        content: "B-tier has a few hot takes, but overall I respect the courage not to just follow the hype. W list! 👏",
-        upvotes: 2,
-        createdAt: seedTime - 1000 * 60 * 180, // 3h ago
-      },
-    ];
-  }
-
+  const results = Array.from(map.values());
   // Sort newest first
   results.sort((a, b) => b.createdAt - a.createdAt);
   return results;
@@ -617,7 +708,7 @@ export async function postComment(payload: {
     tierListId: payload.tierListId,
     authorName,
     content: payload.content.trim(),
-    upvotes: 1,
+    upvotes: 0,
     createdAt: now,
   };
 
@@ -625,13 +716,22 @@ export async function postComment(payload: {
 
   if (isSupabaseConfigured() && supabase) {
     try {
-      await supabase.from("comments").insert({
+      const sessionUserId = await ensureAuthenticatedSession();
+      const insertData: Record<string, any> = {
         id,
         tier_list_id: payload.tierListId,
         author_name: authorName,
         content: newComment.content,
-        upvotes: 1,
-      });
+        upvotes: 0,
+      };
+      if (sessionUserId) {
+        insertData.author_id = sessionUserId;
+      }
+      let { error } = await supabase.from("comments").insert(insertData);
+      if (error && error.message?.includes("author_id")) {
+        delete insertData.author_id;
+        await supabase.from("comments").insert(insertData);
+      }
     } catch (err) {
       console.warn("Failed to persist comment to Supabase", err);
     }
@@ -641,7 +741,7 @@ export async function postComment(payload: {
 }
 
 /**
- * Toggle comment upvote
+ * Toggle comment upvote via set_vote RPC
  */
 export async function toggleCommentUpvote(
   commentId: string
@@ -653,44 +753,58 @@ export async function toggleCommentUpvote(
     votes = JSON.parse(localStorage.getItem(COMMENT_UPVOTES_KEY) || "{}");
   } catch {}
 
-  const currentStatus = Boolean(votes[commentId]);
-  const newStatus = !currentStatus;
-  votes[commentId] = newStatus;
+  const currentlyUpvoted = Boolean(votes[commentId]);
+  const desiredVote = !currentlyUpvoted;
+  let isUpvotedResult = desiredVote;
+  let newCount = 0;
 
+  if (isSupabaseConfigured() && supabase) {
+    await ensureAuthenticatedSession();
+    try {
+      const { data, error } = await supabase.rpc("set_vote", {
+        target_type: "comment",
+        target_id: commentId,
+        desired_vote: desiredVote,
+      });
+
+      if (error) {
+        console.warn("Supabase set_vote for comment failed:", error.message);
+        return { isUpvoted: currentlyUpvoted, newCount: 0 };
+      }
+
+      if (data && typeof data === "object") {
+        isUpvotedResult = Boolean((data as any).isUpvoted);
+        newCount = Number((data as any).newCount) || 0;
+      }
+    } catch (err) {
+      console.warn("Supabase toggle comment upvote exception:", err);
+      return { isUpvoted: currentlyUpvoted, newCount: 0 };
+    }
+  }
+
+  votes[commentId] = isUpvotedResult;
   try {
     localStorage.setItem(COMMENT_UPVOTES_KEY, JSON.stringify(votes));
   } catch {}
 
   // Update in local comments if present
-  let newCount = 1;
   const all = getLocalCommentsAll();
   for (const tid of Object.keys(all)) {
     const list = all[tid];
     const match = list.find((c) => c.id === commentId);
     if (match) {
-      match.upvotes = Math.max(0, match.upvotes + (newStatus ? 1 : -1));
-      newCount = match.upvotes;
+      if (newCount > 0) {
+        match.upvotes = newCount;
+      } else {
+        match.upvotes = Math.max(0, match.upvotes + (isUpvotedResult ? 1 : -1));
+        newCount = match.upvotes;
+      }
       localStorage.setItem(COMMENTS_KEY, JSON.stringify(all));
       break;
     }
   }
 
-  if (isSupabaseConfigured() && supabase) {
-    try {
-      const { data } = await supabase.rpc("increment_comment_upvote", {
-        c_id: commentId,
-        delta: newStatus ? 1 : -1,
-      });
-      // Seed placeholder comments don't exist in Postgres (RPC returns 0) — keep local count for those.
-      if (typeof data === "number" && !commentId.startsWith("seed-")) {
-        newCount = data;
-      }
-    } catch (err) {
-      console.warn("Supabase increment_comment_upvote RPC failed", err);
-    }
-  }
-
-  return { isUpvoted: newStatus, newCount };
+  return { isUpvoted: isUpvotedResult, newCount };
 }
 
 export interface UserProfileData {

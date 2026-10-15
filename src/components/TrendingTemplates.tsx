@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { ArrowBigUp, RefreshCw, Layers, Sparkles } from "lucide-react";
+import { ArrowBigUp, RefreshCw, Layers, Sparkles, Search, X } from "lucide-react";
 import { CATEGORIES, SEED_TEMPLATES } from "@/data/seed-templates";
 import { fetchTemplates, toggleUpvote } from "@/lib/community";
 import type { Template } from "@/types";
@@ -10,6 +10,7 @@ import type { Template } from "@/types";
 export function TrendingTemplates() {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [activeSort, setActiveSort] = useState<"most-ranked" | "newest" | "top-rated">("most-ranked");
+  const [searchQuery, setSearchQuery] = useState("");
   const [templates, setTemplates] = useState<Template[]>(SEED_TEMPLATES);
   const [loading, setLoading] = useState(false);
   const [upvotedIds, setUpvotedIds] = useState<Record<string, boolean>>({});
@@ -17,7 +18,7 @@ export function TrendingTemplates() {
   useEffect(() => {
     let isCancelled = false;
     setLoading(true);
-    fetchTemplates({ category: selectedCategory, sortBy: activeSort }).then((data) => {
+    fetchTemplates({ category: selectedCategory, sortBy: activeSort, search: searchQuery }).then((data) => {
       if (!isCancelled) {
         setTemplates(data);
         setLoading(false);
@@ -26,7 +27,7 @@ export function TrendingTemplates() {
     return () => {
       isCancelled = true;
     };
-  }, [selectedCategory, activeSort]);
+  }, [selectedCategory, activeSort, searchQuery]);
 
   const handleUpvote = async (templateId: string) => {
     const isCurrentlyUpvoted = Boolean(upvotedIds[templateId]);
@@ -52,7 +53,7 @@ export function TrendingTemplates() {
     <section id="trending" className="py-14 border-t border-zinc-800/80 relative z-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-6 gap-4">
           <div>
             <div className="flex items-center gap-2 text-indigo-400 text-xs font-bold uppercase tracking-wider mb-1">
               <span>🔥 What&apos;s Hot This Week</span>
@@ -64,12 +65,38 @@ export function TrendingTemplates() {
               Templates climbing fast with the most community remixes and votes.
             </p>
           </div>
+        </div>
+
+        {/* Search & Sort Controls Row */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+          {/* Responsive Search Input */}
+          <div className="relative w-full sm:w-72">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search templates..."
+              aria-label="Search templates"
+              className="w-full bg-zinc-900 border border-zinc-800 rounded-xl pl-9 pr-8 py-2 text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-indigo-500 transition-colors min-h-[36px]"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                aria-label="Clear search filter"
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center text-zinc-500 hover:text-zinc-300 rounded-lg cursor-pointer"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
 
           {/* Sort Controls */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
             <button
               onClick={() => setActiveSort("most-ranked")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer min-h-[32px] ${
                 activeSort === "most-ranked"
                   ? "bg-zinc-800 text-white border border-zinc-700"
                   : "bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white border border-zinc-800"
@@ -79,7 +106,7 @@ export function TrendingTemplates() {
             </button>
             <button
               onClick={() => setActiveSort("newest")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer min-h-[32px] ${
                 activeSort === "newest"
                   ? "bg-zinc-800 text-white border border-zinc-700"
                   : "bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white border border-zinc-800"
@@ -89,7 +116,7 @@ export function TrendingTemplates() {
             </button>
             <button
               onClick={() => setActiveSort("top-rated")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer min-h-[32px] ${
                 activeSort === "top-rated"
                   ? "bg-zinc-800 text-white border border-zinc-700"
                   : "bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white border border-zinc-800"
@@ -106,7 +133,7 @@ export function TrendingTemplates() {
             <button
               key={cat.id}
               onClick={() => setSelectedCategory(cat.id)}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap transition-all cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap transition-all cursor-pointer min-h-[32px] ${
                 selectedCategory === cat.id
                   ? "bg-indigo-600 text-white shadow-sm"
                   : "bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 border border-zinc-800"
@@ -217,7 +244,7 @@ export function TrendingTemplates() {
                     <div className="flex items-center gap-3 text-xs text-zinc-400">
                       <button
                         onClick={() => handleUpvote(template.id)}
-                        className={`flex items-center gap-1 font-medium transition-colors cursor-pointer ${
+                        className={`flex items-center gap-1 font-medium transition-colors cursor-pointer min-h-[28px] min-w-[28px] ${
                           isVoted ? "text-emerald-400" : "hover:text-emerald-400 text-zinc-400"
                         }`}
                         title="Upvote template"
@@ -233,7 +260,7 @@ export function TrendingTemplates() {
 
                     <Link
                       href={`/template/${template.id}`}
-                      className="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition-all shadow-sm"
+                      className="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition-all shadow-sm min-h-[28px] inline-flex items-center justify-center"
                     >
                       Rank This
                     </Link>

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { PwaProvider } from "@/components/pwa/PwaProvider";
+import { safeJsonLd } from "@/lib/seo";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -122,7 +123,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-[#09090b] text-[#f4f4f5]">
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(webAppJsonLd) }}
+          dangerouslySetInnerHTML={{ __html: safeJsonLd(webAppJsonLd) }}
         />
         <PwaProvider>{children}</PwaProvider>
       </body>

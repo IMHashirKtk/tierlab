@@ -25,7 +25,7 @@ export function Footer() {
             </p>
             <div className="flex items-center gap-2 text-zinc-400 text-[11px]">
               <span className="w-2 h-2 rounded-full bg-emerald-400" />
-              <span>45,210 public templates active today</span>
+              <span>Free community templates &amp; rankings active today</span>
             </div>
           </div>
 

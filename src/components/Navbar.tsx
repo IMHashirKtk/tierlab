@@ -95,7 +95,7 @@ export function Navbar({ onOpenPublish }: NavbarProps) {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onFocus={() => setIsSearchFocused(true)}
-              placeholder="Search 45,000+ templates, fandoms, games..."
+              placeholder="Search templates, fandoms, games..."
               className="w-full bg-zinc-900/90 border border-zinc-800 rounded-xl pl-10 pr-12 py-2 text-xs sm:text-sm text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-indigo-500 transition-colors"
             />
             <kbd className="absolute right-3 top-1/2 -translate-y-1/2 bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded font-mono text-[10px]">

@@ -14,6 +14,7 @@ import {
   Flame,
   ArrowRight,
 } from "lucide-react";
+import { safeJsonLd } from "@/lib/seo";
 
 interface FaqItem {
   question: string;
@@ -69,7 +70,7 @@ export function SeoGuideSection() {
       {/* FAQPage JSON-LD Structured Data */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(faqJsonLd) }}
       />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-24">

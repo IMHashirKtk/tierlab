@@ -97,68 +97,98 @@ export function ConsensusShowcase() {
                     {consensus.templateTitle}
                   </span>
                   <span className="text-[11px] text-zinc-500">
-                    Based on {consensus.totalSubmissions.toLocaleString()} verified community rankings
+                    {consensus.totalSubmissions > 0
+                      ? `Based on ${consensus.totalSubmissions.toLocaleString()} verified community rankings`
+                      : "Awaiting first community submission"}
                   </span>
                 </div>
-                <span className="text-xs px-2 py-1 rounded bg-emerald-500/20 text-emerald-400 font-semibold flex items-center gap-1 flex-shrink-0 border border-emerald-500/30">
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  <span>{consensus.overallAgreementPct}% Agreement</span>
-                </span>
+                {consensus.totalSubmissions > 0 ? (
+                  <span className="text-xs px-2 py-1 rounded bg-emerald-500/20 text-emerald-400 font-semibold flex items-center gap-1 flex-shrink-0 border border-emerald-500/30">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>{consensus.overallAgreementPct}% Agreement</span>
+                  </span>
+                ) : (
+                  <span className="text-[11px] px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 font-semibold border border-amber-500/20">
+                    Demo Preview
+                  </span>
+                )}
               </div>
 
-              {/* S Tier Consensus */}
-              {consensus.tiers.slice(0, 2).map((tier) => (
-                <div key={tier.id} className="flex items-center gap-3">
-                  <span
-                    className={`w-8 h-8 rounded-lg bg-gradient-to-br ${tier.color} font-bold text-white flex items-center justify-center text-xs flex-shrink-0 shadow-sm`}
-                  >
-                    {tier.label}
-                  </span>
-                  <div className="flex-1 bg-zinc-900 border border-zinc-800 rounded-lg p-2 text-xs flex flex-wrap gap-1.5 items-center min-h-[44px]">
-                    {tier.items.length === 0 ? (
-                      <span className="text-zinc-500 italic text-[11px]">No items</span>
-                    ) : (
-                      tier.items.map((it) => (
-                        <div
-                          key={it.item.id}
-                          className="flex items-center gap-1.5 bg-zinc-800 border border-zinc-700/80 px-2 py-1 rounded-md text-zinc-200"
-                        >
-                          {it.item.imageUrl && (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
-                              src={it.item.imageUrl}
-                              alt={it.item.name}
-                              className="w-4 h-4 rounded object-cover"
-                            />
-                          )}
-                          <span className="text-[11px] font-semibold truncate max-w-[120px]">
-                            {it.item.name}
-                          </span>
-                          <span className="text-[10px] text-zinc-400 font-mono">
-                            ({it.agreementPct}%)
-                          </span>
-                        </div>
-                      ))
-                    )}
+              {consensus.totalSubmissions === 0 ? (
+                <div className="py-8 px-4 text-center rounded-xl bg-zinc-900/60 border border-zinc-800 space-y-3">
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/20 text-[11px] font-semibold">
+                    <span>Interactive Demo Preview (Sample Data)</span>
                   </div>
+                  <p className="text-xs text-zinc-400 max-w-sm mx-auto">
+                    No community rankings submitted yet — publish the first ranking to establish the consensus!
+                  </p>
+                  <Link
+                    href={`/template/${selectedTemplate.id}`}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition-colors"
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>Submit First Ranking</span>
+                  </Link>
                 </div>
-              ))}
+              ) : (
+                <>
+                  {/* S Tier Consensus */}
+                  {consensus.tiers.slice(0, 2).map((tier) => (
+                    <div key={tier.id} className="flex items-center gap-3">
+                      <span
+                        className={`w-8 h-8 rounded-lg bg-gradient-to-br ${tier.color} font-bold text-white flex items-center justify-center text-xs flex-shrink-0 shadow-sm`}
+                      >
+                        {tier.label}
+                      </span>
+                      <div className="flex-1 bg-zinc-900 border border-zinc-800 rounded-lg p-2 text-xs flex flex-wrap gap-1.5 items-center min-h-[44px]">
+                        {tier.items.length === 0 ? (
+                          <span className="text-zinc-500 italic text-[11px]">No items</span>
+                        ) : (
+                          tier.items.map((it) => (
+                            <div
+                              key={it.item.id}
+                              className="flex items-center gap-1.5 bg-zinc-800 border border-zinc-700/80 px-2 py-1 rounded-md text-zinc-200"
+                            >
+                              {it.item.imageUrl && (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img
+                                  src={it.item.imageUrl}
+                                  alt={it.item.name}
+                                  className="w-4 h-4 rounded object-cover"
+                                />
+                              )}
+                              <span className="text-[11px] font-semibold truncate max-w-[120px]">
+                                {it.item.name}
+                              </span>
+                              <span className="text-[10px] text-zinc-400 font-mono">
+                                ({it.agreementPct}%)
+                              </span>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </>
+              )}
 
               {/* Controversy Callout */}
-              <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 text-xs text-amber-300 flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2 min-w-0">
-                  <Zap className="w-4 h-4 text-amber-400 flex-shrink-0" />
-                  <span className="truncate">
-                    Most Controversial: <strong>{consensus.mostControversial.item.name}</strong> (Highest placement spread)
-                  </span>
+              {consensus.mostControversial && (
+                <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 text-xs text-amber-300 flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Zap className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                    <span className="truncate">
+                      Most Controversial: <strong>{consensus.mostControversial.item.name}</strong> (Highest placement spread)
+                    </span>
+                  </div>
+                  <Link
+                    href={`/template/${selectedTemplate.id}`}
+                    className="text-white hover:text-amber-200 underline font-semibold flex-shrink-0 text-[11px]"
+                  >
+                    Cast Vote &rarr;
+                  </Link>
                 </div>
-                <Link
-                  href={`/template/${selectedTemplate.id}`}
-                  className="text-white hover:text-amber-200 underline font-semibold flex-shrink-0 text-[11px]"
-                >
-                  Cast Vote &rarr;
-                </Link>
-              </div>
+              )}
             </div>
           </div>
         </div>

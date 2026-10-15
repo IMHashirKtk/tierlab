@@ -16,7 +16,7 @@ export function CategoryExplorer() {
               Browse by Category
             </h2>
             <p className="text-xs sm:text-sm text-zinc-400 mt-1">
-              Explore over 45,000 public templates across top fandoms.
+              Explore public templates across top fandoms.
             </p>
           </div>
           <Link href="/categories/gaming" className="text-xs font-semibold text-indigo-400 hover:text-indigo-300">

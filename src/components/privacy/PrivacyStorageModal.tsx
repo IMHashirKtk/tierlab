@@ -130,7 +130,7 @@ export function PrivacyStorageModal({
     } catch (err: any) {
       setStatusMessage({
         type: "error",
-        text: `Import failed: Invalid backup file format.`,
+        text: err?.message || `Import failed: Invalid backup file format.`,
       });
     } finally {
       if (fileInputRef.current) fileInputRef.current.value = "";

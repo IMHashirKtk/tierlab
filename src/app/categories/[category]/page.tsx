@@ -6,6 +6,7 @@ import { CATEGORIES, SEED_TEMPLATES } from "@/data/seed-templates";
 import { fetchTemplates } from "@/lib/community";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { safeJsonLd } from "@/lib/seo";
 import {
   Layers,
   ChevronRight,
@@ -156,7 +157,7 @@ async function CategoryContent({
       {/* JSON-LD Schema */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
       />
 
       <Navbar />

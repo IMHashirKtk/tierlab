@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { X, Download, Smartphone, Monitor, Square, Sparkles, Check, Image as ImageIcon, ShieldCheck, Film } from "lucide-react";
+import { X, Download, Smartphone, Monitor, Square, Sparkles, Check, Image as ImageIcon, ShieldCheck, Film, AlertCircle } from "lucide-react";
 import type { TierRow } from "@/types";
 
 interface CreatorExportModalProps {
@@ -29,6 +29,7 @@ export function CreatorExportModal({
   const [showWatermark, setShowWatermark] = useState(false);
   const [showTitleHeader, setShowTitleHeader] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
 
   const captureRef = useRef<HTMLDivElement>(null);
 
@@ -46,6 +47,7 @@ export function CreatorExportModal({
   const handleDownload = async () => {
     if (!captureRef.current) return;
     setIsExporting(true);
+    setExportError(null);
 
     try {
       const { toPng } = await import("html-to-image");
@@ -62,8 +64,11 @@ export function CreatorExportModal({
       link.href = dataUrl;
       link.click();
       onClose();
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to render export image", err);
+      setExportError(
+        "Export failed: Some external images blocked cross-origin rendering (CORS). Try re-uploading or removing external images."
+      );
     } finally {
       setIsExporting(false);
     }
@@ -110,6 +115,23 @@ export function CreatorExportModal({
             <X className="w-5 h-5" />
           </button>
         </div>
+
+        {/* Error Alert */}
+        {exportError && (
+          <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-start gap-2.5 text-xs text-rose-300">
+            <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="font-semibold">{exportError}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setExportError(null)}
+              className="text-rose-400 hover:text-rose-200 cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
 
         {/* Export Mode Switcher (Static 4K Image vs Animated Video) */}
         <div className="flex p-1 rounded-xl bg-zinc-950 border border-zinc-800 text-xs">
@@ -365,6 +387,12 @@ export function CreatorExportModal({
                             alt={item.name}
                             className="w-full h-full object-cover"
                             crossOrigin="anonymous"
+                            onError={(e) => {
+                              e.currentTarget.style.display = "none";
+                              if (e.currentTarget.parentElement) {
+                                e.currentTarget.parentElement.innerText = item.name;
+                              }
+                            }}
                           />
                         ) : (
                           <span>{item.name}</span>

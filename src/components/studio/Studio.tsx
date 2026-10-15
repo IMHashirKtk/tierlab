@@ -101,6 +101,7 @@ import {
   countRanked,
 } from "@/lib/board";
 import { getProject, saveProject } from "@/lib/storage";
+import { fetchTemplateById } from "@/lib/community";
 import { DropZone, ItemCard } from "@/components/studio/BoardDnd";
 
 const COLOR_PRESETS = [
@@ -166,6 +167,12 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
   const [isMobileToolsOpen, setIsMobileToolsOpen] = useState(false);
   const [unrankedSearch, setUnrankedSearch] = useState("");
 
+  // Loaded project metadata preservation
+  const [loadedTemplateId, setLoadedTemplateId] = useState<string | undefined>(initialTemplate?.id);
+  const [resolvedTemplate, setResolvedTemplate] = useState<Template | null>(initialTemplate || null);
+  const [publishedShareId, setPublishedShareId] = useState<string | undefined>(undefined);
+  const [projectCreatedAt, setProjectCreatedAt] = useState<number>(Date.now());
+
   // Tap-to-rank quick selection state
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
 
@@ -204,13 +211,27 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
       setProjectId(loaded.id);
       setTitle(loaded.title);
       setBoard({ tiers: loaded.tiers, unranked: loaded.unranked });
+      if (loaded.templateId) {
+        setLoadedTemplateId(loaded.templateId);
+        if (!initialTemplate) {
+          fetchTemplateById(loaded.templateId).then((t) => {
+            if (!isCancelled && t) setResolvedTemplate(t);
+          });
+        }
+      }
+      if (loaded.publishedShareId) {
+        setPublishedShareId(loaded.publishedShareId);
+      }
+      if (loaded.createdAt) {
+        setProjectCreatedAt(loaded.createdAt);
+      }
       setHistory([]);
       setFuture([]);
     });
     return () => {
       isCancelled = true;
     };
-  }, [initialProjectId]);
+  }, [initialProjectId, initialTemplate]);
 
   // Synchronize state when backup is restored or storage is cleared
   useEffect(() => {
@@ -219,6 +240,9 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
       if (p) {
         setTitle(p.title);
         setBoard({ tiers: p.tiers, unranked: p.unranked });
+        if (p.templateId) setLoadedTemplateId(p.templateId);
+        if (p.publishedShareId) setPublishedShareId(p.publishedShareId);
+        if (p.createdAt) setProjectCreatedAt(p.createdAt);
       }
     };
     window.addEventListener("tierlistmaker-data-synced", handleSync);
@@ -231,10 +255,12 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
       const p = projectFromTemplate(initialTemplate, projectId);
       setTitle(p.title);
       setBoard({ tiers: p.tiers, unranked: p.unranked });
+      setLoadedTemplateId(initialTemplate.id);
+      setResolvedTemplate(initialTemplate);
       setHistory([]);
       setFuture([]);
     }
-  }, [initialTemplate]);
+  }, [initialTemplate, projectId]);
 
   // Debounced Auto-save to IndexedDB (skips while user is dragging)
   useEffect(() => {
@@ -251,8 +277,9 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
         title,
         tiers: board.tiers,
         unranked: board.unranked,
-        templateId: initialTemplate?.id,
-        createdAt: Date.now(),
+        templateId: loadedTemplateId || initialTemplate?.id,
+        publishedShareId,
+        createdAt: projectCreatedAt,
         updatedAt: Date.now(),
       };
       saveProject(currentProject)
@@ -264,7 +291,7 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
     }, 600);
 
     return () => clearTimeout(timer);
-  }, [board, title, projectId, initialTemplate, activeItem]);
+  }, [board, title, projectId, initialTemplate, loadedTemplateId, publishedShareId, projectCreatedAt, activeItem]);
 
   // Push board change to history (for Undo)
   const commitBoardChange = useCallback(
@@ -1557,15 +1584,29 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
           totalRankedCount={totalRanked}
           tiers={board.tiers}
           unranked={board.unranked}
-          templateId={initialTemplate?.id}
+          templateId={resolvedTemplate?.id || initialTemplate?.id}
+          publishedShareId={publishedShareId}
+          onPublishSuccess={(newShareId) => {
+            setPublishedShareId(newShareId);
+            saveProject({
+              id: projectId,
+              title,
+              tiers: board.tiers,
+              unranked: board.unranked,
+              templateId: loadedTemplateId || initialTemplate?.id,
+              publishedShareId: newShareId,
+              createdAt: projectCreatedAt,
+              updatedAt: Date.now(),
+            }).catch(console.error);
+          }}
         />
 
-        {initialTemplate && (
+        {(resolvedTemplate || initialTemplate) && (
           <ConsensusComparisonModal
             isOpen={isConsensusModalOpen}
             onClose={() => setIsConsensusModalOpen(false)}
             board={board}
-            template={initialTemplate}
+            template={resolvedTemplate || initialTemplate!}
           />
         )}
 
@@ -1574,7 +1615,10 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
           isOpen={isExportModalOpen}
           onClose={() => setIsExportModalOpen(false)}
           boardTitle={title}
-          authorName={initialTemplate?.author.username || "Creator"}
+          authorName={
+            (typeof window !== "undefined" ? localStorage.getItem("tl_commenter_name") : null) ||
+            "Creator"
+          }
           tiers={board.tiers}
           onSwitchToVideo={() => setIsVideoModalOpen(true)}
         />
@@ -1584,7 +1628,10 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
           isOpen={isVideoModalOpen}
           onClose={() => setIsVideoModalOpen(false)}
           boardTitle={title}
-          authorName={initialTemplate?.author.username || "Creator"}
+          authorName={
+            (typeof window !== "undefined" ? localStorage.getItem("tl_commenter_name") : null) ||
+            "Creator"
+          }
           tiers={board.tiers}
         />
 
@@ -1594,7 +1641,11 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
           onClose={() => setIsBlindModalOpen(false)}
           board={board}
           onPlaceBlindItem={handlePlaceBlindItem}
-          onOpenConsensus={initialTemplate ? () => setIsConsensusModalOpen(true) : undefined}
+          onOpenConsensus={
+            resolvedTemplate || initialTemplate
+              ? () => setIsConsensusModalOpen(true)
+              : undefined
+          }
         />
 
         {/* Presentation & Streamer Mode Modal */}
@@ -1602,7 +1653,10 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
           isOpen={isPresentationModalOpen}
           onClose={() => setIsPresentationModalOpen(false)}
           boardTitle={title}
-          authorName={initialTemplate?.author.username || "Creator"}
+          authorName={
+            (typeof window !== "undefined" ? localStorage.getItem("tl_commenter_name") : null) ||
+            "Creator"
+          }
           tiers={board.tiers}
           onOpenExport={() => setIsExportModalOpen(true)}
         />

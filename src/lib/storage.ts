@@ -76,45 +76,149 @@ export async function clearAllProjects(): Promise<void> {
 /** Export entire local storage as a JSON backup bundle */
 export async function exportAllData(): Promise<string> {
   const projects = await listProjects();
+  let userTemplates: any[] = [];
   let publishedRankings: any[] = [];
+  let commenterName: string | null = null;
+
   if (typeof window !== "undefined") {
     try {
+      userTemplates = JSON.parse(localStorage.getItem("tl_user_templates") || "[]");
+    } catch {}
+    try {
       publishedRankings = JSON.parse(localStorage.getItem("tl_published_rankings") || "[]");
+    } catch {}
+    try {
+      commenterName = localStorage.getItem("tl_commenter_name");
     } catch {}
   }
 
   const bundle = {
-    version: 1,
+    version: "1.0",
     exportedAt: new Date().toISOString(),
     generator: "tierlistmaker.app",
     projects,
-    publishedRankings,
+    tl_user_templates: userTemplates,
+    tl_published_rankings: publishedRankings,
+    tl_commenter_name: commenterName,
+    publishedRankings, // backward compatibility
   };
   return JSON.stringify(bundle, null, 2);
 }
 
-/** Restore projects from a JSON backup bundle. Returns count of restored projects. */
+/** Restore projects from a JSON backup bundle. Validates strict schema and returns count of restored projects. */
 export async function importAllData(jsonString: string): Promise<{ restoredProjects: number }> {
-  const parsed = JSON.parse(jsonString);
-  const projects: Project[] = Array.isArray(parsed.projects) ? parsed.projects : Array.isArray(parsed) ? parsed : [];
+  let parsed: any;
+  try {
+    parsed = JSON.parse(jsonString);
+  } catch {
+    throw new Error("Invalid backup file: Not valid JSON.");
+  }
 
-  let count = 0;
-  for (const p of projects) {
-    if (p.id && Array.isArray(p.tiers)) {
-      await saveProject(p);
-      count++;
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    throw new Error("Invalid backup file: Root must be an object.");
+  }
+
+  if (parsed.version === undefined || (typeof parsed.version !== "string" && typeof parsed.version !== "number")) {
+    throw new Error("Invalid backup file: Missing or invalid version string.");
+  }
+
+  if (!Array.isArray(parsed.projects)) {
+    throw new Error("Invalid backup file: Missing 'projects' array.");
+  }
+
+  for (let i = 0; i < parsed.projects.length; i++) {
+    const p = parsed.projects[i];
+    if (!p || typeof p !== "object" || Array.isArray(p)) {
+      throw new Error(`Invalid project at index ${i}: Project must be an object.`);
+    }
+    if (typeof p.id !== "string" || !p.id.trim()) {
+      throw new Error(`Invalid project at index ${i}: Missing or invalid project id.`);
+    }
+    if (typeof p.title !== "string") {
+      throw new Error(`Invalid project "${p.id}": Missing or invalid title.`);
+    }
+    if (!Array.isArray(p.tiers)) {
+      throw new Error(`Invalid project "${p.id}": 'tiers' must be an array.`);
+    }
+    if (!Array.isArray(p.unranked)) {
+      throw new Error(`Invalid project "${p.id}": 'unranked' must be an array.`);
+    }
+
+    for (let tIdx = 0; tIdx < p.tiers.length; tIdx++) {
+      const tier = p.tiers[tIdx];
+      if (!tier || typeof tier !== "object" || Array.isArray(tier)) {
+        throw new Error(`Invalid tier at index ${tIdx} in project "${p.id}": Tier must be an object.`);
+      }
+      if (typeof tier.id !== "string" || !tier.id.trim()) {
+        throw new Error(`Invalid tier at index ${tIdx} in project "${p.id}": Missing tier id.`);
+      }
+      if (typeof tier.label !== "string") {
+        throw new Error(`Invalid tier "${tier.id}" in project "${p.id}": Missing tier label.`);
+      }
+      if (typeof tier.color !== "string") {
+        throw new Error(`Invalid tier "${tier.id}" in project "${p.id}": Missing tier color.`);
+      }
+      if (!Array.isArray(tier.items)) {
+        throw new Error(`Invalid tier "${tier.id}" in project "${p.id}": 'items' must be an array.`);
+      }
+      for (let itemIdx = 0; itemIdx < tier.items.length; itemIdx++) {
+        const item = tier.items[itemIdx];
+        if (!item || typeof item !== "object" || typeof item.id !== "string" || typeof item.name !== "string") {
+          throw new Error(`Invalid item at index ${itemIdx} in tier "${tier.id}" of project "${p.id}": Items must have 'id' and 'name'.`);
+        }
+      }
+    }
+
+    for (let uIdx = 0; uIdx < p.unranked.length; uIdx++) {
+      const item = p.unranked[uIdx];
+      if (!item || typeof item !== "object" || typeof item.id !== "string" || typeof item.name !== "string") {
+        throw new Error(`Invalid item at index ${uIdx} in unranked of project "${p.id}": Items must have 'id' and 'name'.`);
+      }
     }
   }
 
-  if (Array.isArray(parsed.publishedRankings) && typeof window !== "undefined") {
-    try {
-      const existing = JSON.parse(localStorage.getItem("tl_published_rankings") || "[]");
-      const merged = [
-        ...parsed.publishedRankings,
-        ...existing.filter((e: any) => !parsed.publishedRankings.some((p: any) => p.id === e.id)),
-      ];
-      localStorage.setItem("tl_published_rankings", JSON.stringify(merged));
-    } catch {}
+  // All projects validated successfully. Persist to storage.
+  let count = 0;
+  for (const p of parsed.projects) {
+    await saveProject(p);
+    count++;
+  }
+
+  if (typeof window !== "undefined") {
+    // Restore user templates if present
+    if (Array.isArray(parsed.tl_user_templates)) {
+      try {
+        const existing = JSON.parse(localStorage.getItem("tl_user_templates") || "[]");
+        const merged = [
+          ...parsed.tl_user_templates,
+          ...existing.filter((e: any) => !parsed.tl_user_templates.some((p: any) => p.id === e.id)),
+        ];
+        localStorage.setItem("tl_user_templates", JSON.stringify(merged));
+      } catch {}
+    }
+
+    // Restore published rankings if present
+    const incomingRankings = Array.isArray(parsed.tl_published_rankings)
+      ? parsed.tl_published_rankings
+      : Array.isArray(parsed.publishedRankings)
+      ? parsed.publishedRankings
+      : null;
+
+    if (incomingRankings) {
+      try {
+        const existing = JSON.parse(localStorage.getItem("tl_published_rankings") || "[]");
+        const merged = [
+          ...incomingRankings,
+          ...existing.filter((e: any) => !incomingRankings.some((p: any) => p.id === e.id)),
+        ];
+        localStorage.setItem("tl_published_rankings", JSON.stringify(merged));
+      } catch {}
+    }
+
+    // Restore commenter name if present
+    if (typeof parsed.tl_commenter_name === "string" && parsed.tl_commenter_name.trim()) {
+      localStorage.setItem("tl_commenter_name", parsed.tl_commenter_name.trim());
+    }
   }
 
   return { restoredProjects: count };

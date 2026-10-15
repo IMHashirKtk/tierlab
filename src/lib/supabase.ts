@@ -59,3 +59,71 @@ export async function ensureAuthenticatedSession(): Promise<string | null> {
 
   return sessionPromise;
 }
+
+let mockSessionToken: any = undefined;
+
+/**
+ * Test helper to inject a controlled mock access token during testing.
+ */
+export function setMockSessionToken(token: any) {
+  mockSessionToken = token;
+}
+
+export function resetMockSessionToken() {
+  mockSessionToken = undefined;
+}
+
+/**
+ * Ensures an active Supabase session (initiating anonymous sign-in if needed)
+ * and returns the signed JWT access token for Authorization headers.
+ * Throws an explicit, actionable error if authentication fails.
+ */
+export async function getAuthenticatedSessionToken(): Promise<string> {
+  if (mockSessionToken !== undefined) {
+    if (mockSessionToken === null) {
+      throw new Error("Anonymous authentication failed or is disabled in Supabase. Please check your Supabase Auth settings.");
+    }
+    return mockSessionToken;
+  }
+
+  if (!isSupabaseConfigured() || !supabase) {
+    throw new Error(
+      "Supabase client is not configured on the client. Cannot establish authenticated session."
+    );
+  }
+
+  try {
+    const {
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
+
+    if (session?.access_token) {
+      return session.access_token;
+    }
+
+    if (sessionError) {
+      console.warn("Supabase session retrieval notice:", sessionError.message);
+    }
+
+    const { data, error: signInError } = await supabase.auth.signInAnonymously();
+    if (signInError) {
+      throw new Error(
+        `Anonymous sign-in failed: ${signInError.message}. Please verify Anonymous Sign-Ins are enabled in your Supabase Auth provider settings.`
+      );
+    }
+
+    if (!data.session?.access_token) {
+      throw new Error(
+        "Supabase did not return an access token after anonymous sign-in."
+      );
+    }
+
+    return data.session.access_token;
+  } catch (err: any) {
+    throw new Error(
+      err?.message || "Failed to obtain Supabase authentication access token."
+    );
+  }
+}
+

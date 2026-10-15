@@ -5,6 +5,21 @@ const PG_PORT = process.env.PG_PORT || "54388";
 const PG_USER = process.env.PG_USER || "postgres";
 const PG_DATABASE = process.env.PG_DATABASE || "postgres";
 
+// Explicit Safety Check: Never run tests against production
+if (
+  PG_HOST !== "127.0.0.1" &&
+  PG_HOST !== "localhost" &&
+  !PG_HOST.startsWith("127.")
+) {
+  console.error(`FATAL SAFETY ERROR: Refusing to run tests against non-local host: ${PG_HOST}`);
+  process.exit(1);
+}
+
+if (PG_PORT !== "54388" && !process.env.ALLOW_CUSTOM_TEST_PORT) {
+  console.error(`FATAL SAFETY ERROR: Test harness is configured for isolated port 54388 (received: ${PG_PORT}). Set ALLOW_CUSTOM_TEST_PORT=1 to override.`);
+  process.exit(1);
+}
+
 // Determine psql path
 const possiblePsqlPaths = [
   process.env.PSQL_PATH,
@@ -27,11 +42,12 @@ if (!PSQL_BIN) {
   process.exit(1);
 }
 
-console.log(`Using psql: ${PSQL_BIN} against ${PG_HOST}:${PG_PORT}/${PG_DATABASE}`);
+console.log(`Using psql: ${PSQL_BIN} against isolated test DB at ${PG_HOST}:${PG_PORT}/${PG_DATABASE}`);
 
 const results = {
   passed: [],
-  failed: []
+  failed: [],
+  blocked: []
 };
 
 function pass(name, detail = "") {
@@ -42,6 +58,22 @@ function pass(name, detail = "") {
 function fail(name, detail = "") {
   console.error(`[FAIL] ${name} - ${detail}`);
   results.failed.push({ name, detail });
+}
+
+function block(name, detail = "") {
+  console.warn(`[BLOCKED] ${name} - ${detail}`);
+  results.blocked.push({ name, detail });
+}
+
+function parsePsqlJson(str) {
+  if (!str) return null;
+  const m = str.match(/\{[\s\S]*\}/);
+  if (!m) return null;
+  try {
+    return JSON.parse(m[0]);
+  } catch {
+    return null;
+  }
 }
 
 function runSql(sql, asRole = null, jwtSub = null) {
@@ -57,10 +89,15 @@ function runSql(sql, asRole = null, jwtSub = null) {
   try {
     const output = execFileSync(
       PSQL_BIN,
-      ["-h", PG_HOST, "-p", PG_PORT, "-U", PG_USER, "-d", PG_DATABASE, "-t", "-A", "-c", fullSql],
+      ["-h", PG_HOST, "-p", PG_PORT, "-U", PG_USER, "-d", PG_DATABASE, "-v", "ON_ERROR_STOP=1", "-t", "-A", "-c", fullSql],
       { encoding: "utf8", stdio: ["pipe", "pipe", "pipe"] }
     );
-    return { success: true, output: output.trim() };
+    const trimmed = output.trim();
+    const lines = trimmed.split("\n").map((l) => l.trim()).filter(Boolean);
+    // Strip command feedback lines like "SET" from SET ROLE and SET config
+    const nonSetLines = lines.filter((l) => l !== "SET");
+    const cleanOutput = nonSetLines.join("\n").trim();
+    return { success: true, output: cleanOutput };
   } catch (err) {
     return {
       success: false,
@@ -74,7 +111,7 @@ function runSqlFile(filePath) {
   try {
     const output = execFileSync(
       PSQL_BIN,
-      ["-h", PG_HOST, "-p", PG_PORT, "-U", PG_USER, "-d", PG_DATABASE, "-f", filePath],
+      ["-h", PG_HOST, "-p", PG_PORT, "-U", PG_USER, "-d", PG_DATABASE, "-v", "ON_ERROR_STOP=1", "-f", filePath],
       { encoding: "utf8", stdio: ["pipe", "pipe", "pipe"] }
     );
     return { success: true, output: output.trim() };
@@ -87,10 +124,10 @@ function runSqlFile(filePath) {
   }
 }
 
-async function runConcurrentVotes(targetType, targetId, userCount, desiredVote) {
+async function runConcurrentVotes(targetType, targetId, userCount, desiredVote, voterPrefix = "concurrent_voter") {
   const promises = [];
   for (let i = 1; i <= userCount; i++) {
-    const voterId = `concurrent_voter_${i}`;
+    const voterId = `${voterPrefix}_${i}`;
     const p = new Promise((resolve) => {
       const sql = `SELECT public.set_vote('${targetType}', '${targetId}', ${desiredVote});`;
       const child = spawn(
@@ -100,6 +137,7 @@ async function runConcurrentVotes(targetType, targetId, userCount, desiredVote) 
           "-p", PG_PORT,
           "-U", PG_USER,
           "-d", PG_DATABASE,
+          "-v", "ON_ERROR_STOP=1",
           "-t", "-A",
           "-c", `SET ROLE authenticated; SET "request.jwt.claim.sub" = '${voterId}'; ${sql}`
         ],
@@ -118,8 +156,39 @@ async function runConcurrentVotes(targetType, targetId, userCount, desiredVote) 
   return await Promise.all(promises);
 }
 
+async function runConcurrentQuotaConsumptions(userId, connectionCount) {
+  const promises = [];
+  for (let i = 1; i <= connectionCount; i++) {
+    const p = new Promise((resolve) => {
+      const sql = `SELECT public.consume_upload_quota('${userId}');`;
+      const child = spawn(
+        PSQL_BIN,
+        [
+          "-h", PG_HOST,
+          "-p", PG_PORT,
+          "-U", PG_USER,
+          "-d", PG_DATABASE,
+          "-v", "ON_ERROR_STOP=1",
+          "-t", "-A",
+          "-c", `SET ROLE service_role; ${sql}`
+        ],
+        { stdio: ["pipe", "pipe", "pipe"] }
+      );
+      let out = "";
+      let errOut = "";
+      child.stdout.on("data", (d) => { out += d.toString(); });
+      child.stderr.on("data", (d) => { errOut += d.toString(); });
+      child.on("close", (code) => {
+        resolve({ code, out: out.trim(), err: errOut.trim() });
+      });
+    });
+    promises.push(p);
+  }
+  return await Promise.all(promises);
+}
+
 // ---------------------------------------------------------------------
-// TEST SETUP: Initialize Database & Base Permissions
+// TEST SETUP: Baseline Grants & Migration Sequence
 // ---------------------------------------------------------------------
 function setupDatabase() {
   console.log("\n==================================================");
@@ -133,51 +202,53 @@ function setupDatabase() {
     process.exit(1);
   }
 
-  // 2. Schema
+  // 2. Establish representative permissive baseline grants (typical unconfigured Supabase defaults)
+  const baselineGrants = `
+    GRANT ALL ON SCHEMA public TO anon, authenticated, service_role;
+    ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO anon, authenticated, service_role;
+    ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON ROUTINES TO anon, authenticated, service_role;
+  `;
+  const resBaseline = runSql(baselineGrants);
+  if (!resBaseline.success) {
+    console.error("Failed to establish baseline grants:", resBaseline.output);
+    process.exit(1);
+  }
+
+  // 3. Schema
   const resSchema = runSqlFile("supabase/schema.sql");
   if (!resSchema.success) {
     console.error("Failed to run schema.sql:", resSchema.output);
     process.exit(1);
   }
 
-  // 3. Corrective Migration
-  const resMig = runSqlFile("supabase/migrations/20261015_fix_counter_protection.sql");
-  if (!resMig.success) {
-    console.error("Failed to run 20261015_fix_counter_protection.sql:", resMig.output);
+  // 4. Audit Remediation Migration
+  const resRem = runSqlFile("supabase/migrations/20261015_audit_remediation.sql");
+  if (!resRem.success) {
+    console.error("Failed to run 20261015_audit_remediation.sql:", resRem.output);
     process.exit(1);
   }
 
-  // 4. Standard Supabase-like base grants for anon & authenticated
-  const baseGrants = `
-    GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
-    GRANT SELECT, INSERT ON public.templates TO authenticated;
-    GRANT SELECT ON public.templates TO anon;
-    GRANT SELECT, INSERT, DELETE ON public.tier_lists TO authenticated;
-    GRANT SELECT ON public.tier_lists TO anon;
-    GRANT SELECT, INSERT ON public.comments TO authenticated;
-    GRANT SELECT ON public.comments TO anon;
-    GRANT SELECT, INSERT, DELETE ON public.upvotes TO authenticated;
-    GRANT SELECT ON public.upvotes TO anon;
-
-    -- Re-apply explicit column-level restrictions from migration
-    REVOKE UPDATE ON public.templates FROM public, anon, authenticated;
-    GRANT UPDATE (title, description, category, cover_url, items, default_tiers, author_name, updated_at) ON public.templates TO authenticated;
-
-    REVOKE UPDATE ON public.tier_lists FROM public, anon, authenticated;
-    GRANT UPDATE (template_id, title, author_name, tiers, unranked) ON public.tier_lists TO authenticated;
-
-    REVOKE UPDATE ON public.comments FROM public, anon, authenticated;
-  `;
-  const resGrants = runSql(baseGrants);
-  if (!resGrants.success) {
-    console.error("Failed to set base grants:", resGrants.output);
+  // 5. Counter Protection Corrective Migration
+  const resCounterFix = runSqlFile("supabase/migrations/20261015_fix_counter_protection.sql");
+  if (!resCounterFix.success) {
+    console.error("Failed to run 20261015_fix_counter_protection.sql:", resCounterFix.output);
     process.exit(1);
   }
+
+  // 6. Upload Rate Limit Corrective Migration
+  const resRateFix = runSqlFile("supabase/migrations/20261015_fix_upload_rate_limit.sql");
+  if (!resRateFix.success) {
+    console.error("Failed to run 20261015_fix_upload_rate_limit.sql:", resRateFix.output);
+    process.exit(1);
+  }
+
+  // NOTE: In strict compliance with instructions, we do NOT reapply protective grants here.
+  // The migrations must supply all required permissions and protections themselves.
 
   // Clean existing tables for test run
-  runSql("TRUNCATE TABLE public.upvotes, public.comments, public.tier_lists, public.templates CASCADE;");
+  runSql("TRUNCATE TABLE public.upload_rate_limits, public.upvotes, public.comments, public.tier_lists, public.templates CASCADE;");
 
-  pass("Database Environment Initialized", "Tables, RLS policies, column grants, triggers, and RPCs configured");
+  pass("Database Environment Initialized", "Migrations applied in sequence with -v ON_ERROR_STOP=1 and zero post-migration grant reapplications");
 }
 
 // ---------------------------------------------------------------------
@@ -385,7 +456,6 @@ function testRequirementB2_RankCountLifecycle() {
 
   // Step 1: Initial rank_count
   const rankCount0 = runSql("SELECT rank_count FROM public.templates WHERE id = 'tmpl_a1';").output;
-  // Notice in previous test we inserted tl_a1 pointing to tmpl_a1, so rank_count should already be 1!
   if (rankCount0 === "1") {
     pass("Ranking Creation Increments rank_count", `Inserting tl_a1 incremented tmpl_a1 rank_count to 1`);
   } else {
@@ -482,14 +552,6 @@ function testRequirementB3_Reconciliation() {
   }
   pass("Execute reconcile_counters() RPC", `Returned: ${reconRes.output}`);
 
-  // Step 4: Verify restored counters
-  // For tmpl_a1:
-  // - tier_lists referencing tmpl_a1: tl_a1 exists (count = 1)
-  // - upvotes on tmpl_a1: Bob unvoted earlier (count = 0)
-  // For tl_a1:
-  // - upvotes on tl_a1: Bob voted earlier (count = 1)
-  // For cm_a1:
-  // - upvotes on cm_a1: Bob voted earlier (count = 1)
   const tmplAfter = JSON.parse(runSql("SELECT json_build_object('upvotes', upvotes, 'rank_count', rank_count) FROM public.templates WHERE id = 'tmpl_a1';").output);
   const tlAfter = runSql("SELECT upvotes FROM public.tier_lists WHERE id = 'tl_a1';").output;
   const cmAfter = runSql("SELECT upvotes FROM public.comments WHERE id = 'cm_a1';").output;
@@ -514,11 +576,53 @@ function testRequirementB3_Reconciliation() {
 }
 
 // ---------------------------------------------------------------------
-// TEST SUITE: Concurrency - Race-Condition-Free Voting
+// TEST SUITE: Voting Concurrency (Same-Identity and Different-Identity)
 // ---------------------------------------------------------------------
-async function testConcurrency() {
-  console.log("\n--- CONCURRENCY: Parallel Votes Serialization ---");
+async function testVotingConcurrency() {
+  console.log("\n--- VOTING CONCURRENCY: Same-Identity & Different-Identity Serialization ---");
 
+  // Reset votes on tmpl_a1
+  runSql("DELETE FROM public.upvotes WHERE item_id = 'tmpl_a1'; UPDATE public.templates SET upvotes = 0 WHERE id = 'tmpl_a1';");
+
+  // Part 1: Simultaneous Same-Identity Requests (10 parallel requests from SAME user)
+  console.log("Firing 10 simultaneous upvotes from the SAME user identity...");
+  const sameUserPromises = [];
+  for (let i = 0; i < 10; i++) {
+    const p = new Promise((resolve) => {
+      const sql = `SELECT public.set_vote('template', 'tmpl_a1', true);`;
+      const child = spawn(
+        PSQL_BIN,
+        [
+          "-h", PG_HOST,
+          "-p", PG_PORT,
+          "-U", PG_USER,
+          "-d", PG_DATABASE,
+          "-v", "ON_ERROR_STOP=1",
+          "-t", "-A",
+          "-c", `SET ROLE authenticated; SET "request.jwt.claim.sub" = 'same_user_id'; ${sql}`
+        ],
+        { stdio: ["pipe", "pipe", "pipe"] }
+      );
+      let out = "";
+      child.stdout.on("data", (d) => { out += d.toString(); });
+      child.on("close", (code) => resolve({ code, out: out.trim() }));
+    });
+    sameUserPromises.push(p);
+  }
+  await Promise.all(sameUserPromises);
+
+  const sameUserCount = runSql("SELECT upvotes FROM public.templates WHERE id = 'tmpl_a1';").output;
+  const sameUserRows = runSql("SELECT count(*) FROM public.upvotes WHERE item_id = 'tmpl_a1' AND voter_hash = 'same_user_id';").output;
+  if (sameUserCount === "1" && sameUserRows === "1") {
+    pass("Same-Identity Concurrent Voting Idempotency", "10 concurrent requests from same user produced exactly 1 vote record and counter 1");
+  } else {
+    fail("Same-Identity Concurrent Voting Idempotency", `Expected counter=1, records=1; got counter=${sameUserCount}, records=${sameUserRows}`);
+  }
+
+  // Reset votes on tmpl_a1
+  runSql("DELETE FROM public.upvotes WHERE item_id = 'tmpl_a1'; UPDATE public.templates SET upvotes = 0 WHERE id = 'tmpl_a1';");
+
+  // Part 2: Distinct-Identity Concurrent Voting (10 parallel requests from DIFFERENT users)
   const NUM_VOTERS = 10;
   console.log(`Firing ${NUM_VOTERS} concurrent upvotes from distinct users...`);
   const voteResults = await runConcurrentVotes("template", "tmpl_a1", NUM_VOTERS, true);
@@ -529,21 +633,148 @@ async function testConcurrency() {
   const totalVoteRows = runSql("SELECT count(*) FROM public.upvotes WHERE item_type = 'template' AND item_id = 'tmpl_a1';").output;
 
   if (finalUpvotes === String(NUM_VOTERS) && totalVoteRows === String(NUM_VOTERS)) {
-    pass("Concurrent Upvoting Integrity", `Exactly ${NUM_VOTERS} votes recorded in both counter and public.upvotes table without race conditions`);
+    pass("Different-Identity Concurrent Upvoting", `Exactly ${NUM_VOTERS} votes recorded in both counter and public.upvotes without race conditions`);
   } else {
-    fail("Concurrent Upvoting Integrity", `Expected ${NUM_VOTERS}, got counter=${finalUpvotes}, records=${totalVoteRows}`);
+    fail("Different-Identity Concurrent Upvoting", `Expected ${NUM_VOTERS}, got counter=${finalUpvotes}, records=${totalVoteRows}`);
   }
 
-  // Now concurrently unvote
+  // Distinct-Identity Concurrent Unvoting
   console.log(`Firing ${NUM_VOTERS} concurrent unvotes...`);
   await runConcurrentVotes("template", "tmpl_a1", NUM_VOTERS, false);
   const finalUpvotesAfterRemove = runSql("SELECT upvotes FROM public.templates WHERE id = 'tmpl_a1';").output;
   const totalVoteRowsAfterRemove = runSql("SELECT count(*) FROM public.upvotes WHERE item_type = 'template' AND item_id = 'tmpl_a1';").output;
 
   if (finalUpvotesAfterRemove === "0" && totalVoteRowsAfterRemove === "0") {
-    pass("Concurrent Unvoting Integrity", `Counter cleanly returned to 0 and all vote records removed`);
+    pass("Different-Identity Concurrent Unvoting", "Counter cleanly returned to 0 and all vote records removed");
   } else {
-    fail("Concurrent Unvoting Integrity", `Expected 0, got counter=${finalUpvotesAfterRemove}, records=${totalVoteRowsAfterRemove}`);
+    fail("Different-Identity Concurrent Unvoting", `Expected 0, got counter=${finalUpvotesAfterRemove}, records=${totalVoteRowsAfterRemove}`);
+  }
+}
+
+// ---------------------------------------------------------------------
+// TEST SUITE: Upload Rate Limiter (Cases A through I)
+// ---------------------------------------------------------------------
+async function testUploadRateLimiter() {
+  console.log("\n--- UPLOAD RATE LIMITER: Cases A through I ---");
+
+  // Case A: anon cannot execute the old or new privileged limiter
+  const anonOld = runSql("SELECT public.check_upload_rate_limit('upload:test', 30, 60);", "anon");
+  const anonNew = runSql("SELECT public.consume_upload_quota('test_anon');", "anon");
+  if (!anonOld.success && !anonNew.success && (anonNew.output.includes("permission denied") || anonNew.output.includes("42501"))) {
+    pass("Case A: Anon Cannot Execute Rate Limiter", "Old function dropped/blocked and new limiter denied to anon");
+  } else {
+    fail("Case A: Anon Cannot Execute Rate Limiter", `anonOld: ${anonOld.output}, anonNew: ${anonNew.output}`);
+  }
+
+  // Case B: authenticated cannot execute the old or new privileged limiter
+  const authOld = runSql("SELECT public.check_upload_rate_limit('upload:test', 30, 60);", "authenticated", "test_user");
+  const authNew = runSql("SELECT public.consume_upload_quota('test_user');", "authenticated", "test_user");
+  if (!authOld.success && !authNew.success && (authNew.output.includes("permission denied") || authNew.output.includes("42501"))) {
+    pass("Case B: Authenticated Cannot Execute Rate Limiter", "Old function dropped/blocked and new limiter denied to authenticated");
+  } else {
+    fail("Case B: Authenticated Cannot Execute Rate Limiter", `authOld: ${authOld.output}, authNew: ${authNew.output}`);
+  }
+
+  // Case C: Ordinary roles cannot read, insert, update, or delete quota records
+  const selectAnon = runSql("SELECT * FROM public.upload_rate_limits;", "anon");
+  const insertAnon = runSql("INSERT INTO public.upload_rate_limits VALUES ('hack', now(), 1);", "anon");
+  const updateAuth = runSql("UPDATE public.upload_rate_limits SET count = 0;", "authenticated", "user_1");
+  const deleteAuth = runSql("DELETE FROM public.upload_rate_limits;", "authenticated", "user_1");
+  if (
+    !selectAnon.success &&
+    !insertAnon.success &&
+    !updateAuth.success &&
+    !deleteAuth.success
+  ) {
+    pass("Case C: Ordinary Roles Cannot Access Quota Table", "Direct SELECT/INSERT/UPDATE/DELETE on upload_rate_limits rejected by permissions/RLS");
+  } else {
+    fail("Case C: Ordinary Roles Cannot Access Quota Table", "Ordinary role was able to access or mutate upload_rate_limits table directly");
+  }
+
+  // Case D: The trusted server role can consume quota
+  const srvRes = runSql("SELECT public.consume_upload_quota('server_user_d');", "service_role");
+  let parsedD;
+  try { parsedD = JSON.parse(srvRes.output); } catch {}
+  if (srvRes.success && parsedD?.allowed === true && parsedD?.current_count === 1) {
+    pass("Case D: Trusted Server Role Can Consume Quota", `Request 1 allowed (remaining: ${parsedD.remaining})`);
+  } else {
+    fail("Case D: Trusted Server Role Can Consume Quota", `Output: ${srvRes.output}`);
+  }
+
+  // Case E: Requests 1-30 are allowed; request 31 is denied
+  let allowedCount = 0;
+  let deniedCount = 0;
+  let retryAfterHeader = 0;
+  for (let i = 1; i <= 31; i++) {
+    const res = runSql("SELECT public.consume_upload_quota('quota_test_user_e');", "service_role");
+    let json;
+    try { json = JSON.parse(res.output); } catch {}
+    if (json?.allowed === true) {
+      allowedCount++;
+    } else if (json?.allowed === false) {
+      deniedCount++;
+      retryAfterHeader = json.retry_after;
+    }
+  }
+  if (allowedCount === 30 && deniedCount === 1 && retryAfterHeader > 0) {
+    pass("Case E: Requests 1-30 Allowed, Request 31 Denied", `Allowed: ${allowedCount}, Denied: ${deniedCount}, Retry-After: ${retryAfterHeader}s`);
+  } else {
+    fail("Case E: Requests 1-30 Allowed, Request 31 Denied", `Expected 30 allowed and 1 denied, got allowed=${allowedCount}, denied=${deniedCount}`);
+  }
+
+  // Case F: Another verified identity has an independent quota
+  const resF = runSql("SELECT public.consume_upload_quota('quota_test_user_f');", "service_role");
+  let jsonF;
+  try { jsonF = JSON.parse(resF.output); } catch {}
+  if (resF.success && jsonF?.allowed === true && jsonF?.current_count === 1) {
+    pass("Case F: Independent Quotas for Different Identities", `Independent user F allowed (count: ${jsonF.current_count})`);
+  } else {
+    fail("Case F: Independent Quotas for Different Identities", `Output: ${resF.output}`);
+  }
+
+  // Case G: The expired window resets correctly. Advance fixture timestamps as the test administrator instead of waiting a minute.
+  // Advance window_start of quota_test_user_e by 65 seconds into the past
+  runSql("UPDATE public.upload_rate_limits SET window_start = clock_timestamp() - interval '65 seconds' WHERE key = 'upload:quota_test_user_e';");
+  const resG = runSql("SELECT public.consume_upload_quota('quota_test_user_e');", "service_role");
+  let jsonG;
+  try { jsonG = JSON.parse(resG.output); } catch {}
+  if (resG.success && jsonG?.allowed === true && jsonG?.current_count === 1) {
+    pass("Case G: Expired Window Resets Correctly", `Window reset confirmed, count atomically reset to 1 (allowed: ${jsonG.allowed})`);
+  } else {
+    fail("Case G: Expired Window Resets Correctly", `Output: ${resG.output}`);
+  }
+
+  // Case H: The previous negative-window reset attempt is no longer available
+  // 1. check_upload_rate_limit is dropped
+  const resH1 = runSql("SELECT public.check_upload_rate_limit('upload:test', 30, -10);", "service_role");
+  // 2. consume_upload_quota does not accept window parameters
+  const resH2 = runSql("SELECT public.consume_upload_quota('test', -10);", "service_role");
+  if (!resH1.success && !resH2.success) {
+    pass("Case H: Negative-Window Reset Vulnerability Eliminated", "Arbitrary window parameter manipulation is impossible");
+  } else {
+    fail("Case H: Negative-Window Reset Vulnerability Eliminated", `Vulnerable function still callable: ${resH1.output}`);
+  }
+
+  // Case I: On an unused key, 40 simultaneous requests from separate database connections produce exactly 30 approvals and 10 denials
+  console.log("Testing Case I: Spawning 40 distinct process connections concurrently against PostgreSQL backend...");
+  try {
+    const burstResults = await runConcurrentQuotaConsumptions("burst_identity_case_i", 40);
+    const parsedBurst = burstResults
+      .filter((r) => r.code === 0)
+      .map((r) => parsePsqlJson(r.out))
+      .filter(Boolean);
+
+    const burstAllowed = parsedBurst.filter((b) => b.allowed === true).length;
+    const burstDenied = parsedBurst.filter((b) => b.allowed === false).length;
+    const finalStoredCount = runSql("SELECT count FROM public.upload_rate_limits WHERE key = 'upload:burst_identity_case_i';").output;
+
+    if (burstAllowed === 30 && burstDenied === 10 && finalStoredCount === "30") {
+      pass("Case I: 40 Concurrent Requests Produce Exactly 30 Approvals and 10 Denials", `Approvals: ${burstAllowed}, Denials: ${burstDenied}, Stored Count: ${finalStoredCount}`);
+    } else {
+      fail("Case I: 40 Concurrent Requests Produce Exactly 30 Approvals and 10 Denials", `Expected 30 approvals, 10 denials; got ${burstAllowed} approvals, ${burstDenied} denials, stored count: ${finalStoredCount}`);
+    }
+  } catch (err) {
+    block("Case I: Concurrency Testing", `Concurrent connections failed to spawn: ${err.message}`);
   }
 }
 
@@ -552,7 +783,7 @@ async function testConcurrency() {
 // ---------------------------------------------------------------------
 async function runAll() {
   console.log("==================================================");
-  console.log("STARTING DATABASE COUNTER & IMMUTABILITY AUDIT");
+  console.log("STARTING MASTER DATABASE AUDIT SUITE");
   console.log("==================================================");
 
   setupDatabase();
@@ -560,10 +791,11 @@ async function runAll() {
   testRequirementB1_VotingRpc();
   testRequirementB2_RankCountLifecycle();
   testRequirementB3_Reconciliation();
-  await testConcurrency();
+  await testVotingConcurrency();
+  await testUploadRateLimiter();
 
   console.log("\n==================================================");
-  console.log(`AUDIT COMPLETE: ${results.passed.length} PASSED, ${results.failed.length} FAILED`);
+  console.log(`AUDIT COMPLETE: ${results.passed.length} PASSED, ${results.failed.length} FAILED, ${results.blocked.length} BLOCKED`);
   console.log("==================================================");
 
   if (results.failed.length > 0) {

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isR2Configured, uploadBufferToR2 } from "@/lib/r2";
-import { supabase, isSupabaseConfigured } from "@/lib/supabase";
+import { getSupabaseAdmin, isSupabaseAdminConfigured } from "@/lib/server/supabase-admin";
 
 const MAX_ITEMS_PER_BATCH = 12;
 const MAX_FILE_SIZE_BYTES = 1 * 1024 * 1024; // 1 MB per individual image
@@ -152,32 +152,133 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Shared Rate Limiting via Supabase RPC
-  const ip =
-    req.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
-    req.headers.get("x-real-ip") ||
-    "client-anon";
-  const rateKey = `upload:${ip}`;
+  // 1. Validate Privileged Server Configuration
+  if (!isSupabaseAdminConfigured()) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Server rate limiting configuration is unavailable.",
+      },
+      { status: 503 }
+    );
+  }
 
-  if (isSupabaseConfigured() && supabase) {
-    try {
-      const { data: allowed } = await supabase.rpc("check_upload_rate_limit", {
-        rate_key: rateKey,
-        max_count: 30,
-        window_seconds: 60,
-      });
-      if (allowed === false) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: "Upload rate limit exceeded. Please wait a minute before uploading more items.",
-          },
-          { status: 429 }
-        );
-      }
-    } catch (err) {
-      console.warn("Shared rate limit check warning:", err);
+  const adminClient = getSupabaseAdmin();
+  if (!adminClient) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Privileged server database client could not be instantiated.",
+      },
+      { status: 503 }
+    );
+  }
+
+  // 2. Cryptographic Authentication Token Verification
+  const authHeader = req.headers.get("authorization") || "";
+  const match = authHeader.match(/^Bearer\s+(.+)$/i);
+  if (!match) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Missing or malformed Authorization header. Expected 'Bearer <token>'.",
+      },
+      { status: 401 }
+    );
+  }
+
+  const token = match[1].trim();
+  if (!token) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Empty authorization bearer token.",
+      },
+      { status: 401 }
+    );
+  }
+
+  let verifiedUserId: string;
+  try {
+    const { data: userData, error: authError } = await adminClient.auth.getUser(token);
+    if (authError || !userData?.user?.id) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Invalid, expired, or unverified authorization token.",
+        },
+        { status: 401 }
+      );
     }
+    verifiedUserId = userData.user.id;
+  } catch (authException: any) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: `Authorization verification failure: ${authException?.message || "Unknown error"}`,
+      },
+      { status: 401 }
+    );
+  }
+
+  // 3. Server-Only Fixed-Window Rate Limiting RPC
+  let quotaResult: any;
+  try {
+    const { data, error } = await adminClient.rpc("consume_upload_quota", {
+      v_user_id: verifiedUserId,
+    });
+    if (error) {
+      console.error("Quota limiter RPC error:", error);
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Rate limiter service error.",
+        },
+        { status: 503 }
+      );
+    }
+    quotaResult = data;
+  } catch (rpcErr: any) {
+    console.error("Quota limiter RPC exception:", rpcErr);
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Rate limiter service exception.",
+      },
+      { status: 503 }
+    );
+  }
+
+  if (
+    !quotaResult ||
+    typeof quotaResult !== "object" ||
+    typeof quotaResult.allowed !== "boolean"
+  ) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Rate limiter returned an invalid or malformed response.",
+      },
+      { status: 503 }
+    );
+  }
+
+  if (!quotaResult.allowed) {
+    const retryAfter =
+      typeof quotaResult.retry_after === "number" ? quotaResult.retry_after : 60;
+    return NextResponse.json(
+      {
+        success: false,
+        error: `Upload rate limit exceeded. You have reached the limit of 30 uploads per 60 seconds. Please wait ${retryAfter} seconds before trying again.`,
+        retryAfter,
+      },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": String(retryAfter),
+        },
+      }
+    );
   }
 
   const contentType = req.headers.get("content-type") || "";

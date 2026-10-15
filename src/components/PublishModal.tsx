@@ -96,9 +96,9 @@ export function PublishModal({ isOpen, onClose }: PublishModalProps) {
         authorName: authorName.trim() || undefined,
       });
       setCreatedTemplateId(created.id);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to publish template", err);
-      alert("Error publishing template. Please try again.");
+      alert(err?.message || "Error publishing template. Please try again.");
     } finally {
       setIsSubmitting(false);
       setSubmitStep(null);

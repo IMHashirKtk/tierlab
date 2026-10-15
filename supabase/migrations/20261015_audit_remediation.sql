@@ -262,7 +262,7 @@ create trigger trg_sync_template_rank_count
   after insert or delete or update of template_id on public.tier_lists
   for each row execute function public.sync_template_rank_count();
 
--- 10. Shared Database Upload Rate Limiting
+-- 10. Shared Database Upload Fixed-Window Rate Limiting (Server-Only)
 create table if not exists public.upload_rate_limits (
   key text primary key,
   window_start timestamptz not null,
@@ -270,48 +270,82 @@ create table if not exists public.upload_rate_limits (
 );
 
 alter table public.upload_rate_limits enable row level security;
--- No public policies on upload_rate_limits
+revoke all on public.upload_rate_limits from public, anon, authenticated;
+grant all on public.upload_rate_limits to service_role;
 
-create or replace function public.check_upload_rate_limit(
-  rate_key text,
-  max_count int,
-  window_seconds int
+create or replace function public.consume_upload_quota(
+  v_user_id text
 )
-returns boolean as $$
+returns jsonb as $$
 declare
-  now_ts timestamptz := clock_timestamp();
-  rec record;
+  v_key text;
+  v_now timestamptz := clock_timestamp();
+  v_rec record;
+  v_window_start timestamptz;
+  v_current_count int;
+  v_retry_after int := 0;
+  v_allowed boolean := false;
 begin
-  select * into rec from public.upload_rate_limits where key = rate_key for update;
-
-  if not found then
-    insert into public.upload_rate_limits (key, window_start, count)
-    values (rate_key, now_ts, 1)
-    on conflict (key) do update
-      set window_start = excluded.window_start, count = excluded.count;
-    return true;
+  if v_user_id is null or trim(v_user_id) = '' then
+    raise exception 'User ID is required for quota consumption' using errcode = '22023';
   end if;
 
-  if now_ts > rec.window_start + (window_seconds || ' seconds')::interval then
+  v_key := 'upload:' || trim(v_user_id);
+
+  -- Atomic initialization: ensure key exists with 0 count on first use without resetting existing rows
+  insert into public.upload_rate_limits (key, window_start, count)
+  values (v_key, v_now, 0)
+  on conflict (key) do nothing;
+
+  -- Lock the row exclusively to serialize concurrent requests for this user
+  select window_start, count into v_rec
+  from public.upload_rate_limits
+  where key = v_key
+  for update;
+
+  v_window_start := v_rec.window_start;
+  v_current_count := v_rec.count;
+
+  -- Fixed window of 60 seconds (30 requests max)
+  if v_now >= v_window_start + interval '60 seconds' then
+    -- Window expired: reset window_start to current timestamp and count to 1
+    v_window_start := v_now;
+    v_current_count := 1;
+    v_allowed := true;
+    v_retry_after := 0;
+
     update public.upload_rate_limits
-    set window_start = now_ts, count = 1
-    where key = rate_key;
-    return true;
+    set window_start = v_window_start,
+        count = v_current_count
+    where key = v_key;
   else
-    if rec.count >= max_count then
-      return false;
-    else
+    -- Within active 60-second window
+    if v_current_count < 30 then
+      v_current_count := v_current_count + 1;
+      v_allowed := true;
+      v_retry_after := 0;
+
       update public.upload_rate_limits
-      set count = rec.count + 1
-      where key = rate_key;
-      return true;
+      set count = v_current_count
+      where key = v_key;
+    else
+      v_allowed := false;
+      v_retry_after := greatest(1, ceil(extract(epoch from (v_window_start + interval '60 seconds' - v_now)))::int);
     end if;
   end if;
+
+  return jsonb_build_object(
+    'allowed', v_allowed,
+    'remaining', greatest(0, 30 - v_current_count),
+    'retry_after', v_retry_after,
+    'current_count', v_current_count,
+    'reset_at', (v_window_start + interval '60 seconds')
+  );
 end;
 $$ language plpgsql security definer set search_path = public;
 
-revoke all on function public.check_upload_rate_limit(text, int, int) from public;
-grant execute on function public.check_upload_rate_limit(text, int, int) to anon, authenticated, service_role;
+revoke all on function public.consume_upload_quota(text) from public, anon, authenticated;
+grant execute on function public.consume_upload_quota(text) to service_role;
 
 -- 11. Counter Reconciliation RPC
 create or replace function public.reconcile_counters()

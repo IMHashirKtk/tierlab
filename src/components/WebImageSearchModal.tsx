@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { Search, X, Check, Plus, Sparkles, Loader2, Globe, Music, Tv, Zap } from "lucide-react";
-import { Item } from "@/types";
+import type { Item } from "@/types";
 
 interface WebImageSearchModalProps {
   isOpen: boolean;

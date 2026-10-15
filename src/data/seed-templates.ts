@@ -1,4 +1,4 @@
-import { Template, UserRanking } from "@/types";
+import type { Template, UserRanking } from "@/types";
 
 export const CATEGORIES = [
   { id: "all", name: "All Categories", icon: "🔥", count: 12 },

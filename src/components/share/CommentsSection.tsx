@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { MessageSquare, ThumbsUp, Send, Sparkles, Flame, Clock, Award } from "lucide-react";
+import { MessageSquare, ThumbsUp, Send, Sparkles, Flame, Clock, Award, AlertCircle, RefreshCw } from "lucide-react";
 import { fetchComments, postComment, toggleCommentUpvote, hasUpvotedComment } from "@/lib/community";
+import { createId } from "@/lib/board";
 import type { Comment } from "@/types";
 
 interface CommentsSectionProps {
@@ -58,6 +59,8 @@ export function CommentsSection({ tierListId, creatorName }: CommentsSectionProp
   const [authorName, setAuthorName] = useState("");
   const [content, setContent] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [commentError, setCommentError] = useState<string | null>(null);
+  const [pendingCommentId, setPendingCommentId] = useState<string>("");
   const [sortBy, setSortBy] = useState<"newest" | "top">("newest");
   const [upvotedMap, setUpvotedMap] = useState<Record<string, boolean>>({});
 
@@ -65,6 +68,7 @@ export function CommentsSection({ tierListId, creatorName }: CommentsSectionProp
     if (typeof window !== "undefined") {
       const savedName = localStorage.getItem(COMMENTER_NAME_KEY);
       if (savedName) setAuthorName(savedName);
+      setPendingCommentId(`cmt-${createId("c")}`);
     }
   }, []);
 
@@ -83,10 +87,10 @@ export function CommentsSection({ tierListId, creatorName }: CommentsSectionProp
     });
   }, [tierListId]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    e?.preventDefault();
     const trimmedContent = content.trim();
-    if (!trimmedContent) return;
+    if (!trimmedContent || isSubmitting) return; // Prevent duplicate in-flight submissions
 
     const trimmedAuthor = authorName.trim() || "Anonymous Ranker";
     if (typeof window !== "undefined") {
@@ -94,17 +98,23 @@ export function CommentsSection({ tierListId, creatorName }: CommentsSectionProp
     }
 
     setIsSubmitting(true);
+    setCommentError(null);
+
     try {
       const newComment = await postComment({
         tierListId,
         authorName: trimmedAuthor,
         content: trimmedContent,
+        existingId: pendingCommentId || undefined,
       });
 
       setComments((prev) => [newComment, ...prev]);
       setContent("");
-    } catch (err) {
+      // Fresh ID strictly on confirmed database success
+      setPendingCommentId(`cmt-${createId("c")}`);
+    } catch (err: any) {
       console.error("Failed to post comment", err);
+      setCommentError(err?.message || "Failed to post comment. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -229,6 +239,24 @@ export function CommentsSection({ tierListId, creatorName }: CommentsSectionProp
             {content.length}/500
           </span>
         </div>
+
+        {commentError && (
+          <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center justify-between gap-3 animate-in fade-in">
+            <div className="flex items-center gap-2 min-w-0">
+              <AlertCircle className="w-4 h-4 flex-shrink-0 text-rose-400" />
+              <span className="break-words">{commentError}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => handleSubmit()}
+              disabled={isSubmitting}
+              className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-semibold text-[11px] flex-shrink-0 cursor-pointer disabled:opacity-50 flex items-center gap-1 shadow-sm"
+            >
+              <RefreshCw className="w-3 h-3" />
+              <span>Retry</span>
+            </button>
+          </div>
+        )}
 
         <div className="flex items-center justify-between pt-1">
           <div className="flex items-center gap-1.5 text-[11px] text-zinc-500">

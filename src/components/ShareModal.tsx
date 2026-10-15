@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { X, Copy, Check, Share2, Code, ExternalLink, Loader2, Sparkles, AlertCircle, RefreshCw } from "lucide-react";
 import { publishTierList } from "@/lib/community";
+import { createId } from "@/lib/board";
 import type { TierRow, Item } from "@/types";
 
 interface ShareModalProps {
@@ -36,6 +37,9 @@ export function ShareModal({
   const [publishError, setPublishError] = useState<string | null>(null);
   const [authorName, setAuthorName] = useState("");
 
+  const pendingKey = `tl_pending_share_${templateId || boardTitle || "default"}`;
+  const [pendingShareId, setPendingShareId] = useState<string>("");
+
   // Keep shareId synced if parent passes an existing published id
   useEffect(() => {
     if (publishedShareId) {
@@ -48,11 +52,13 @@ export function ShareModal({
     if (typeof window !== "undefined") {
       const savedHandle = localStorage.getItem("tl_commenter_name") || "";
       if (savedHandle) setAuthorName(savedHandle);
+      const savedPending = localStorage.getItem(pendingKey);
+      setPendingShareId(savedPending || `share-${createId("tier")}`);
     }
-  }, []);
+  }, [pendingKey]);
 
   const executePublish = (handle: string) => {
-    if (!tiers || isPublishing) return;
+    if (!tiers || isPublishing) return; // Disable duplicate concurrent submissions
     setIsPublishing(true);
     setPublishError(null);
 
@@ -63,16 +69,29 @@ export function ShareModal({
       } catch {}
     }
 
+    // Reuse confirmed shareId if updating, or reuse persistent pendingShareId if first-time publish
+    const targetId = shareId || pendingShareId || `share-${createId("tier")}`;
+    if (!shareId && typeof window !== "undefined") {
+      try {
+        localStorage.setItem(pendingKey, targetId);
+      } catch {}
+    }
+
     publishTierList({
       templateId,
       title: boardTitle,
       authorName: cleanHandle || "Anonymous Ranker",
       tiers,
       unranked: unranked || [],
-      existingId: shareId || undefined,
+      existingId: targetId,
     })
       .then((pub) => {
         setShareId(pub.id);
+        if (typeof window !== "undefined") {
+          try {
+            localStorage.removeItem(pendingKey);
+          } catch {}
+        }
         onPublishSuccess?.(pub.id);
       })
       .catch((err) => {
@@ -83,18 +102,6 @@ export function ShareModal({
         setIsPublishing(false);
       });
   };
-
-  useEffect(() => {
-    if (!isOpen) return;
-
-    // Auto-publish on open if not yet published
-    if (tiers && !shareId && !isPublishing && !publishError) {
-      const currentHandle =
-        authorName ||
-        (typeof window !== "undefined" ? localStorage.getItem("tl_commenter_name") || "" : "");
-      executePublish(currentHandle);
-    }
-  }, [isOpen, tiers, shareId]);
 
   if (!isOpen) return null;
 
@@ -141,11 +148,11 @@ export function ShareModal({
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-white truncate max-w-[240px]">{boardTitle}</span>
             <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
-              {shareId ? "Public Link" : "Draft"}
+              {shareId ? "Public Link" : "Unpublished Draft"}
             </span>
           </div>
           <span className="text-[11px] text-zinc-400 block mt-0.5">
-            {totalRankedCount} items placed • Anyone with the link can view and remix
+            {totalRankedCount} items placed • {shareId ? "Anyone with the link can view and remix" : "Publish to get a permanent cloud link"}
           </span>
         </div>
 
@@ -161,7 +168,8 @@ export function ShareModal({
               value={authorName}
               onChange={(e) => setAuthorName(e.target.value)}
               placeholder="Your handle (e.g. PixelHero)"
-              className="flex-1 bg-zinc-900/90 border border-zinc-700 rounded-lg px-3 py-1.5 text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-indigo-500 transition-colors"
+              disabled={isPublishing}
+              className="flex-1 bg-zinc-900/90 border border-zinc-700 rounded-lg px-3 py-1.5 text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-indigo-500 transition-colors disabled:opacity-50"
             />
             <button
               type="button"
@@ -211,14 +219,36 @@ export function ShareModal({
             </div>
             <div className="space-y-1">
               <p className="text-xs font-semibold text-rose-300">Cloud Publishing Failed</p>
-              <p className="text-[11px] text-zinc-400 max-w-xs mx-auto">{publishError}</p>
+              <p className="text-[11px] text-zinc-400 max-w-xs mx-auto break-words">{publishError}</p>
             </div>
             <button
               onClick={() => executePublish(authorName)}
-              className="px-4 py-2 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+              disabled={isPublishing}
+              className="px-4 py-2 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white inline-flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
             >
               <RefreshCw className="w-3.5 h-3.5" />
               <span>Retry Publish</span>
+            </button>
+          </div>
+        ) : !shareId ? (
+          <div className="py-6 text-center space-y-3 bg-zinc-800/30 border border-zinc-800 rounded-xl p-4">
+            <div className="w-10 h-10 rounded-full bg-indigo-500/10 text-indigo-400 flex items-center justify-center mx-auto border border-indigo-500/20">
+              <Share2 className="w-5 h-5" />
+            </div>
+            <div className="space-y-1">
+              <h4 className="text-xs font-bold text-white">Publish to Generate Public Link</h4>
+              <p className="text-[11px] text-zinc-400 max-w-xs mx-auto">
+                Click Publish to verify your ranking and generate a permanent public link and embed snippet.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => executePublish(authorName)}
+              disabled={isPublishing}
+              className="px-4 py-2 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/30 transition-all cursor-pointer inline-flex items-center gap-1.5 disabled:opacity-50"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Publish Ranking to Cloud</span>
             </button>
           </div>
         ) : activeTab === "link" ? (

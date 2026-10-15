@@ -1,13 +1,53 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { X, Upload, Check, Loader2, Sparkles, Plus, Image as ImageIcon, Globe } from "lucide-react";
-import { publishTemplate } from "@/lib/community";
+import { X, Upload, Check, Loader2, Sparkles, Plus, Image as ImageIcon, Globe, AlertCircle, RefreshCw } from "lucide-react";
+import { publishTemplate, generateTemplateSlug } from "@/lib/community";
 import { compressBatchImages } from "@/utils/image-compression";
 import { uploadItemsToCloud } from "@/lib/upload";
 import { WebImageSearchModal } from "@/components/WebImageSearchModal";
 import type { Item } from "@/types";
+
+const DRAFT_KEY = "tl_pending_template_draft";
+
+function loadSavedDraft(): {
+  pendingId: string;
+  title: string;
+  category: string;
+  description: string;
+  authorName: string;
+  items: Item[];
+} | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(DRAFT_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveDraftToStorage(draft: {
+  pendingId: string;
+  title: string;
+  category: string;
+  description: string;
+  authorName: string;
+  items: Item[];
+}) {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+  } catch {}
+}
+
+function clearDraftStorage() {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.removeItem(DRAFT_KEY);
+  } catch {}
+}
 
 interface PublishModalProps {
   isOpen: boolean;
@@ -16,6 +56,7 @@ interface PublishModalProps {
 
 export function PublishModal({ isOpen, onClose }: PublishModalProps) {
   const router = useRouter();
+  const [pendingId, setPendingId] = useState<string>("");
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("gaming");
   const [description, setDescription] = useState("");
@@ -25,10 +66,38 @@ export function PublishModal({ isOpen, onClose }: PublishModalProps) {
   const [isCompressing, setIsCompressing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStep, setSubmitStep] = useState<string | null>(null);
+  const [publishError, setPublishError] = useState<string | null>(null);
   const [createdTemplateId, setCreatedTemplateId] = useState<string | null>(null);
   const [isWebSearchOpen, setIsWebSearchOpen] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Load saved draft on mount (client-side only to satisfy Next.js 16.4 static prerendering)
+  useEffect(() => {
+    const saved = loadSavedDraft();
+    if (saved) {
+      if (saved.pendingId) setPendingId(saved.pendingId);
+      if (saved.title) setTitle(saved.title);
+      if (saved.category) setCategory(saved.category);
+      if (saved.description) setDescription(saved.description);
+      if (saved.authorName) setAuthorName(saved.authorName);
+      if (saved.items) setItems(saved.items);
+    }
+  }, []);
+
+  // Sync draft to localStorage whenever fields change (preserving draft across reloads and closures)
+  useEffect(() => {
+    if (!createdTemplateId && (title || items.length > 0)) {
+      saveDraftToStorage({
+        pendingId: pendingId || generateTemplateSlug(title || "template"),
+        title,
+        category,
+        description,
+        authorName,
+        items
+      });
+    }
+  }, [pendingId, title, category, description, authorName, items, createdTemplateId]);
 
   if (!isOpen) return null;
 
@@ -73,20 +142,33 @@ export function PublishModal({ isOpen, onClose }: PublishModalProps) {
     setItems((prev) => prev.filter((i) => i.id !== id));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (isSubmitting) return; // Prevent duplicate in-flight requests
+
     if (items.length < 2) {
       alert("Please add at least 2 items to publish a template.");
       return;
     }
 
     setIsSubmitting(true);
+    setPublishError(null);
+
+    // Ensure pendingId is recorded with draft before any network request
+    const currentPendingId = pendingId || generateTemplateSlug(title || "template");
+    if (!pendingId) setPendingId(currentPendingId);
+    saveDraftToStorage({ pendingId: currentPendingId, title, category, description, authorName, items });
+
     try {
       // 1. Upload compressed items to Cloudflare R2
       setSubmitStep("Hosting items on Cloudflare R2 CDN...");
       const cloudItems = await uploadItemsToCloud(items, (msg) => setSubmitStep(msg));
 
-      // 2. Publish template with CDN URLs
+      // Update state and draft with persistent URLs so retries don't re-upload
+      setItems(cloudItems);
+      saveDraftToStorage({ pendingId: currentPendingId, title, category, description, authorName, items: cloudItems });
+
+      // 2. Publish template with CDN URLs and persistent pending ID
       setSubmitStep("Publishing template to community...");
       const created = await publishTemplate({
         title,
@@ -94,11 +176,14 @@ export function PublishModal({ isOpen, onClose }: PublishModalProps) {
         description,
         items: cloudItems,
         authorName: authorName.trim() || undefined,
+        existingId: currentPendingId,
       });
+
       setCreatedTemplateId(created.id);
+      clearDraftStorage();
     } catch (err: any) {
       console.error("Failed to publish template", err);
-      alert(err?.message || "Error publishing template. Please try again.");
+      setPublishError(err?.message || "Error publishing template. Please try again.");
     } finally {
       setIsSubmitting(false);
       setSubmitStep(null);
@@ -106,12 +191,15 @@ export function PublishModal({ isOpen, onClose }: PublishModalProps) {
   };
 
   const handleResetAndClose = () => {
+    clearDraftStorage();
     setTitle("");
     setCategory("gaming");
     setDescription("");
     setAuthorName("");
     setItems([]);
+    setPendingId(generateTemplateSlug("template"));
     setCreatedTemplateId(null);
+    setPublishError(null);
     setIsWebSearchOpen(false);
     onClose();
   };
@@ -163,6 +251,24 @@ export function PublishModal({ isOpen, onClose }: PublishModalProps) {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+            {publishError && (
+              <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center justify-between gap-3 animate-in fade-in">
+                <div className="flex items-center gap-2 min-w-0">
+                  <AlertCircle className="w-4 h-4 flex-shrink-0 text-rose-400" />
+                  <span className="break-words">{publishError}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleSubmit()}
+                  disabled={isSubmitting}
+                  className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-semibold text-[11px] flex-shrink-0 cursor-pointer disabled:opacity-50 flex items-center gap-1 shadow-sm"
+                >
+                  <RefreshCw className="w-3 h-3" />
+                  <span>Retry Publish</span>
+                </button>
+              </div>
+            )}
+
             <input
               type="file"
               ref={fileInputRef}

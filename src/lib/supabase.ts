@@ -3,7 +3,13 @@ import { createClient } from "@supabase/supabase-js";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
 
+let mockSupabaseClient: any = undefined;
+let mockSessionUserId: any = undefined;
+
 export const isSupabaseConfigured = (): boolean => {
+  if (mockSupabaseClient !== undefined) {
+    return Boolean(mockSupabaseClient);
+  }
   return Boolean(
     supabaseUrl &&
       supabaseAnonKey &&
@@ -12,10 +18,30 @@ export const isSupabaseConfigured = (): boolean => {
   );
 };
 
-// Singleton Supabase Client
-export const supabase = isSupabaseConfigured()
+const defaultSupabase = isSupabaseConfigured()
   ? createClient(supabaseUrl, supabaseAnonKey)
   : null;
+
+// Singleton Supabase Client (live binding for test boundary mocking)
+export let supabase = defaultSupabase;
+
+export function setMockSupabaseClient(client: any) {
+  mockSupabaseClient = client;
+  supabase = client;
+}
+
+export function resetMockSupabaseClient() {
+  mockSupabaseClient = undefined;
+  supabase = defaultSupabase;
+}
+
+export function setMockSessionUserId(id: any) {
+  mockSessionUserId = id;
+}
+
+export function resetMockSessionUserId() {
+  mockSessionUserId = undefined;
+}
 
 let sessionPromise: Promise<string | null> | null = null;
 
@@ -24,6 +50,9 @@ let sessionPromise: Promise<string | null> | null = null;
  * anonymous sign-in so every client receives a signed JWT with auth.uid().
  */
 export async function ensureAuthenticatedSession(): Promise<string | null> {
+  if (mockSessionUserId !== undefined) {
+    return mockSessionUserId;
+  }
   if (!supabase) return null;
 
   if (sessionPromise) {

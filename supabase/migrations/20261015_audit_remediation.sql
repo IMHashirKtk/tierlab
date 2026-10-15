@@ -159,19 +159,51 @@ create policy "Allow owner update on tier_lists" on public.tier_lists
   using (author_id = auth.uid()::text)
   with check (author_id = auth.uid()::text);
 
+-- Owner-Only Deletes
+drop policy if exists "Allow owner delete on templates" on public.templates;
+create policy "Allow owner delete on templates"
+  on public.templates for delete to authenticated
+  using (author_id = auth.uid()::text);
+
+drop policy if exists "Allow owner delete on tier_lists" on public.tier_lists;
+create policy "Allow owner delete on tier_lists"
+  on public.tier_lists for delete to authenticated
+  using (author_id = auth.uid()::text);
+
+drop policy if exists "Allow owner delete on comments" on public.comments;
+create policy "Allow owner delete on comments"
+  on public.comments for delete to authenticated
+  using (author_id = auth.uid()::text);
+
+
+-- Column-Level UPDATE Privileges: Prevent ordinary clients from modifying protected counters or metadata
+revoke update on public.templates from public, anon, authenticated;
+grant update (title, description, category, cover_url, items, default_tiers, author_name, updated_at) on public.templates to authenticated;
+
+revoke update on public.tier_lists from public, anon, authenticated;
+grant update (template_id, title, author_name, tiers, unranked) on public.tier_lists to authenticated;
+
+revoke update on public.comments from public, anon, authenticated;
+
 -- 8. Trigger to Protect Immutable Columns on UPDATE
 create or replace function public.protect_immutable_columns()
 returns trigger as $$
 begin
-  new.upvotes := old.upvotes;
+  -- Enforce author_id and created_at immutability
   new.author_id := old.author_id;
   new.created_at := old.created_at;
-  if tg_table_name = 'templates' then
-    new.rank_count := old.rank_count;
+
+  -- Protect counters from direct client updates (authenticated, anon, public)
+  if current_user in ('authenticated', 'anon', 'public') then
+    new.upvotes := old.upvotes;
+    if tg_table_name = 'templates' then
+      new.rank_count := old.rank_count;
+    end if;
   end if;
+
   return new;
 end;
-$$ language plpgsql security definer;
+$$ language plpgsql;
 
 drop trigger if exists trg_protect_immutable_columns_templates on public.templates;
 create trigger trg_protect_immutable_columns_templates
@@ -181,6 +213,11 @@ create trigger trg_protect_immutable_columns_templates
 drop trigger if exists trg_protect_immutable_columns_tier_lists on public.tier_lists;
 create trigger trg_protect_immutable_columns_tier_lists
   before update on public.tier_lists
+  for each row execute function public.protect_immutable_columns();
+
+drop trigger if exists trg_protect_immutable_columns_comments on public.comments;
+create trigger trg_protect_immutable_columns_comments
+  before update on public.comments
   for each row execute function public.protect_immutable_columns();
 
 -- 9. Full rank_count Lifecycle Trigger on public.tier_lists
@@ -218,7 +255,7 @@ begin
   end if;
   return null;
 end;
-$$ language plpgsql security definer;
+$$ language plpgsql security definer set search_path = public;
 
 drop trigger if exists trg_sync_template_rank_count on public.tier_lists;
 create trigger trg_sync_template_rank_count
@@ -276,13 +313,38 @@ $$ language plpgsql security definer set search_path = public;
 revoke all on function public.check_upload_rate_limit(text, int, int) from public;
 grant execute on function public.check_upload_rate_limit(text, int, int) to anon, authenticated, service_role;
 
--- 11. Reconcile Existing Counters
-update public.templates t
-set rank_count = (select count(*)::int from public.tier_lists r where r.template_id = t.id),
-    upvotes = (select count(*)::int from public.upvotes u where u.item_type = 'template' and u.item_id = t.id);
+-- 11. Counter Reconciliation RPC
+create or replace function public.reconcile_counters()
+returns jsonb as $$
+declare
+  t_count int := 0;
+  r_count int := 0;
+  c_count int := 0;
+begin
+  update public.templates t
+  set rank_count = (select count(*)::int from public.tier_lists r where r.template_id = t.id),
+      upvotes = (select count(*)::int from public.upvotes u where u.item_type = 'template' and u.item_id = t.id);
+  get diagnostics t_count = row_count;
 
-update public.tier_lists r
-set upvotes = (select count(*)::int from public.upvotes u where u.item_type = 'tier_list' and u.item_id = r.id);
+  update public.tier_lists r
+  set upvotes = (select count(*)::int from public.upvotes u where u.item_type = 'tier_list' and u.item_id = r.id);
+  get diagnostics r_count = row_count;
 
-update public.comments c
-set upvotes = (select count(*)::int from public.upvotes u where u.item_type = 'comment' and u.item_id = c.id);
+  update public.comments c
+  set upvotes = (select count(*)::int from public.upvotes u where u.item_type = 'comment' and u.item_id = c.id);
+  get diagnostics c_count = row_count;
+
+  return jsonb_build_object(
+    'templates_reconciled', t_count,
+    'tier_lists_reconciled', r_count,
+    'comments_reconciled', c_count
+  );
+end;
+$$ language plpgsql security definer set search_path = public;
+
+revoke all on function public.reconcile_counters() from public, anon, authenticated;
+grant execute on function public.reconcile_counters() to service_role;
+
+-- 12. Execute Counter Reconciliation
+select public.reconcile_counters();
+

@@ -62,6 +62,8 @@ export async function deleteProject(id: string): Promise<void> {
   await run("readwrite", (store) => store.delete(id));
 }
 
+export { duplicateProject } from "./draft-storage";
+
 /** All saved projects, most recently edited first. */
 export async function listProjects(): Promise<Project[]> {
   const projects = await run<Project[]>("readonly", (store) => store.getAll());

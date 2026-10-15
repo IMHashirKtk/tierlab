@@ -1,10 +1,16 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { MessageSquare, ThumbsUp, Send, Sparkles, Flame, Clock, Award, AlertCircle, RefreshCw } from "lucide-react";
 import { fetchComments, postComment, toggleCommentUpvote, hasUpvotedComment } from "@/lib/community";
+import { ensureAuthenticatedSession } from "@/lib/supabase";
 import { createId } from "@/lib/board";
+import {
+  loadPendingCommentDraft,
+  savePendingCommentDraft,
+  clearPendingCommentDraft,
+} from "@/lib/draft-storage";
 import type { Comment } from "@/types";
 
 interface CommentsSectionProps {
@@ -56,6 +62,7 @@ function getAvatarGradient(name: string): string {
 export function CommentsSection({ tierListId, creatorName }: CommentsSectionProps) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [sessionId, setSessionId] = useState<string>("anon");
   const [authorName, setAuthorName] = useState("");
   const [content, setContent] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -64,20 +71,64 @@ export function CommentsSection({ tierListId, creatorName }: CommentsSectionProp
   const [sortBy, setSortBy] = useState<"newest" | "top">("newest");
   const [upvotedMap, setUpvotedMap] = useState<Record<string, boolean>>({});
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const savedName = localStorage.getItem(COMMENTER_NAME_KEY);
-      if (savedName) setAuthorName(savedName);
-      setPendingCommentId(`cmt-${createId("c")}`);
-    }
-  }, []);
+  const isSubmittingRef = useRef(false);
 
+  // Restore pending attempt and session identity after mount/reload
+  useEffect(() => {
+    let isMounted = true;
+    ensureAuthenticatedSession()
+      .then((userId) => {
+        if (!isMounted) return;
+        const activeSessionId = userId || "anon";
+        setSessionId(activeSessionId);
+
+        if (typeof window !== "undefined") {
+          const savedName = localStorage.getItem(COMMENTER_NAME_KEY);
+          if (savedName) setAuthorName(savedName);
+
+          const savedDraft = loadPendingCommentDraft(tierListId, activeSessionId);
+          if (savedDraft) {
+            if (savedDraft.content) setContent(savedDraft.content);
+            if (savedDraft.authorName) setAuthorName(savedDraft.authorName);
+            if (savedDraft.pendingId) setPendingCommentId(savedDraft.pendingId);
+          } else {
+            setPendingCommentId(`cmt-${createId("c")}`);
+          }
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setPendingCommentId(`cmt-${createId("c")}`);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [tierListId]);
+
+  // Persist pending draft scoped to target tier list and author identity whenever content/author changes
+  useEffect(() => {
+    if (content.trim() && sessionId) {
+      const activePendingId = pendingCommentId || `cmt-${createId("c")}`;
+      if (!pendingCommentId) setPendingCommentId(activePendingId);
+      savePendingCommentDraft({
+        pendingId: activePendingId,
+        tierListId,
+        authorName: authorName.trim() || "Anonymous Ranker",
+        content,
+        sessionUserId: sessionId,
+        updatedAt: Date.now(),
+      });
+    }
+  }, [content, authorName, pendingCommentId, tierListId, sessionId]);
+
+  // Fetch comments for this tier list
   useEffect(() => {
     if (!tierListId) return;
     setLoading(true);
     fetchComments(tierListId).then((data) => {
       setComments(data);
-      // Populate upvoted status
       const statusMap: Record<string, boolean> = {};
       data.forEach((c) => {
         statusMap[c.id] = hasUpvotedComment(c.id);
@@ -90,32 +141,60 @@ export function CommentsSection({ tierListId, creatorName }: CommentsSectionProp
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
     const trimmedContent = content.trim();
-    if (!trimmedContent || isSubmitting) return; // Prevent duplicate in-flight submissions
+    if (!trimmedContent || isSubmittingRef.current) return; // Synchronous in-flight guard
+
+    isSubmittingRef.current = true;
+    setIsSubmitting(true);
+    setCommentError(null);
 
     const trimmedAuthor = authorName.trim() || "Anonymous Ranker";
     if (typeof window !== "undefined") {
-      localStorage.setItem(COMMENTER_NAME_KEY, trimmedAuthor);
+      try {
+        localStorage.setItem(COMMENTER_NAME_KEY, trimmedAuthor);
+      } catch {}
     }
 
-    setIsSubmitting(true);
-    setCommentError(null);
+    const targetCommentId = pendingCommentId || `cmt-${createId("c")}`;
+    if (!pendingCommentId) setPendingCommentId(targetCommentId);
+
+    // Save pending comment attempt before sending request
+    savePendingCommentDraft({
+      pendingId: targetCommentId,
+      tierListId,
+      authorName: trimmedAuthor,
+      content: trimmedContent,
+      sessionUserId: sessionId,
+      updatedAt: Date.now(),
+    });
 
     try {
       const newComment = await postComment({
         tierListId,
         authorName: trimmedAuthor,
         content: trimmedContent,
-        existingId: pendingCommentId || undefined,
+        existingId: targetCommentId,
       });
 
-      setComments((prev) => [newComment, ...prev]);
+      // Deduplicate displayed comments by ID after retry recovery
+      setComments((prev) => {
+        const exists = prev.some((c) => c.id === newComment.id);
+        if (exists) {
+          return prev.map((c) => (c.id === newComment.id ? newComment : c));
+        }
+        return [newComment, ...prev];
+      });
+
+      // Clear pending attempt only after confirmed success
+      clearPendingCommentDraft(tierListId, sessionId);
       setContent("");
-      // Fresh ID strictly on confirmed database success
+      // Fresh ID strictly for the NEXT new comment
       setPendingCommentId(`cmt-${createId("c")}`);
     } catch (err: any) {
       console.error("Failed to post comment", err);
+      // Keep user's text and pendingCommentId intact on error/conflict
       setCommentError(err?.message || "Failed to post comment. Please try again.");
     } finally {
+      isSubmittingRef.current = false;
       setIsSubmitting(false);
     }
   };

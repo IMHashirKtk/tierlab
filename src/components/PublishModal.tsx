@@ -2,59 +2,25 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { X, Upload, Check, Loader2, Sparkles, Plus, Image as ImageIcon, Globe, AlertCircle, RefreshCw } from "lucide-react";
+import { X, Upload, Check, Loader2, Sparkles, Plus, Image as ImageIcon, Globe, AlertCircle, RefreshCw, Trash2 } from "lucide-react";
 import { publishTemplate, generateTemplateSlug } from "@/lib/community";
 import { compressBatchImages } from "@/utils/image-compression";
 import { uploadItemsToCloud } from "@/lib/upload";
 import { WebImageSearchModal } from "@/components/WebImageSearchModal";
+import {
+  saveTemplateDraft,
+  loadTemplateDraft,
+  deleteTemplateDraft,
+} from "@/lib/draft-storage";
 import type { Item } from "@/types";
-
-const DRAFT_KEY = "tl_pending_template_draft";
-
-function loadSavedDraft(): {
-  pendingId: string;
-  title: string;
-  category: string;
-  description: string;
-  authorName: string;
-  items: Item[];
-} | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = localStorage.getItem(DRAFT_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
-}
-
-function saveDraftToStorage(draft: {
-  pendingId: string;
-  title: string;
-  category: string;
-  description: string;
-  authorName: string;
-  items: Item[];
-}) {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
-  } catch {}
-}
-
-function clearDraftStorage() {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.removeItem(DRAFT_KEY);
-  } catch {}
-}
 
 interface PublishModalProps {
   isOpen: boolean;
   onClose: () => void;
+  draftId?: string;
 }
 
-export function PublishModal({ isOpen, onClose }: PublishModalProps) {
+export function PublishModal({ isOpen, onClose, draftId = "default" }: PublishModalProps) {
   const router = useRouter();
   const [pendingId, setPendingId] = useState<string>("");
   const [title, setTitle] = useState("");
@@ -70,34 +36,59 @@ export function PublishModal({ isOpen, onClose }: PublishModalProps) {
   const [createdTemplateId, setCreatedTemplateId] = useState<string | null>(null);
   const [isWebSearchOpen, setIsWebSearchOpen] = useState(false);
 
+  const isSubmittingRef = useRef(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Load saved draft on mount (client-side only to satisfy Next.js 16.4 static prerendering)
+  // Load saved draft on mount, when modal opens, or when draftId changes
   useEffect(() => {
-    const saved = loadSavedDraft();
+    if (!isOpen) return;
+    const saved = loadTemplateDraft(draftId);
     if (saved) {
       if (saved.pendingId) setPendingId(saved.pendingId);
-      if (saved.title) setTitle(saved.title);
-      if (saved.category) setCategory(saved.category);
-      if (saved.description) setDescription(saved.description);
-      if (saved.authorName) setAuthorName(saved.authorName);
-      if (saved.items) setItems(saved.items);
+      if (saved.title !== undefined) setTitle(saved.title);
+      if (saved.category !== undefined) setCategory(saved.category);
+      if (saved.description !== undefined) setDescription(saved.description);
+      if (saved.authorName !== undefined) setAuthorName(saved.authorName);
+      if (saved.items !== undefined) setItems(saved.items);
     }
-  }, []);
+  }, [isOpen, draftId]);
 
-  // Sync draft to localStorage whenever fields change (preserving draft across reloads and closures)
+  // Handle Escape key to close without discarding
   useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
+
+  // Autosave draft to storage whenever fields change (preserving draft across reloads and closures)
+  useEffect(() => {
+    if (!isOpen) return;
     if (!createdTemplateId && (title || items.length > 0)) {
-      saveDraftToStorage({
-        pendingId: pendingId || generateTemplateSlug(title || "template"),
-        title,
-        category,
-        description,
-        authorName,
-        items
+      const stablePendingId = pendingId || generateTemplateSlug(title || "template");
+      if (!pendingId) setPendingId(stablePendingId);
+
+      saveTemplateDraft(
+        {
+          draftId,
+          pendingId: stablePendingId,
+          title,
+          category,
+          description,
+          authorName,
+          items,
+          updatedAt: Date.now(),
+        },
+        draftId
+      ).catch((err) => {
+        console.warn("Autosave draft warning:", err);
       });
     }
-  }, [pendingId, title, category, description, authorName, items, createdTemplateId]);
+  }, [isOpen, draftId, pendingId, title, category, description, authorName, items, createdTemplateId]);
 
   if (!isOpen) return null;
 
@@ -142,33 +133,83 @@ export function PublishModal({ isOpen, onClose }: PublishModalProps) {
     setItems((prev) => prev.filter((i) => i.id !== id));
   };
 
+  // Explicit Discard action: removes draft from storage and resets state
+  const handleDiscardDraft = () => {
+    deleteTemplateDraft(draftId);
+    setTitle("");
+    setCategory("gaming");
+    setDescription("");
+    setAuthorName("");
+    setItems([]);
+    setPendingId(generateTemplateSlug("template"));
+    setCreatedTemplateId(null);
+    setPublishError(null);
+    setIsWebSearchOpen(false);
+  };
+
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
-    if (isSubmitting) return; // Prevent duplicate in-flight requests
+    if (isSubmittingRef.current) return; // Synchronous in-flight guard
 
     if (items.length < 2) {
-      alert("Please add at least 2 items to publish a template.");
+      setPublishError("Please add at least 2 items to publish a template.");
       return;
     }
 
+    isSubmittingRef.current = true;
     setIsSubmitting(true);
     setPublishError(null);
 
-    // Ensure pendingId is recorded with draft before any network request
     const currentPendingId = pendingId || generateTemplateSlug(title || "template");
     if (!pendingId) setPendingId(currentPendingId);
-    saveDraftToStorage({ pendingId: currentPendingId, title, category, description, authorName, items });
+
+    // 1. Await persistence before sending network request
+    try {
+      await saveTemplateDraft(
+        {
+          draftId,
+          pendingId: currentPendingId,
+          title,
+          category,
+          description,
+          authorName,
+          items,
+          updatedAt: Date.now(),
+        },
+        draftId
+      );
+    } catch (storageErr: any) {
+      console.error("Failed to persist draft before publishing", storageErr);
+      setPublishError(
+        `Draft storage failed: ${storageErr?.message || "Storage error"}. Draft was not safely saved; publication aborted.`
+      );
+      isSubmittingRef.current = false;
+      setIsSubmitting(false);
+      return;
+    }
 
     try {
-      // 1. Upload compressed items to Cloudflare R2
+      // 2. Upload compressed items to Cloudflare R2
       setSubmitStep("Hosting items on Cloudflare R2 CDN...");
       const cloudItems = await uploadItemsToCloud(items, (msg) => setSubmitStep(msg));
 
       // Update state and draft with persistent URLs so retries don't re-upload
       setItems(cloudItems);
-      saveDraftToStorage({ pendingId: currentPendingId, title, category, description, authorName, items: cloudItems });
+      await saveTemplateDraft(
+        {
+          draftId,
+          pendingId: currentPendingId,
+          title,
+          category,
+          description,
+          authorName,
+          items: cloudItems,
+          updatedAt: Date.now(),
+        },
+        draftId
+      );
 
-      // 2. Publish template with CDN URLs and persistent pending ID
+      // 3. Publish template with CDN URLs and persistent pending ID
       setSubmitStep("Publishing template to community...");
       const created = await publishTemplate({
         title,
@@ -180,28 +221,16 @@ export function PublishModal({ isOpen, onClose }: PublishModalProps) {
       });
 
       setCreatedTemplateId(created.id);
-      clearDraftStorage();
+      // Cleared only upon confirmed cloud publish
+      deleteTemplateDraft(draftId);
     } catch (err: any) {
       console.error("Failed to publish template", err);
       setPublishError(err?.message || "Error publishing template. Please try again.");
     } finally {
+      isSubmittingRef.current = false;
       setIsSubmitting(false);
       setSubmitStep(null);
     }
-  };
-
-  const handleResetAndClose = () => {
-    clearDraftStorage();
-    setTitle("");
-    setCategory("gaming");
-    setDescription("");
-    setAuthorName("");
-    setItems([]);
-    setPendingId(generateTemplateSlug("template"));
-    setCreatedTemplateId(null);
-    setPublishError(null);
-    setIsWebSearchOpen(false);
-    onClose();
   };
 
   return (
@@ -212,8 +241,10 @@ export function PublishModal({ isOpen, onClose }: PublishModalProps) {
             <Sparkles className="w-5 h-5 text-indigo-400" />
             <h3 className="text-lg font-bold text-white">Publish Community Template</h3>
           </div>
+          {/* Normal Close / X button preserves draft */}
           <button
-            onClick={handleResetAndClose}
+            onClick={onClose}
+            aria-label="Close"
             className="text-zinc-400 hover:text-white p-1 rounded-lg hover:bg-zinc-800 transition-colors cursor-pointer min-w-[28px] min-h-[28px] flex items-center justify-center"
           >
             <X className="w-5 h-5" />
@@ -233,14 +264,14 @@ export function PublishModal({ isOpen, onClose }: PublishModalProps) {
             </div>
             <div className="flex justify-center gap-3 pt-2">
               <button
-                onClick={handleResetAndClose}
+                onClick={onClose}
                 className="px-4 py-2 rounded-xl text-xs font-medium text-zinc-400 bg-zinc-800 hover:bg-zinc-750 cursor-pointer min-h-[32px]"
               >
                 Close
               </button>
               <button
                 onClick={() => {
-                  handleResetAndClose();
+                  onClose();
                   router.push(`/template/${createdTemplateId}`);
                 }}
                 className="px-5 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/30 cursor-pointer flex items-center gap-1.5 min-h-[32px]"
@@ -455,28 +486,41 @@ export function PublishModal({ isOpen, onClose }: PublishModalProps) {
               )}
             </div>
 
-            <div className="mt-6 flex justify-end gap-2 pt-2 border-t border-zinc-800">
+            <div className="mt-6 flex flex-wrap justify-between items-center gap-2 pt-2 border-t border-zinc-800">
+              {/* Explicit Discard Draft Action */}
               <button
                 type="button"
-                onClick={handleResetAndClose}
-                className="min-h-[32px] px-4 py-2 rounded-xl text-xs font-medium text-zinc-400 hover:text-white bg-zinc-800 cursor-pointer"
+                onClick={handleDiscardDraft}
+                className="min-h-[32px] px-3 py-1.5 rounded-xl text-xs font-medium text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition-colors cursor-pointer flex items-center gap-1.5"
               >
-                Cancel
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Discard Draft</span>
               </button>
-              <button
-                type="submit"
-                disabled={isSubmitting || items.length < 2}
-                className="min-h-[32px] px-5 py-2 rounded-xl text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer flex items-center gap-2 shadow-md shadow-indigo-600/30"
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    <span>{submitStep || "Publishing..."}</span>
-                  </>
-                ) : (
-                  <span>Publish Template</span>
-                )}
-              </button>
+
+              <div className="flex items-center gap-2 ml-auto">
+                {/* Normal Close preserves draft */}
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="min-h-[32px] px-4 py-2 rounded-xl text-xs font-medium text-zinc-400 hover:text-white bg-zinc-800 hover:bg-zinc-750 transition-colors cursor-pointer"
+                >
+                  Close
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting || items.length < 2}
+                  className="min-h-[32px] px-5 py-2 rounded-xl text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer flex items-center gap-2 shadow-md shadow-indigo-600/30"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>{submitStep || "Publishing..."}</span>
+                    </>
+                  ) : (
+                    <span>Publish Template</span>
+                  )}
+                </button>
+              </div>
             </div>
           </form>
         )}

@@ -1580,15 +1580,16 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
         <ShareModal
           isOpen={isShareModalOpen}
           onClose={() => setIsShareModalOpen(false)}
+          projectId={projectId}
           boardTitle={title}
           totalRankedCount={totalRanked}
           tiers={board.tiers}
           unranked={board.unranked}
           templateId={resolvedTemplate?.id || initialTemplate?.id}
           publishedShareId={publishedShareId}
-          onPublishSuccess={(newShareId) => {
+          onPublishSuccess={async (newShareId) => {
             setPublishedShareId(newShareId);
-            saveProject({
+            await saveProject({
               id: projectId,
               title,
               tiers: board.tiers,
@@ -1597,7 +1598,7 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
               publishedShareId: newShareId,
               createdAt: projectCreatedAt,
               updatedAt: Date.now(),
-            }).catch(console.error);
+            });
           }}
         />
 

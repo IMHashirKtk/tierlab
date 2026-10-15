@@ -1,10 +1,15 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { X, Copy, Check, Share2, Code, ExternalLink, Loader2, Sparkles, AlertCircle, RefreshCw } from "lucide-react";
 import { publishTierList } from "@/lib/community";
 import { createId } from "@/lib/board";
+import {
+  getProjectPendingShareId,
+  saveProjectPendingShareId,
+  clearProjectPendingShareId,
+} from "@/lib/draft-storage";
 import type { TierRow, Item } from "@/types";
 
 interface ShareModalProps {
@@ -15,8 +20,9 @@ interface ShareModalProps {
   tiers?: TierRow[];
   unranked?: Item[];
   templateId?: string;
+  projectId?: string;
   publishedShareId?: string;
-  onPublishSuccess?: (shareId: string) => void;
+  onPublishSuccess?: (shareId: string) => Promise<void> | void;
 }
 
 export function ShareModal({
@@ -27,6 +33,7 @@ export function ShareModal({
   tiers,
   unranked,
   templateId,
+  projectId,
   publishedShareId,
   onPublishSuccess,
 }: ShareModalProps) {
@@ -36,29 +43,41 @@ export function ShareModal({
   const [isPublishing, setIsPublishing] = useState(false);
   const [publishError, setPublishError] = useState<string | null>(null);
   const [authorName, setAuthorName] = useState("");
-
-  const pendingKey = `tl_pending_share_${templateId || boardTitle || "default"}`;
   const [pendingShareId, setPendingShareId] = useState<string>("");
 
-  // Keep shareId synced if parent passes an existing published id
+  const isPublishingRef = useRef(false);
+
+  // Switching projects resets modal state to the selected project
+  // Do not retain another project's shareId when the new project's publishedShareId is empty!
   useEffect(() => {
-    if (publishedShareId) {
-      setShareId(publishedShareId);
+    setShareId(publishedShareId || null);
+    setPublishError(null);
+
+    if (projectId) {
+      const savedPending = getProjectPendingShareId(projectId);
+      if (savedPending) {
+        setPendingShareId(savedPending);
+      } else {
+        const freshPending = `share-${createId("tier")}`;
+        setPendingShareId(freshPending);
+        saveProjectPendingShareId(projectId, freshPending);
+      }
+    } else {
+      setPendingShareId(`share-${createId("tier")}`);
     }
-  }, [publishedShareId]);
+  }, [projectId, publishedShareId]);
 
   // Load saved creator handle from localStorage on mount
   useEffect(() => {
     if (typeof window !== "undefined") {
       const savedHandle = localStorage.getItem("tl_commenter_name") || "";
       if (savedHandle) setAuthorName(savedHandle);
-      const savedPending = localStorage.getItem(pendingKey);
-      setPendingShareId(savedPending || `share-${createId("tier")}`);
     }
-  }, [pendingKey]);
+  }, []);
 
-  const executePublish = (handle: string) => {
-    if (!tiers || isPublishing) return; // Disable duplicate concurrent submissions
+  const executePublish = async (handle: string) => {
+    if (!tiers || isPublishingRef.current) return; // Synchronous in-flight guard
+    isPublishingRef.current = true;
     setIsPublishing(true);
     setPublishError(null);
 
@@ -71,36 +90,37 @@ export function ShareModal({
 
     // Reuse confirmed shareId if updating, or reuse persistent pendingShareId if first-time publish
     const targetId = shareId || pendingShareId || `share-${createId("tier")}`;
-    if (!shareId && typeof window !== "undefined") {
-      try {
-        localStorage.setItem(pendingKey, targetId);
-      } catch {}
+    if (!shareId && projectId) {
+      saveProjectPendingShareId(projectId, targetId);
     }
 
-    publishTierList({
-      templateId,
-      title: boardTitle,
-      authorName: cleanHandle || "Anonymous Ranker",
-      tiers,
-      unranked: unranked || [],
-      existingId: targetId,
-    })
-      .then((pub) => {
-        setShareId(pub.id);
-        if (typeof window !== "undefined") {
-          try {
-            localStorage.removeItem(pendingKey);
-          } catch {}
-        }
-        onPublishSuccess?.(pub.id);
-      })
-      .catch((err) => {
-        console.error("Publish failed:", err);
-        setPublishError(err.message || "Failed to publish tier list to cloud.");
-      })
-      .finally(() => {
-        setIsPublishing(false);
+    try {
+      const pub = await publishTierList({
+        templateId,
+        title: boardTitle,
+        authorName: cleanHandle || "Anonymous Ranker",
+        tiers,
+        unranked: unranked || [],
+        existingId: targetId,
       });
+
+      // 1. First persist confirmed share ID
+      setShareId(pub.id);
+      if (onPublishSuccess) {
+        await onPublishSuccess(pub.id);
+      }
+
+      // 2. Remove pending mapping strictly after confirmed persistence
+      if (projectId) {
+        clearProjectPendingShareId(projectId);
+      }
+    } catch (err: any) {
+      console.error("Publish failed:", err);
+      setPublishError(err?.message || "Failed to publish tier list to cloud.");
+    } finally {
+      isPublishingRef.current = false;
+      setIsPublishing(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -137,7 +157,8 @@ export function ShareModal({
           </div>
           <button
             onClick={onClose}
-            className="text-zinc-400 hover:text-white p-1 rounded-lg hover:bg-zinc-800 cursor-pointer"
+            aria-label="Close"
+            className="text-zinc-400 hover:text-white p-1 rounded-lg hover:bg-zinc-800 cursor-pointer min-w-[28px] min-h-[28px] flex items-center justify-center"
           >
             <X className="w-5 h-5" />
           </button>

@@ -2,13 +2,13 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { ArrowLeft, Plus, Trash2, Edit3, Layers, Calendar, Loader2, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Edit3, Layers, Calendar, Loader2, ShieldCheck, Copy } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { PublishModal } from "@/components/PublishModal";
 import { usePwa } from "@/components/pwa/PwaProvider";
 import type { Project } from "@/types";
-import { listProjects, deleteProject } from "@/lib/storage";
+import { listProjects, deleteProject, saveProject, duplicateProject } from "@/lib/storage";
 
 function formatRelativeTime(timestamp: number): string {
   const diffSec = Math.floor((Date.now() - timestamp) / 1000);
@@ -56,6 +56,16 @@ export default function MyProjectsPage() {
       setProjects((prev) => prev.filter((p) => p.id !== id));
     } catch (err) {
       console.error("Failed to delete project", err);
+    }
+  };
+
+  const handleDuplicate = async (proj: Project) => {
+    try {
+      const cloned = duplicateProject(proj);
+      await saveProject(cloned);
+      setProjects((prev) => [cloned, ...prev]);
+    } catch (err) {
+      console.error("Failed to duplicate project", err);
     }
   };
 
@@ -180,6 +190,14 @@ export default function MyProjectsPage() {
                     </button>
 
                     <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleDuplicate(proj)}
+                        className="px-2.5 py-1.5 min-h-[30px] rounded-lg text-xs font-medium text-zinc-300 hover:text-white bg-zinc-800 hover:bg-zinc-700 flex items-center gap-1 transition-colors cursor-pointer"
+                        title="Duplicate project"
+                      >
+                        <Copy className="w-3.5 h-3.5" />
+                        <span>Duplicate</span>
+                      </button>
                       <Link
                         href={`/create?id=${proj.id}`}
                         className="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white flex items-center gap-1.5 transition-colors shadow-sm"

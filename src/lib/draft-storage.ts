@@ -1,5 +1,6 @@
-import type { Item, Project, TierRow } from "@/types";
+import type { Item, Project } from "@/types";
 import { createId } from "@/lib/board";
+import { runInStore, TEMPLATE_DRAFTS_STORE, isSimulateIdbAbort } from "@/lib/storage";
 
 export interface TemplateDraft {
   draftId?: string;
@@ -28,65 +29,256 @@ const COMMENT_DRAFT_PREFIX = "tl_pending_comment_";
 let simulateStorageFailure = false;
 let simulateStorageFailureMessage = "Disk full or storage permission denied";
 
+// Per-draft monotonic discard generation counter so queued/in-flight saves cannot resurrect discarded drafts
+const draftDiscardGeneration = new Map<string, number>();
+
+// Fallback map ONLY for headless Node.js unit test environments where global.indexedDB is not defined
+const nodeFallbackDraftStore = new Map<string, TemplateDraft>();
+
+export function getDraftGeneration(draftId = "default"): number {
+  return draftDiscardGeneration.get(draftId) || 0;
+}
+
+export function markDraftDiscarded(draftId = "default"): number {
+  const next = (draftDiscardGeneration.get(draftId) || 0) + 1;
+  draftDiscardGeneration.set(draftId, next);
+  return next;
+}
+
 export function setSimulateDraftStorageFailure(shouldFail: boolean, message?: string) {
   simulateStorageFailure = shouldFail;
   if (message) simulateStorageFailureMessage = message;
 }
 
 export function isSimulateDraftStorageFailure(): boolean {
+  if (typeof window !== "undefined" && (window as any).__TL_SIMULATE_STORAGE_FAILURE__) {
+    return true;
+  }
   return simulateStorageFailure;
 }
 
+function getStorageFailureMessage(): string {
+  if (
+    typeof window !== "undefined" &&
+    typeof (window as any).__TL_SIMULATE_STORAGE_FAILURE_MESSAGE__ === "string" &&
+    (window as any).__TL_SIMULATE_STORAGE_FAILURE_MESSAGE__
+  ) {
+    return (window as any).__TL_SIMULATE_STORAGE_FAILURE_MESSAGE__;
+  }
+  return simulateStorageFailureMessage;
+}
+
 /**
- * Persists a template draft. Throws if storage fails or if storage failure is simulated.
+ * Validates that a loaded template draft object has a safe, renderable structure.
+ */
+export function isValidTemplateDraft(raw: unknown): raw is TemplateDraft {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return false;
+  const d = raw as Record<string, unknown>;
+  if (typeof d.pendingId !== "string" || !d.pendingId.trim()) return false;
+  if (typeof d.title !== "string") return false;
+  if (typeof d.category !== "string") return false;
+  if (typeof d.description !== "string") return false;
+  if (typeof d.authorName !== "string") return false;
+  if (typeof d.updatedAt !== "number" || !Number.isFinite(d.updatedAt)) return false;
+  if (!Array.isArray(d.items)) return false;
+
+  for (const item of d.items) {
+    if (!item || typeof item !== "object" || Array.isArray(item)) return false;
+    const it = item as Record<string, unknown>;
+    if (typeof it.id !== "string" || !it.id.trim()) return false;
+    if (typeof it.name !== "string") return false;
+    if (it.imageUrl !== undefined && typeof it.imageUrl !== "string") return false;
+  }
+
+  return true;
+}
+
+async function writeDraftToIdb(record: TemplateDraft, draftId: string): Promise<void> {
+  if (typeof indexedDB !== "undefined") {
+    await runInStore(TEMPLATE_DRAFTS_STORE, "readwrite", (store) =>
+      store.put({ ...record, draftId })
+    );
+  } else {
+    if (isSimulateIdbAbort()) {
+      throw new Error("Simulated IndexedDB transaction abort");
+    }
+    nodeFallbackDraftStore.set(draftId, { ...record, draftId });
+  }
+}
+
+async function readDraftFromIdb(draftId: string): Promise<TemplateDraft | undefined> {
+  if (typeof indexedDB !== "undefined") {
+    return await runInStore<TemplateDraft | undefined>(
+      TEMPLATE_DRAFTS_STORE,
+      "readonly",
+      (store) => store.get(draftId)
+    );
+  }
+  return nodeFallbackDraftStore.get(draftId);
+}
+
+async function removeDraftFromIdb(draftId: string): Promise<void> {
+  if (typeof indexedDB !== "undefined") {
+    await runInStore(TEMPLATE_DRAFTS_STORE, "readwrite", (store) => store.delete(draftId));
+  } else {
+    if (isSimulateIdbAbort()) {
+      throw new Error("Simulated IndexedDB transaction abort");
+    }
+    nodeFallbackDraftStore.delete(draftId);
+  }
+}
+
+/**
+ * Persists a template draft in IndexedDB. Resolves only after the transaction commits.
+ * Throws if storage fails or if storage failure/abort is simulated.
+ * Prevents an older queued save from resurrecting a discarded draft.
  */
 export async function saveTemplateDraft(
   draft: TemplateDraft,
-  draftId = "default"
+  draftId = "default",
+  expectedGeneration?: number
 ): Promise<void> {
-  if (simulateStorageFailure) {
-    throw new Error(simulateStorageFailureMessage);
+  const startGen = expectedGeneration ?? getDraftGeneration(draftId);
+
+  if (isSimulateDraftStorageFailure()) {
+    throw new Error(getStorageFailureMessage());
   }
 
   if (typeof window === "undefined") return;
 
-  const key = `${TEMPLATE_DRAFT_PREFIX}${draftId}`;
+  const record: TemplateDraft = {
+    ...draft,
+    draftId,
+    updatedAt: typeof draft.updatedAt === "number" ? draft.updatedAt : Date.now(),
+  };
+
+  if (!isValidTemplateDraft(record)) {
+    throw new Error("Invalid template draft structure: cannot persist malformed draft.");
+  }
+
+  // Optional test hook for simulating slow autosave queue
+  const delayMs = Number((window as any).__TL_SIMULATE_AUTOSAVE_DELAY_MS__ || 0);
+  if (delayMs > 0) {
+    await new Promise((r) => setTimeout(r, delayMs));
+  }
+
+  // If the draft was discarded while this save was queued or awaiting, do not resurrect it
+  if (getDraftGeneration(draftId) !== startGen) {
+    return;
+  }
+
+  if (isSimulateDraftStorageFailure()) {
+    throw new Error(getStorageFailureMessage());
+  }
+
   try {
-    const payload = JSON.stringify({
-      ...draft,
-      draftId,
-      updatedAt: Date.now(),
-    });
-    localStorage.setItem(key, payload);
+    await writeDraftToIdb(record, draftId);
+
+    // Double-check after transaction commit in case a discard happened concurrently
+    if (getDraftGeneration(draftId) !== startGen) {
+      await removeDraftFromIdb(draftId);
+    }
   } catch (err: any) {
-    throw new Error(`Failed to persist template draft: ${err?.message || "Storage error"}`);
+    throw new Error(`Failed to persist template draft: ${err?.message || "IndexedDB storage error"}`);
   }
 }
 
 /**
- * Loads a saved template draft synchronously for initial hydration.
+ * Loads a saved template draft asynchronously from IndexedDB, safely migrating any legacy
+ * localStorage template draft and deleting the old copy only after successful migration.
+ * Validates draft structure before returning.
  */
-export function loadTemplateDraft(draftId = "default"): TemplateDraft | null {
+export async function loadTemplateDraft(draftId = "default"): Promise<TemplateDraft | null> {
   if (typeof window === "undefined") return null;
-  const key = `${TEMPLATE_DRAFT_PREFIX}${draftId}`;
+
+  const delayMs = Number((window as any).__TL_DRAFT_HYDRATION_DELAY_MS__ || 0);
+  if (delayMs > 0) {
+    await new Promise((r) => setTimeout(r, delayMs));
+  }
+
+  const legacyKey = `${TEMPLATE_DRAFT_PREFIX}${draftId}`;
+
+  // 1. Check IndexedDB first
   try {
-    const raw = localStorage.getItem(key);
-    if (!raw) return null;
-    return JSON.parse(raw);
+    const idbDraft = await readDraftFromIdb(draftId);
+    if (idbDraft) {
+      if (!isValidTemplateDraft(idbDraft)) {
+        return null;
+      }
+      // Clean up any leftover legacy localStorage entry if IndexedDB already has a valid copy
+      try {
+        if (localStorage.getItem(legacyKey) !== null) {
+          localStorage.removeItem(legacyKey);
+        }
+      } catch {}
+      return idbDraft;
+    }
+  } catch (err) {
+    console.warn("IndexedDB template draft read failed:", err);
+  }
+
+  // 2. Check legacy localStorage for migration
+  let rawLegacy: string | null = null;
+  try {
+    rawLegacy = localStorage.getItem(legacyKey);
   } catch {
     return null;
   }
+
+  if (!rawLegacy) return null;
+
+  let parsedLegacy: unknown;
+  try {
+    parsedLegacy = JSON.parse(rawLegacy);
+  } catch {
+    return null;
+  }
+
+  if (!isValidTemplateDraft(parsedLegacy)) {
+    return null;
+  }
+
+  const migratedDraft: TemplateDraft = {
+    ...parsedLegacy,
+    draftId,
+  };
+
+  // Migrate to IndexedDB and delete old localStorage copy ONLY after transaction commits
+  try {
+    if (isSimulateDraftStorageFailure()) {
+      throw new Error(getStorageFailureMessage());
+    }
+    await writeDraftToIdb(migratedDraft, draftId);
+    localStorage.removeItem(legacyKey);
+  } catch (migrationErr) {
+    // Keep the legacy localStorage copy intact if IndexedDB migration failed
+    console.warn("Template draft migration to IndexedDB did not complete; preserving localStorage copy:", migrationErr);
+  }
+
+  return migratedDraft;
 }
 
 /**
- * Permanently deletes a saved template draft (only on explicit discard or confirmed publication).
+ * Permanently deletes a saved template draft from IndexedDB and legacy localStorage
+ * (only on explicit discard or confirmed publication).
+ * Increments the discard generation counter immediately and propagates cleanup errors.
  */
-export function deleteTemplateDraft(draftId = "default"): void {
+export async function deleteTemplateDraft(draftId = "default"): Promise<void> {
+  markDraftDiscarded(draftId);
+
+  if (isSimulateDraftStorageFailure()) {
+    throw new Error(getStorageFailureMessage());
+  }
+
   if (typeof window === "undefined") return;
-  const key = `${TEMPLATE_DRAFT_PREFIX}${draftId}`;
+
+  const legacyKey = `${TEMPLATE_DRAFT_PREFIX}${draftId}`;
   try {
-    localStorage.removeItem(key);
-  } catch {}
+    await removeDraftFromIdb(draftId);
+    localStorage.removeItem(legacyKey);
+  } catch (err: any) {
+    throw new Error(`Failed to delete template draft: ${err?.message || "Storage cleanup error"}`);
+  }
 }
 
 /**
@@ -105,24 +297,43 @@ export function getProjectPendingShareId(projectId: string): string | null {
 
 /**
  * Persists the pending publication identity for a specific project.
+ * Propagates persistence failures so callers abort publication before any cloud write.
  */
 export function saveProjectPendingShareId(projectId: string, shareId: string): void {
-  if (!projectId || !shareId || typeof window === "undefined") return;
+  if (isSimulateDraftStorageFailure()) {
+    throw new Error(getStorageFailureMessage());
+  }
+  if (!projectId || !shareId) {
+    throw new Error("Cannot save pending share identity: projectId and shareId are required.");
+  }
+  if (typeof window === "undefined") return;
+
   const key = `${PROJECT_PENDING_SHARE_PREFIX}${projectId}`;
   try {
     localStorage.setItem(key, shareId);
-  } catch {}
+  } catch (err: any) {
+    throw new Error(`Failed to persist pending share ID: ${err?.message || "Storage error"}`);
+  }
 }
 
 /**
- * Clears the pending publication identity for a project after confirmed cloud persistence.
+ * Clears the pending publication identity for a project after confirmed cloud + local persistence.
+ * Propagates storage errors rather than silently ignoring failed cleanup.
  */
 export function clearProjectPendingShareId(projectId: string): void {
   if (!projectId || typeof window === "undefined") return;
+  if (
+    typeof window !== "undefined" &&
+    (window as any).__TL_SIMULATE_CLEAR_STORAGE_FAILURE__
+  ) {
+    throw new Error("Simulated storage cleanup failure");
+  }
   const key = `${PROJECT_PENDING_SHARE_PREFIX}${projectId}`;
   try {
     localStorage.removeItem(key);
-  } catch {}
+  } catch (err: any) {
+    throw new Error(`Failed to clear pending share ID: ${err?.message || "Storage cleanup error"}`);
+  }
 }
 
 /**
@@ -132,12 +343,24 @@ export function loadPendingCommentDraft(
   tierListId: string,
   sessionUserId: string
 ): PendingCommentDraft | null {
-  if (!tierListId || typeof window === "undefined") return null;
-  const key = `${COMMENT_DRAFT_PREFIX}${tierListId}_${sessionUserId || "anon"}`;
+  if (!tierListId || !sessionUserId || typeof window === "undefined") return null;
+  const key = `${COMMENT_DRAFT_PREFIX}${tierListId}_${sessionUserId}`;
   try {
     const raw = localStorage.getItem(key);
     if (!raw) return null;
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    if (
+      !parsed ||
+      typeof parsed !== "object" ||
+      typeof parsed.pendingId !== "string" ||
+      !parsed.pendingId.trim() ||
+      parsed.tierListId !== tierListId ||
+      parsed.sessionUserId !== sessionUserId ||
+      typeof parsed.content !== "string"
+    ) {
+      return null;
+    }
+    return parsed as PendingCommentDraft;
   } catch {
     return null;
   }
@@ -145,27 +368,53 @@ export function loadPendingCommentDraft(
 
 /**
  * Persists a pending comment attempt before sending.
+ * Propagates persistence failures so callers abort comment publication before any cloud write.
  */
 export function savePendingCommentDraft(draft: PendingCommentDraft): void {
-  if (!draft.tierListId || typeof window === "undefined") return;
-  const key = `${COMMENT_DRAFT_PREFIX}${draft.tierListId}_${draft.sessionUserId || "anon"}`;
+  if (isSimulateDraftStorageFailure()) {
+    throw new Error(getStorageFailureMessage());
+  }
+  if (
+    !draft ||
+    !draft.tierListId ||
+    !draft.sessionUserId ||
+    !draft.pendingId
+  ) {
+    throw new Error(
+      "Cannot save pending comment draft: tierListId, sessionUserId, and pendingId are required."
+    );
+  }
+  if (typeof window === "undefined") return;
+
+  const key = `${COMMENT_DRAFT_PREFIX}${draft.tierListId}_${draft.sessionUserId}`;
   try {
     localStorage.setItem(key, JSON.stringify(draft));
-  } catch {}
+  } catch (err: any) {
+    throw new Error(`Failed to persist pending comment draft: ${err?.message || "Storage error"}`);
+  }
 }
 
 /**
  * Clears a pending comment draft upon confirmed cloud success.
+ * Propagates cleanup errors rather than silently ignoring them.
  */
 export function clearPendingCommentDraft(
   tierListId: string,
   sessionUserId: string
 ): void {
-  if (!tierListId || typeof window === "undefined") return;
-  const key = `${COMMENT_DRAFT_PREFIX}${tierListId}_${sessionUserId || "anon"}`;
+  if (!tierListId || !sessionUserId || typeof window === "undefined") return;
+  if (
+    typeof window !== "undefined" &&
+    (window as any).__TL_SIMULATE_CLEAR_STORAGE_FAILURE__
+  ) {
+    throw new Error("Simulated storage cleanup failure");
+  }
+  const key = `${COMMENT_DRAFT_PREFIX}${tierListId}_${sessionUserId}`;
   try {
     localStorage.removeItem(key);
-  } catch {}
+  } catch (err: any) {
+    throw new Error(`Failed to clear pending comment draft: ${err?.message || "Storage cleanup error"}`);
+  }
 }
 
 /**

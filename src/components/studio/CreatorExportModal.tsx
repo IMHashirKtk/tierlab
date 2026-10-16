@@ -51,14 +51,18 @@ export function CreatorExportModal({
 
     try {
       const { toPng } = await import("html-to-image");
-      const pixelRatio = resolution === "4k" ? 2.5 : 1.5;
+      const pixelRatio = resolution === "4k" ? 2 : 1;
+      const targetWidth = ratio === "16:9" ? 1920 : 1080;
+      const targetHeight = ratio === "9:16" ? 1920 : 1080;
       const dataUrl = await toPng(captureRef.current, {
         quality: 0.98,
         pixelRatio,
+        width: targetWidth,
+        height: Math.max(targetHeight, captureRef.current.scrollHeight || targetHeight),
         cacheBust: true,
       });
 
-      const filename = `${boardTitle.replace(/[^a-z0-9]/gi, "-").toLowerCase()}-${ratio.replace(":", "x")}-${resolution}.png`;
+      const filename = `${boardTitle.replace(/[^a-z0-9]/gi, "-").toLowerCase()}-${ratio.replace(":", "x")}-${resolution === "4k" ? "4k" : "1080p"}.png`;
       const link = document.createElement("a");
       link.download = filename;
       link.href = dataUrl;
@@ -74,13 +78,13 @@ export function CreatorExportModal({
     }
   };
 
-  // Dynamic dimensions for hidden high-res capture container
+  // Dynamic dimensions for hidden high-res capture container (1x = 1080p, 2x = 4K UHD)
   const getContainerDimensions = () => {
     switch (ratio) {
       case "9:16":
         return "w-[1080px] min-h-[1920px] p-12";
       case "1:1":
-        return "w-[1200px] min-h-[1200px] p-10";
+        return "w-[1080px] min-h-[1080px] p-10";
       case "16:9":
       default:
         return "w-[1920px] min-h-[1080px] p-12";
@@ -316,7 +320,7 @@ export function CreatorExportModal({
               className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white text-xs font-semibold shadow-lg shadow-indigo-600/30 flex items-center gap-2 transition-all cursor-pointer disabled:opacity-50"
             >
               <Download className="w-4 h-4" />
-              <span>{isExporting ? "Rendering PNG..." : `Download ${resolution.toUpperCase()} PNG`}</span>
+              <span>{isExporting ? "Rendering PNG..." : `Download ${resolution === "4k" ? "4K" : "1080P"} PNG`}</span>
             </button>
           </div>
         </div>
@@ -345,7 +349,7 @@ export function CreatorExportModal({
               </div>
               <div className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-zinc-900 border border-zinc-800">
                 <Sparkles className="w-5 h-5 text-indigo-400" />
-                <span className="font-bold text-sm text-zinc-200">Tier List Maker Verified</span>
+                <span className="font-bold text-sm text-zinc-200">Tier List Maker</span>
               </div>
             </div>
           )}

@@ -5,21 +5,26 @@ import Link from "next/link";
 import { BrainCircuit, CheckCircle2, Zap, Sparkles, ChevronRight, HelpCircle, X } from "lucide-react";
 import { SEED_TEMPLATES } from "@/data/seed-templates";
 import { calculateConsensus } from "@/lib/consensus";
-import { fetchSubmissionsForTemplate } from "@/lib/community";
+import { fetchSubmissionsForTemplateWithStatus } from "@/lib/community";
 import type { PublishedTierList } from "@/types";
 
 export function ConsensusShowcase() {
   const [activeTemplateIndex, setActiveTemplateIndex] = useState(1); // Default to MCU
   const [showFormulaModal, setShowFormulaModal] = useState(false);
   const [submissions, setSubmissions] = useState<PublishedTierList[]>([]);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   const selectedTemplate = SEED_TEMPLATES[activeTemplateIndex] || SEED_TEMPLATES[0];
 
   useEffect(() => {
     if (!selectedTemplate?.id) return;
     let cancelled = false;
-    fetchSubmissionsForTemplate(selectedTemplate.id).then((data) => {
-      if (!cancelled) setSubmissions(data);
+    setFetchError(null);
+    fetchSubmissionsForTemplateWithStatus(selectedTemplate.id).then(({ submissions: data, fetchError: err }) => {
+      if (!cancelled) {
+        setSubmissions(data);
+        setFetchError(err);
+      }
     });
     return () => {
       cancelled = true;
@@ -27,8 +32,8 @@ export function ConsensusShowcase() {
   }, [selectedTemplate?.id]);
 
   const consensus = useMemo(
-    () => calculateConsensus(selectedTemplate, submissions),
-    [selectedTemplate, submissions]
+    () => calculateConsensus(selectedTemplate, submissions, { fetchError: Boolean(fetchError) }),
+    [selectedTemplate, submissions, fetchError]
   );
 
   return (
@@ -97,8 +102,10 @@ export function ConsensusShowcase() {
                     {consensus.templateTitle}
                   </span>
                   <span className="text-[11px] text-zinc-500">
-                    {consensus.totalSubmissions > 0
-                      ? `Based on ${consensus.totalSubmissions.toLocaleString()} verified community rankings`
+                    {consensus.status === "error"
+                      ? "Error loading community submissions"
+                      : consensus.totalSubmissions > 0
+                      ? `Based on ${consensus.totalSubmissions.toLocaleString()} community rankings`
                       : "Awaiting first community submission"}
                   </span>
                 </div>
@@ -109,12 +116,18 @@ export function ConsensusShowcase() {
                   </span>
                 ) : (
                   <span className="text-[11px] px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 font-semibold border border-amber-500/20">
-                    Demo Preview
+                    {consensus.status === "error" ? "Fetch Error" : "Demo Preview"}
                   </span>
                 )}
               </div>
 
-              {consensus.totalSubmissions === 0 ? (
+              {consensus.status === "error" ? (
+                <div className="py-8 px-4 text-center rounded-xl bg-rose-950/30 border border-rose-500/30 space-y-2">
+                  <p className="text-xs font-semibold text-rose-300">
+                    Could not load community rankings ({fetchError}).
+                  </p>
+                </div>
+              ) : consensus.totalSubmissions === 0 ? (
                 <div className="py-8 px-4 text-center rounded-xl bg-zinc-900/60 border border-zinc-800 space-y-3">
                   <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/20 text-[11px] font-semibold">
                     <span>Interactive Demo Preview (Sample Data)</span>

@@ -172,6 +172,12 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
   const [resolvedTemplate, setResolvedTemplate] = useState<Template | null>(initialTemplate || null);
   const [publishedShareId, setPublishedShareId] = useState<string | undefined>(undefined);
   const [projectCreatedAt, setProjectCreatedAt] = useState<number>(Date.now());
+  const [isProjectHydrated, setIsProjectHydrated] = useState<boolean>(!initialProjectId);
+  const activeProjectIdRef = useRef<string>(projectId);
+
+  useEffect(() => {
+    activeProjectIdRef.current = projectId;
+  }, [projectId]);
 
   // Tap-to-rank quick selection state
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
@@ -204,30 +210,43 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
 
   // Load existing project if initialProjectId provided
   useEffect(() => {
-    if (!initialProjectId) return;
+    if (!initialProjectId) {
+      setIsProjectHydrated(true);
+      return;
+    }
     let isCancelled = false;
-    getProject(initialProjectId).then((loaded) => {
-      if (isCancelled || !loaded) return;
-      setProjectId(loaded.id);
-      setTitle(loaded.title);
-      setBoard({ tiers: loaded.tiers, unranked: loaded.unranked });
-      if (loaded.templateId) {
-        setLoadedTemplateId(loaded.templateId);
-        if (!initialTemplate) {
-          fetchTemplateById(loaded.templateId).then((t) => {
-            if (!isCancelled && t) setResolvedTemplate(t);
-          });
+    setIsProjectHydrated(false);
+    getProject(initialProjectId)
+      .then((loaded) => {
+        if (isCancelled) return;
+        if (!loaded) {
+          setIsProjectHydrated(true);
+          return;
         }
-      }
-      if (loaded.publishedShareId) {
-        setPublishedShareId(loaded.publishedShareId);
-      }
-      if (loaded.createdAt) {
-        setProjectCreatedAt(loaded.createdAt);
-      }
-      setHistory([]);
-      setFuture([]);
-    });
+        activeProjectIdRef.current = loaded.id;
+        setProjectId(loaded.id);
+        setTitle(loaded.title);
+        setBoard({ tiers: loaded.tiers, unranked: loaded.unranked });
+        if (loaded.templateId) {
+          setLoadedTemplateId(loaded.templateId);
+          if (!initialTemplate) {
+            fetchTemplateById(loaded.templateId).then((t) => {
+              if (!isCancelled && t) setResolvedTemplate(t);
+            });
+          }
+        } else {
+          setLoadedTemplateId(undefined);
+          if (!initialTemplate) setResolvedTemplate(null);
+        }
+        setPublishedShareId(loaded.publishedShareId || undefined);
+        setProjectCreatedAt(loaded.createdAt || Date.now());
+        setHistory([]);
+        setFuture([]);
+        setIsProjectHydrated(true);
+      })
+      .catch(() => {
+        if (!isCancelled) setIsProjectHydrated(true);
+      });
     return () => {
       isCancelled = true;
     };
@@ -240,8 +259,8 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
       if (p) {
         setTitle(p.title);
         setBoard({ tiers: p.tiers, unranked: p.unranked });
-        if (p.templateId) setLoadedTemplateId(p.templateId);
-        if (p.publishedShareId) setPublishedShareId(p.publishedShareId);
+        setLoadedTemplateId(p.templateId || undefined);
+        setPublishedShareId(p.publishedShareId || undefined);
         if (p.createdAt) setProjectCreatedAt(p.createdAt);
       }
     };
@@ -249,26 +268,27 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
     return () => window.removeEventListener("tierlistmaker-data-synced", handleSync);
   }, [projectId]);
 
-  // Set template if passed
+  // Set template if passed for a fresh template project
   useEffect(() => {
-    if (initialTemplate) {
-      const p = projectFromTemplate(initialTemplate, projectId);
+    if (initialTemplate && !initialProjectId) {
+      const p = projectFromTemplate(initialTemplate, activeProjectIdRef.current);
       setTitle(p.title);
       setBoard({ tiers: p.tiers, unranked: p.unranked });
       setLoadedTemplateId(initialTemplate.id);
       setResolvedTemplate(initialTemplate);
+      setPublishedShareId(undefined);
       setHistory([]);
       setFuture([]);
     }
-  }, [initialTemplate, projectId]);
+  }, [initialTemplate, initialProjectId]);
 
-  // Debounced Auto-save to IndexedDB (skips while user is dragging)
+  // Debounced Auto-save to IndexedDB (skips while user is dragging or while project is hydrating)
   useEffect(() => {
     if (isInitialMount.current) {
       isInitialMount.current = false;
       return;
     }
-    if (activeItem) return;
+    if (!isProjectHydrated || activeItem) return;
 
     setSaveStatus("saving");
     const timer = setTimeout(() => {
@@ -291,7 +311,7 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
     }, 600);
 
     return () => clearTimeout(timer);
-  }, [board, title, projectId, initialTemplate, loadedTemplateId, publishedShareId, projectCreatedAt, activeItem]);
+  }, [board, title, projectId, initialTemplate, loadedTemplateId, publishedShareId, projectCreatedAt, activeItem, isProjectHydrated]);
 
   // Push board change to history (for Undo)
   const commitBoardChange = useCallback(
@@ -1587,10 +1607,10 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
           unranked={board.unranked}
           templateId={resolvedTemplate?.id || initialTemplate?.id}
           publishedShareId={publishedShareId}
-          onPublishSuccess={async (newShareId) => {
-            setPublishedShareId(newShareId);
+          onPublishSuccess={async (newShareId, targetProjectId) => {
+            const targetPid = targetProjectId || projectId;
             await saveProject({
-              id: projectId,
+              id: targetPid,
               title,
               tiers: board.tiers,
               unranked: board.unranked,
@@ -1599,6 +1619,9 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
               createdAt: projectCreatedAt,
               updatedAt: Date.now(),
             });
+            if (activeProjectIdRef.current === targetPid) {
+              setPublishedShareId(newShareId);
+            }
           }}
         />
 

@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useMemo, useState, useEffect } from "react";
-import { X, BrainCircuit, CheckCircle2, Zap, Flame, Sparkles } from "lucide-react";
+import { X, BrainCircuit, CheckCircle2, Zap, Flame, Sparkles, AlertCircle } from "lucide-react";
 import type { Board } from "@/lib/board";
 import type { Template, PublishedTierList } from "@/types";
 import { calculateConsensus, compareUserBoardWithConsensus } from "@/lib/consensus";
-import { fetchSubmissionsForTemplate } from "@/lib/community";
+import { fetchSubmissionsForTemplateWithStatus } from "@/lib/community";
 
 interface ConsensusComparisonModalProps {
   isOpen: boolean;
@@ -21,12 +21,17 @@ export function ConsensusComparisonModal({
   template,
 }: ConsensusComparisonModalProps) {
   const [submissions, setSubmissions] = useState<PublishedTierList[]>([]);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isOpen || !template?.id) return;
     let cancelled = false;
-    fetchSubmissionsForTemplate(template.id).then((data) => {
-      if (!cancelled) setSubmissions(data);
+    setFetchError(null);
+    fetchSubmissionsForTemplateWithStatus(template.id).then(({ submissions: data, fetchError: err }) => {
+      if (!cancelled) {
+        setSubmissions(data);
+        setFetchError(err);
+      }
     });
     return () => {
       cancelled = true;
@@ -34,8 +39,8 @@ export function ConsensusComparisonModal({
   }, [isOpen, template?.id]);
 
   const consensus = useMemo(
-    () => calculateConsensus(template, submissions),
-    [template, submissions]
+    () => calculateConsensus(template, submissions, { fetchError: Boolean(fetchError) }),
+    [template, submissions, fetchError]
   );
   const comparison = useMemo(
     () => compareUserBoardWithConsensus(board, consensus),
@@ -63,7 +68,9 @@ export function ConsensusComparisonModal({
             <div>
               <h3 className="text-base font-bold text-white">Community Consensus Analysis</h3>
               <span className="text-[11px] text-zinc-400">
-                {consensus.totalSubmissions > 0
+                {consensus.status === "error"
+                  ? "Error loading community submissions"
+                  : consensus.totalSubmissions > 0
                   ? `Based on ${consensus.totalSubmissions.toLocaleString()} community rankings`
                   : "Awaiting first community submission"}
               </span>
@@ -76,6 +83,13 @@ export function ConsensusComparisonModal({
             <X className="w-5 h-5" />
           </button>
         </div>
+
+        {fetchError && (
+          <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0" />
+            <span>Failed to load community rankings: {fetchError}</span>
+          </div>
+        )}
 
         {/* Alignment Gauge Banner */}
         <div className="rounded-xl bg-gradient-to-r from-indigo-950/60 via-zinc-900 to-zinc-950 border border-indigo-500/30 p-4 flex flex-col sm:flex-row items-center justify-between gap-4">

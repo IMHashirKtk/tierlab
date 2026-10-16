@@ -11,6 +11,7 @@ import {
   saveTemplateDraft,
   loadTemplateDraft,
   deleteTemplateDraft,
+  getDraftGeneration,
 } from "@/lib/draft-storage";
 import type { Item } from "@/types";
 
@@ -29,6 +30,7 @@ export function PublishModal({ isOpen, onClose, draftId = "default" }: PublishMo
   const [authorName, setAuthorName] = useState("");
   const [items, setItems] = useState<Item[]>([]);
   const [textInput, setTextInput] = useState("");
+  const [isHydrated, setIsHydrated] = useState(false);
   const [isCompressing, setIsCompressing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStep, setSubmitStep] = useState<string | null>(null);
@@ -37,20 +39,42 @@ export function PublishModal({ isOpen, onClose, draftId = "default" }: PublishMo
   const [isWebSearchOpen, setIsWebSearchOpen] = useState(false);
 
   const isSubmittingRef = useRef(false);
+  const hydrationSeqRef = useRef(0);
+  const hasUserEditedRef = useRef(false);
+  const discardGenRef = useRef<number>(getDraftGeneration(draftId));
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Load saved draft on mount, when modal opens, or when draftId changes
+  // Load saved draft asynchronously from IndexedDB (or migrate legacy localStorage) when modal opens or draftId changes
   useEffect(() => {
     if (!isOpen) return;
-    const saved = loadTemplateDraft(draftId);
-    if (saved) {
-      if (saved.pendingId) setPendingId(saved.pendingId);
-      if (saved.title !== undefined) setTitle(saved.title);
-      if (saved.category !== undefined) setCategory(saved.category);
-      if (saved.description !== undefined) setDescription(saved.description);
-      if (saved.authorName !== undefined) setAuthorName(saved.authorName);
-      if (saved.items !== undefined) setItems(saved.items);
-    }
+    setIsHydrated(false);
+    hasUserEditedRef.current = false;
+    discardGenRef.current = getDraftGeneration(draftId);
+    const seq = ++hydrationSeqRef.current;
+
+    loadTemplateDraft(draftId)
+      .then((saved) => {
+        if (hydrationSeqRef.current !== seq) return;
+        if (saved && !hasUserEditedRef.current) {
+          if (saved.pendingId) setPendingId(saved.pendingId);
+          setTitle(saved.title ?? "");
+          setCategory(saved.category ?? "gaming");
+          setDescription(saved.description ?? "");
+          setAuthorName(saved.authorName ?? "");
+          setItems(Array.isArray(saved.items) ? saved.items : []);
+        } else if (saved && hasUserEditedRef.current) {
+          // Do not overwrite newer in-memory edits with delayed restore, but preserve stable pendingId if unset
+          if (saved.pendingId) {
+            setPendingId((prev) => prev || saved.pendingId);
+          }
+        }
+        setIsHydrated(true);
+      })
+      .catch((err) => {
+        if (hydrationSeqRef.current !== seq) return;
+        console.warn("Draft hydration warning:", err);
+        setIsHydrated(true);
+      });
   }, [isOpen, draftId]);
 
   // Handle Escape key to close without discarding
@@ -65,12 +89,13 @@ export function PublishModal({ isOpen, onClose, draftId = "default" }: PublishMo
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
 
-  // Autosave draft to storage whenever fields change (preserving draft across reloads and closures)
+  // Autosave draft to IndexedDB ONLY after hydration completes (preventing pre-hydration overwrite or resurrecting discarded drafts)
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || !isHydrated) return;
     if (!createdTemplateId && (title || items.length > 0)) {
       const stablePendingId = pendingId || generateTemplateSlug(title || "template");
       if (!pendingId) setPendingId(stablePendingId);
+      const expectedGen = discardGenRef.current;
 
       saveTemplateDraft(
         {
@@ -83,12 +108,17 @@ export function PublishModal({ isOpen, onClose, draftId = "default" }: PublishMo
           items,
           updatedAt: Date.now(),
         },
-        draftId
-      ).catch((err) => {
-        console.warn("Autosave draft warning:", err);
+        draftId,
+        expectedGen
+      ).catch((err: any) => {
+        if (discardGenRef.current === expectedGen) {
+          setPublishError(
+            `Autosave failed: ${err?.message || "Could not save template draft locally."}`
+          );
+        }
       });
     }
-  }, [isOpen, draftId, pendingId, title, category, description, authorName, items, createdTemplateId]);
+  }, [isOpen, isHydrated, draftId, pendingId, title, category, description, authorName, items, createdTemplateId]);
 
   if (!isOpen) return null;
 
@@ -104,6 +134,7 @@ export function PublishModal({ isOpen, onClose, draftId = "default" }: PublishMo
         name: c.name,
         imageUrl: c.dataUrl,
       }));
+      hasUserEditedRef.current = true;
       setItems((prev) => [...prev, ...newItems]);
     } catch (err) {
       console.error("Image compression error", err);
@@ -125,17 +156,20 @@ export function PublishModal({ isOpen, onClose, draftId = "default" }: PublishMo
       name,
     }));
 
+    hasUserEditedRef.current = true;
     setItems((prev) => [...prev, ...newItems]);
     setTextInput("");
   };
 
   const handleRemoveItem = (id: string) => {
+    hasUserEditedRef.current = true;
     setItems((prev) => prev.filter((i) => i.id !== id));
   };
 
-  // Explicit Discard action: removes draft from storage and resets state
-  const handleDiscardDraft = () => {
-    deleteTemplateDraft(draftId);
+  // Explicit Discard action: removes draft from storage, increments generation so queued saves cannot resurrect it, and resets state
+  const handleDiscardDraft = async () => {
+    hydrationSeqRef.current++;
+    hasUserEditedRef.current = false;
     setTitle("");
     setCategory("gaming");
     setDescription("");
@@ -145,11 +179,21 @@ export function PublishModal({ isOpen, onClose, draftId = "default" }: PublishMo
     setCreatedTemplateId(null);
     setPublishError(null);
     setIsWebSearchOpen(false);
+
+    try {
+      await deleteTemplateDraft(draftId);
+      discardGenRef.current = getDraftGeneration(draftId);
+    } catch (err: any) {
+      discardGenRef.current = getDraftGeneration(draftId);
+      setPublishError(
+        `Failed to discard draft from storage: ${err?.message || "Storage cleanup error"}`
+      );
+    }
   };
 
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
-    if (isSubmittingRef.current) return; // Synchronous in-flight guard
+    if (!isHydrated || isSubmittingRef.current) return; // Synchronous in-flight & hydration guard
 
     if (items.length < 2) {
       setPublishError("Please add at least 2 items to publish a template.");
@@ -162,6 +206,7 @@ export function PublishModal({ isOpen, onClose, draftId = "default" }: PublishMo
 
     const currentPendingId = pendingId || generateTemplateSlug(title || "template");
     if (!pendingId) setPendingId(currentPendingId);
+    const expectedGen = discardGenRef.current;
 
     // 1. Await persistence before sending network request
     try {
@@ -176,7 +221,8 @@ export function PublishModal({ isOpen, onClose, draftId = "default" }: PublishMo
           items,
           updatedAt: Date.now(),
         },
-        draftId
+        draftId,
+        expectedGen
       );
     } catch (storageErr: any) {
       console.error("Failed to persist draft before publishing", storageErr);
@@ -206,7 +252,8 @@ export function PublishModal({ isOpen, onClose, draftId = "default" }: PublishMo
           items: cloudItems,
           updatedAt: Date.now(),
         },
-        draftId
+        draftId,
+        expectedGen
       );
 
       // 3. Publish template with CDN URLs and persistent pending ID
@@ -220,9 +267,14 @@ export function PublishModal({ isOpen, onClose, draftId = "default" }: PublishMo
         existingId: currentPendingId,
       });
 
+      // 4. Clean up draft after confirmed cloud publish; surface error if cleanup fails
+      try {
+        await deleteTemplateDraft(draftId);
+        discardGenRef.current = getDraftGeneration(draftId);
+      } catch (cleanupErr: any) {
+        console.warn("Draft cleanup after publish failed:", cleanupErr);
+      }
       setCreatedTemplateId(created.id);
-      // Cleared only upon confirmed cloud publish
-      deleteTemplateDraft(draftId);
     } catch (err: any) {
       console.error("Failed to publish template", err);
       setPublishError(err?.message || "Error publishing template. Please try again.");
@@ -318,7 +370,10 @@ export function PublishModal({ isOpen, onClose, draftId = "default" }: PublishMo
                   type="text"
                   required
                   value={title}
-                  onChange={(e) => setTitle(e.target.value)}
+                  onChange={(e) => {
+                    hasUserEditedRef.current = true;
+                    setTitle(e.target.value);
+                  }}
                   placeholder="e.g. Best Sci-Fi Movies of 2020s"
                   className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-200 focus:outline-none focus:border-indigo-500"
                 />
@@ -330,7 +385,10 @@ export function PublishModal({ isOpen, onClose, draftId = "default" }: PublishMo
                 </label>
                 <select
                   value={category}
-                  onChange={(e) => setCategory(e.target.value)}
+                  onChange={(e) => {
+                    hasUserEditedRef.current = true;
+                    setCategory(e.target.value);
+                  }}
                   className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-200 focus:outline-none focus:border-indigo-500 cursor-pointer"
                 >
                   <option value="gaming">Gaming</option>
@@ -352,7 +410,10 @@ export function PublishModal({ isOpen, onClose, draftId = "default" }: PublishMo
                 <input
                   type="text"
                   value={authorName}
-                  onChange={(e) => setAuthorName(e.target.value)}
+                  onChange={(e) => {
+                    hasUserEditedRef.current = true;
+                    setAuthorName(e.target.value);
+                  }}
                   placeholder="e.g. PixelKnight"
                   className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-200 focus:outline-none focus:border-indigo-500"
                 />
@@ -365,7 +426,10 @@ export function PublishModal({ isOpen, onClose, draftId = "default" }: PublishMo
                 <input
                   type="text"
                   value={description}
-                  onChange={(e) => setDescription(e.target.value)}
+                  onChange={(e) => {
+                    hasUserEditedRef.current = true;
+                    setDescription(e.target.value);
+                  }}
                   placeholder="Short tagline or prompt"
                   className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-200 focus:outline-none focus:border-indigo-500"
                 />
@@ -508,7 +572,7 @@ export function PublishModal({ isOpen, onClose, draftId = "default" }: PublishMo
                 </button>
                 <button
                   type="submit"
-                  disabled={isSubmitting || items.length < 2}
+                  disabled={!isHydrated || isSubmitting || items.length < 2}
                   className="min-h-[32px] px-5 py-2 rounded-xl text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer flex items-center gap-2 shadow-md shadow-indigo-600/30"
                 >
                   {isSubmitting ? (
@@ -528,7 +592,10 @@ export function PublishModal({ isOpen, onClose, draftId = "default" }: PublishMo
         <WebImageSearchModal
           isOpen={isWebSearchOpen}
           onClose={() => setIsWebSearchOpen(false)}
-          onAddItems={(newItems) => setItems((prev) => [...prev, ...newItems])}
+          onAddItems={(newItems) => {
+            hasUserEditedRef.current = true;
+            setItems((prev) => [...prev, ...newItems]);
+          }}
         />
       </div>
     </div>

@@ -261,6 +261,7 @@ async function handleExistingTemplate(
     existing.title === payload.title &&
     (existing.description || "") === payload.description &&
     existing.category === payload.category &&
+    (existing.author_name || "").trim() === payload.authorName &&
     areSemanticJsonEqual(existing.items || [], payload.items) &&
     areSemanticJsonEqual(existing.default_tiers || [], payload.defaultTiers);
 
@@ -272,7 +273,7 @@ async function handleExistingTemplate(
       title: existing.title,
       description: existing.description || "",
       category: existing.category as any,
-      author: { username: existing.author_name || payload.authorName, verified: true },
+      author: { username: existing.author_name || payload.authorName },
       itemCount: Array.isArray(existing.items) ? existing.items.length : 0,
       remixCount: existing.rank_count || 0,
       upvotes: existing.upvotes || 0,
@@ -318,7 +319,7 @@ async function handleExistingTemplate(
     title: row.title,
     description: row.description || "",
     category: row.category as any,
-    author: { username: row.author_name || payload.authorName, verified: true },
+    author: { username: row.author_name || payload.authorName },
     itemCount: Array.isArray(row.items) ? row.items.length : 0,
     remixCount: row.rank_count || 0,
     upvotes: row.upvotes || 0,
@@ -440,7 +441,7 @@ export async function publishTemplate(payload: {
       title: row.title,
       description: row.description || "",
       category: row.category as any,
-      author: { username: row.author_name || cleanAuthorName, verified: true },
+      author: { username: row.author_name || cleanAuthorName },
       itemCount: Array.isArray(row.items) ? row.items.length : 0,
       remixCount: row.rank_count || 0,
       upvotes: row.upvotes || 0,
@@ -832,15 +833,20 @@ export async function fetchLiveActivity(): Promise<UserRanking[]> {
 }
 
 /**
- * Fetch all real published rankings for a given template (local + Supabase), newest first.
- * Used to drive the Community Consensus calculation with genuine user placements.
+ * Fetch all real published rankings for a given template (local + Supabase), newest first,
+ * returning explicit error state so callers can distinguish empty data from fetch errors.
  */
-export async function fetchSubmissionsForTemplate(templateId: string): Promise<PublishedTierList[]> {
-  if (!templateId) return [];
+export async function fetchSubmissionsForTemplateWithStatus(templateId: string): Promise<{
+  submissions: PublishedTierList[];
+  fetchError: string | null;
+}> {
+  if (!templateId) return { submissions: [], fetchError: null };
 
   const local = getLocalPublishedRankings().filter((r) => r.templateId === templateId);
 
   let cloud: PublishedTierList[] = [];
+  let fetchError: string | null = null;
+
   if (isSupabaseConfigured() && supabase) {
     try {
       const { data, error } = await supabase
@@ -849,11 +855,13 @@ export async function fetchSubmissionsForTemplate(templateId: string): Promise<P
         .eq("template_id", templateId)
         .order("created_at", { ascending: false })
         .limit(100);
-      if (!error && data) {
+      if (error) {
+        fetchError = error.message || "Failed to fetch community submissions.";
+      } else if (data) {
         cloud = data.map(mapTierListRow);
       }
-    } catch (err) {
-      console.warn("Supabase submissions query failed, using local fallback", err);
+    } catch (err: any) {
+      fetchError = err?.message || "Failed to fetch community submissions.";
     }
   }
 
@@ -861,7 +869,21 @@ export async function fetchSubmissionsForTemplate(templateId: string): Promise<P
   cloud.forEach((r) => map.set(r.id, r));
   local.forEach((r) => map.set(r.id, r));
 
-  return Array.from(map.values()).sort((a, b) => b.createdAt - a.createdAt);
+  const submissions = Array.from(map.values()).sort((a, b) => b.createdAt - a.createdAt);
+  // If we have local submissions, surface them; if we have zero submissions and cloud failed, report fetchError
+  return {
+    submissions,
+    fetchError: submissions.length === 0 ? fetchError : null,
+  };
+}
+
+/**
+ * Fetch all real published rankings for a given template (local + Supabase), newest first.
+ * Used to drive the Community Consensus calculation with genuine user placements.
+ */
+export async function fetchSubmissionsForTemplate(templateId: string): Promise<PublishedTierList[]> {
+  const { submissions } = await fetchSubmissionsForTemplateWithStatus(templateId);
+  return submissions;
 }
 
 /**
@@ -1257,7 +1279,7 @@ export async function fetchUserProfile(username: string): Promise<UserProfileDat
     username,
     bio: "Passionate Tier List Maker creator & ranker. Analyzing, debating, and ranking topics with the community.",
     joinedDate: "2026",
-    totalUpvotes: Math.max(totalUpvotes, 1),
+    totalUpvotes,
     templates: allTemplates,
     tierLists: allTierLists,
   };

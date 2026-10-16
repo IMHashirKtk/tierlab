@@ -8,10 +8,50 @@
 import type { Project } from "@/types";
 
 const DB_NAME = "tierlistmaker";
-const DB_VERSION = 1;
-const STORE = "projects";
+const DB_VERSION = 2;
+export const STORE = "projects";
+export const TEMPLATE_DRAFTS_STORE = "template_drafts";
 
 let dbPromise: Promise<IDBDatabase> | null = null;
+
+let simulateIdbAbort = false;
+let simulateIdbAbortMessage = "Simulated IndexedDB transaction abort";
+let simulateSaveProjectFailure = false;
+let simulateSaveProjectFailureMessage = "Simulated local project save failure";
+
+export function setSimulateIdbAbort(shouldAbort: boolean, message?: string) {
+  simulateIdbAbort = shouldAbort;
+  if (message) simulateIdbAbortMessage = message;
+}
+
+export function isSimulateIdbAbort(): boolean {
+  if (typeof window !== "undefined" && (window as any).__TL_SIMULATE_IDB_ABORT__) {
+    return true;
+  }
+  return simulateIdbAbort;
+}
+
+export function setSimulateSaveProjectFailure(shouldFail: boolean, message?: string) {
+  simulateSaveProjectFailure = shouldFail;
+  if (message) simulateSaveProjectFailureMessage = message;
+}
+
+export function isSimulateSaveProjectFailure(): boolean {
+  if (typeof window !== "undefined" && (window as any).__TL_SIMULATE_SAVE_PROJECT_FAILURE__) {
+    return true;
+  }
+  return simulateSaveProjectFailure;
+}
+
+export async function resetDbConnectionForTests(): Promise<void> {
+  if (dbPromise) {
+    try {
+      const db = await dbPromise;
+      db.close();
+    } catch {}
+    dbPromise = null;
+  }
+}
 
 function openDb(): Promise<IDBDatabase> {
   if (typeof indexedDB === "undefined") {
@@ -25,29 +65,67 @@ function openDb(): Promise<IDBDatabase> {
         if (!db.objectStoreNames.contains(STORE)) {
           db.createObjectStore(STORE, { keyPath: "id" });
         }
+        if (!db.objectStoreNames.contains(TEMPLATE_DRAFTS_STORE)) {
+          db.createObjectStore(TEMPLATE_DRAFTS_STORE, { keyPath: "draftId" });
+        }
       };
-      request.onsuccess = () => resolve(request.result);
+      request.onsuccess = () => {
+        const db = request.result;
+        db.onversionchange = () => {
+          db.close();
+          dbPromise = null;
+        };
+        resolve(db);
+      };
       request.onerror = () => {
         dbPromise = null; // allow a retry on the next call
         reject(request.error);
+      };
+      request.onblocked = () => {
+        dbPromise = null;
+        reject(new Error("IndexedDB upgrade blocked by an open connection."));
       };
     });
   }
   return dbPromise;
 }
 
-/** Runs a single request in its own transaction and resolves once the transaction commits. */
-function run<T>(mode: IDBTransactionMode, makeRequest: (store: IDBObjectStore) => IDBRequest<T>): Promise<T> {
+/** Runs a single request in its own transaction and resolves ONLY once the transaction commits. */
+export function runInStore<T>(
+  storeName: string,
+  mode: IDBTransactionMode,
+  makeRequest: (store: IDBObjectStore, tx: IDBTransaction) => IDBRequest<T>
+): Promise<T> {
   return openDb().then(
     (db) =>
       new Promise<T>((resolve, reject) => {
-        const tx = db.transaction(STORE, mode);
-        const request = makeRequest(tx.objectStore(STORE));
+        const tx = db.transaction(storeName, mode);
+        const request = makeRequest(tx.objectStore(storeName), tx);
+
+        if (mode === "readwrite" && isSimulateIdbAbort()) {
+          try {
+            tx.abort();
+          } catch {}
+        }
+
         tx.oncomplete = () => resolve(request.result);
-        tx.onerror = () => reject(tx.error);
-        tx.onabort = () => reject(tx.error);
+        tx.onerror = () =>
+          reject(tx.error || new Error("IndexedDB transaction failed."));
+        tx.onabort = () =>
+          reject(
+            tx.error ||
+              new Error(
+                isSimulateIdbAbort()
+                  ? simulateIdbAbortMessage
+                  : "IndexedDB transaction aborted before commit."
+              )
+          );
       })
   );
+}
+
+function run<T>(mode: IDBTransactionMode, makeRequest: (store: IDBObjectStore) => IDBRequest<T>): Promise<T> {
+  return runInStore(STORE, mode, (store) => makeRequest(store));
 }
 
 export function getProject(id: string): Promise<Project | undefined> {
@@ -55,6 +133,14 @@ export function getProject(id: string): Promise<Project | undefined> {
 }
 
 export async function saveProject(project: Project): Promise<void> {
+  if (isSimulateSaveProjectFailure()) {
+    throw new Error(
+      (typeof window !== "undefined" &&
+        typeof (window as any).__TL_SIMULATE_SAVE_PROJECT_FAILURE_MESSAGE__ === "string" &&
+        (window as any).__TL_SIMULATE_SAVE_PROJECT_FAILURE_MESSAGE__) ||
+        simulateSaveProjectFailureMessage
+    );
+  }
   await run("readwrite", (store) => store.put(project));
 }
 

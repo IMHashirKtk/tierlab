@@ -1,5 +1,5 @@
 import type { Item, TierRow, Template, PublishedTierList } from "@/types";
-import type { Board } from "@/lib/board";
+import { DEFAULT_TIERS, normalizeDefaultTiers, type Board } from "@/lib/board";
 
 export interface ConsensusItemRank {
   item: Item;
@@ -47,14 +47,6 @@ export interface AlignmentComparison {
     difference: number;
   }[];
 }
-
-const DEFAULT_TIER_COLORS: Record<string, string> = {
-  S: "from-rose-500 to-red-600",
-  A: "from-amber-500 to-orange-500",
-  B: "from-emerald-500 to-teal-600",
-  C: "from-sky-500 to-blue-600",
-  D: "from-purple-500 to-indigo-600",
-};
 
 /**
  * Computes tier weight exclusively from row position index (0 = top tier 5.0, last = bottom tier 1.0).
@@ -140,16 +132,7 @@ export function calculateConsensus(
   rankedItems.sort((a, b) => b.avgScore - a.avgScore);
 
   // Map into target template tiers (or standard 5-tier S-D structure)
-  const templateTiers =
-    template.defaultTiers && template.defaultTiers.length > 0
-      ? template.defaultTiers
-      : [
-          { label: "S", color: DEFAULT_TIER_COLORS.S },
-          { label: "A", color: DEFAULT_TIER_COLORS.A },
-          { label: "B", color: DEFAULT_TIER_COLORS.B },
-          { label: "C", color: DEFAULT_TIER_COLORS.C },
-          { label: "D", color: DEFAULT_TIER_COLORS.D },
-        ];
+  const templateTiers = normalizeDefaultTiers(template.defaultTiers) ?? DEFAULT_TIERS;
 
   const totalTiers = templateTiers.length;
   const tiersResult: ConsensusTier[] = templateTiers.map((t, idx) => ({

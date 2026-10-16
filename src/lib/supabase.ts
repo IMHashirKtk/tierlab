@@ -37,6 +37,13 @@ export function resetMockSupabaseClient() {
 
 export function setMockSessionUserId(id: any) {
   mockSessionUserId = id;
+  if (typeof window !== "undefined" && typeof window.dispatchEvent === "function") {
+    try {
+      window.dispatchEvent(
+        new CustomEvent("tl-auth-state-change", { detail: { userId: id } })
+      );
+    } catch {}
+  }
 }
 
 export function resetMockSessionUserId() {
@@ -50,6 +57,15 @@ let sessionPromise: Promise<string | null> | null = null;
  * anonymous sign-in so every client receives a signed JWT with auth.uid().
  */
 export async function ensureAuthenticatedSession(): Promise<string | null> {
+  if (typeof window !== "undefined") {
+    const authDelayMs = Number((window as any).__TL_AUTH_DELAY_MS__ || 0);
+    if (authDelayMs > 0) {
+      await new Promise((r) => setTimeout(r, authDelayMs));
+    }
+    if ((window as any).__TL_MOCK_SESSION_USER_ID__ !== undefined) {
+      return (window as any).__TL_MOCK_SESSION_USER_ID__;
+    }
+  }
   if (mockSessionUserId !== undefined) {
     return mockSessionUserId;
   }

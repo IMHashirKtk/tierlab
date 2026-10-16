@@ -39,7 +39,7 @@ export function SharedTierListClient({ id }: SharedTierListClientProps) {
     fetchSharedTierList(id).then((data) => {
       if (data) {
         setRanking(data);
-        setUpvotes(data.upvotes || 1);
+        setUpvotes(data.upvotes ?? 0);
       }
       setLoading(false);
     });

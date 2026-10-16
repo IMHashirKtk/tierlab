@@ -44,7 +44,8 @@ export function normalizeDefaultTiers(raw: unknown): { label: string; color: str
           typeof entry === "object" &&
           typeof (entry as any).label === "string" &&
           (entry as any).label.trim().length > 0 &&
-          typeof (entry as any).color === "string"
+          typeof (entry as any).color === "string" &&
+          (entry as any).color.trim().length > 0
       )
   );
   return filtered.length > 0 ? filtered : undefined;

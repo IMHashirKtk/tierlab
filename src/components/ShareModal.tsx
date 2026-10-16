@@ -22,7 +22,7 @@ interface ShareModalProps {
   templateId?: string;
   projectId?: string;
   publishedShareId?: string;
-  onPublishSuccess?: (shareId: string) => Promise<void> | void;
+  onPublishSuccess?: (shareId: string, projectId?: string) => Promise<void> | void;
 }
 
 export function ShareModal({
@@ -46,21 +46,34 @@ export function ShareModal({
   const [pendingShareId, setPendingShareId] = useState<string>("");
 
   const isPublishingRef = useRef(false);
+  const activeProjectIdRef = useRef<string | undefined>(projectId);
 
   // Switching projects resets modal state to the selected project
   // Do not retain another project's shareId when the new project's publishedShareId is empty!
   useEffect(() => {
+    const projectChanged = activeProjectIdRef.current !== projectId;
+    activeProjectIdRef.current = projectId;
     setShareId(publishedShareId || null);
     setPublishError(null);
+    if (projectChanged) {
+      setIsPublishing(false);
+      isPublishingRef.current = false;
+    }
 
-    if (projectId) {
+    if (publishedShareId) {
+      setPendingShareId(publishedShareId);
+    } else if (projectId) {
       const savedPending = getProjectPendingShareId(projectId);
       if (savedPending) {
         setPendingShareId(savedPending);
       } else {
         const freshPending = `share-${createId("tier")}`;
         setPendingShareId(freshPending);
-        saveProjectPendingShareId(projectId, freshPending);
+        try {
+          saveProjectPendingShareId(projectId, freshPending);
+        } catch {
+          // Will be enforced and surfaced when the user initiates publication
+        }
       }
     } else {
       setPendingShareId(`share-${createId("tier")}`);
@@ -70,8 +83,10 @@ export function ShareModal({
   // Load saved creator handle from localStorage on mount
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const savedHandle = localStorage.getItem("tl_commenter_name") || "";
-      if (savedHandle) setAuthorName(savedHandle);
+      try {
+        const savedHandle = localStorage.getItem("tl_commenter_name") || "";
+        if (savedHandle) setAuthorName(savedHandle);
+      } catch {}
     }
   }, []);
 
@@ -81,6 +96,7 @@ export function ShareModal({
     setIsPublishing(true);
     setPublishError(null);
 
+    const publishProjectId = projectId;
     const cleanHandle = handle.trim();
     if (cleanHandle && typeof window !== "undefined") {
       try {
@@ -90,8 +106,24 @@ export function ShareModal({
 
     // Reuse confirmed shareId if updating, or reuse persistent pendingShareId if first-time publish
     const targetId = shareId || pendingShareId || `share-${createId("tier")}`;
-    if (!shareId && projectId) {
-      saveProjectPendingShareId(projectId, targetId);
+    if (!pendingShareId) {
+      setPendingShareId(targetId);
+    }
+
+    // 1. Persist pending identity BEFORE any publication write; abort if persistence fails
+    if (!shareId) {
+      try {
+        saveProjectPendingShareId(publishProjectId || "default", targetId);
+      } catch (storageErr: any) {
+        if (activeProjectIdRef.current === publishProjectId) {
+          setPublishError(
+            `Pending share storage failed: ${storageErr?.message || "Storage error"}. Publication aborted so recovery identity is not lost.`
+          );
+          setIsPublishing(false);
+        }
+        isPublishingRef.current = false;
+        return;
+      }
     }
 
     try {
@@ -104,22 +136,58 @@ export function ShareModal({
         existingId: targetId,
       });
 
-      // 1. First persist confirmed share ID
-      setShareId(pub.id);
-      if (onPublishSuccess) {
-        await onPublishSuccess(pub.id);
+      // Keep pendingShareId synced to the confirmed cloud ID until local confirmation save succeeds
+      if (activeProjectIdRef.current === publishProjectId) {
+        setPendingShareId(pub.id);
+      }
+      if (!shareId) {
+        try {
+          saveProjectPendingShareId(publishProjectId || "default", pub.id);
+        } catch {}
       }
 
-      // 2. Remove pending mapping strictly after confirmed persistence
-      if (projectId) {
-        clearProjectPendingShareId(projectId);
+      // 2. Persist confirmed share ID locally BEFORE clearing recovery data
+      if (onPublishSuccess) {
+        try {
+          await onPublishSuccess(pub.id, publishProjectId);
+        } catch (localSaveErr: any) {
+          if (activeProjectIdRef.current === publishProjectId) {
+            setPublishError(
+              `Cloud publication succeeded (${pub.id}), but saving confirmation locally failed: ${localSaveErr?.message || "Local storage error"}. Your pending publication ID is preserved for recovery — click Retry to complete local saving against the same cloud record.`
+            );
+          }
+          return;
+        }
+      }
+
+      // 3. Remove pending mapping strictly after confirmed cloud + local persistence
+      if (publishProjectId) {
+        try {
+          clearProjectPendingShareId(publishProjectId);
+        } catch (cleanupErr: any) {
+          if (activeProjectIdRef.current === publishProjectId) {
+            setShareId(pub.id);
+            setPublishError(
+              `Published and saved locally (${pub.id}), but failed to clear pending recovery key: ${cleanupErr?.message || "Storage cleanup error"}.`
+            );
+          }
+          return;
+        }
+      }
+
+      if (activeProjectIdRef.current === publishProjectId) {
+        setShareId(pub.id);
       }
     } catch (err: any) {
       console.error("Publish failed:", err);
-      setPublishError(err?.message || "Failed to publish tier list to cloud.");
+      if (activeProjectIdRef.current === publishProjectId) {
+        setPublishError(err?.message || "Failed to publish tier list to cloud.");
+      }
     } finally {
       isPublishingRef.current = false;
-      setIsPublishing(false);
+      if (activeProjectIdRef.current === publishProjectId) {
+        setIsPublishing(false);
+      }
     }
   };
 

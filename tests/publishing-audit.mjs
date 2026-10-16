@@ -15,12 +15,14 @@
 
 import { chromium } from "playwright";
 import http from "http";
+import fs from "fs";
+import path from "path";
+import crypto from "crypto";
 import { spawn, execSync } from "child_process";
 import {
   publishTemplate,
   publishTierList,
   postComment,
-  getLocalUserTemplates,
   getLocalPublishedRankings,
   areSemanticJsonEqual,
   fetchUserProfile,
@@ -52,7 +54,7 @@ function fail(name, detail = "") {
   results.failed.push({ name, detail });
 }
 
-function block(name, reason = "") {
+function _block(name, reason = "") {
   console.warn(`[BLOCKED] ${name} - ${reason}`);
   results.blocked.push({ name, reason });
 }
@@ -89,6 +91,93 @@ function isServerListening(url) {
   });
 }
 
+// Stash .env.local during build and runtime to prevent Turbopack or Next.js from reading production secrets
+const envLocalPath = path.resolve(process.cwd(), ".env.local");
+const envLocalStashPath = path.resolve(process.cwd(), ".env.local.audit-stash");
+let stashedEnvLocal = false;
+
+function stashEnvLocal() {
+  if (fs.existsSync(envLocalPath)) {
+    try {
+      fs.renameSync(envLocalPath, envLocalStashPath);
+      stashedEnvLocal = true;
+      console.log("[ISOLATION] Stashed .env.local to prevent production secret leakage into build and runtime.");
+    } catch (e) {
+      console.error("[ISOLATION] Warning: Could not stash .env.local:", e);
+    }
+  }
+}
+
+function restoreEnvLocal() {
+  if (stashedEnvLocal && fs.existsSync(envLocalStashPath)) {
+    try {
+      fs.renameSync(envLocalStashPath, envLocalPath);
+      stashedEnvLocal = false;
+      console.log("[ISOLATION] Restored .env.local from stash.");
+    } catch (e) {
+      console.error("[ISOLATION] Failed to restore .env.local from stash:", e);
+    }
+  }
+}
+
+process.on("exit", restoreEnvLocal);
+process.on("SIGINT", () => {
+  restoreEnvLocal();
+  process.exit(1);
+});
+process.on("SIGTERM", () => {
+  restoreEnvLocal();
+  process.exit(1);
+});
+process.on("uncaughtException", (err) => {
+  console.error("Uncaught exception in audit runner:", err);
+  restoreEnvLocal();
+  process.exit(1);
+});
+
+function getSourceFingerprint(distDir) {
+  let commit = "unknown";
+  try {
+    commit = execSync("git rev-parse HEAD", { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+  } catch {}
+
+  let allUncommitted = "";
+  try {
+    allUncommitted = execSync("git status --porcelain", { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+  } catch {}
+
+  let appUncommitted = "";
+  try {
+    appUncommitted = execSync(
+      "git status --porcelain -- src next.config.ts package.json tsconfig.json tests/server-network-guard.mjs",
+      { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }
+    ).trim();
+  } catch {}
+
+  const configPayload = JSON.stringify({
+    distDir,
+    port: TEST_PORT,
+    nodeEnv: "production",
+    isolatedVars: [
+      "NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321",
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY=mock-anon-key-for-isolated-audit",
+      "SUPABASE_SERVICE_ROLE_KEY=mock-service-role-key-for-isolated-audit",
+      "CLOUDFLARE_R2_ACCOUNT_ID=mock-account-id",
+      "CLOUDFLARE_R2_ACCESS_KEY_ID=mock-access-key",
+      "CLOUDFLARE_R2_SECRET_ACCESS_KEY=mock-secret-key",
+      "CLOUDFLARE_R2_BUCKET_NAME=mock-bucket",
+      "CLOUDFLARE_R2_PUBLIC_URL=http://127.0.0.1:8787",
+    ],
+  });
+
+  const hash = crypto
+    .createHash("sha256")
+    .update(`${commit}\n${appUncommitted}\n${configPayload}`)
+    .digest("hex");
+
+  return { commit, allUncommitted, appUncommitted, configPayload, hash };
+}
+
 async function startIsolatedNextServer() {
   if (process.env.SIMULATE_AUDIT_STARTUP_EXCEPTION === "1") {
     throw new Error("Simulated fatal startup exception for runner verification");
@@ -101,11 +190,11 @@ async function startIsolatedNextServer() {
     );
   }
 
-  const fs = await import("fs");
-  const path = await import("path");
   const distDir = ".next-test-audit";
   const guardPath = path.resolve(process.cwd(), "tests/server-network-guard.mjs").replace(/\\/g, "/");
+  const fingerprintPath = path.resolve(process.cwd(), distDir, "audit-build-fingerprint.json");
 
+  // Keep all real production secrets out of test build and runtime
   const isolatedEnv = {
     ...process.env,
     NODE_ENV: "production",
@@ -122,12 +211,66 @@ async function startIsolatedNextServer() {
     CLOUDFLARE_R2_PUBLIC_URL: "http://127.0.0.1:8787",
   };
 
-  if (!fs.existsSync(distDir) || process.env.FORCE_AUDIT_BUILD === "1") {
+  const currentFingerprint = getSourceFingerprint(distDir);
+  console.log(`\n==================================================`);
+  console.log(`ISOLATED TEST BUILD ENVIRONMENT`);
+  console.log(`Tested Source Commit: ${currentFingerprint.commit}`);
+  if (currentFingerprint.allUncommitted) {
+    const dirtyFiles = currentFingerprint.allUncommitted.split("\n").filter(Boolean);
+    console.log(`Uncommitted Changes: ${dirtyFiles.length} file(s) modified/untracked:`);
+    dirtyFiles.forEach((f) => console.log(`  ${f}`));
+  } else {
+    console.log(`Uncommitted Changes: None (clean working tree)`);
+  }
+  console.log(`Build Fingerprint: ${currentFingerprint.hash.slice(0, 16)}`);
+  console.log(`==================================================\n`);
+
+  let needsRebuild = false;
+  if (!fs.existsSync(distDir) || process.env.FORCE_AUDIT_BUILD === "1" || process.env.REBUILD_AUDIT === "1") {
+    needsRebuild = true;
+  } else if (!fs.existsSync(fingerprintPath)) {
+    console.log(`[AUDIT-BUILD] No fingerprint found in ${distDir}; forcing fresh build.`);
+    needsRebuild = true;
+  } else {
+    try {
+      const stored = JSON.parse(fs.readFileSync(fingerprintPath, "utf8"));
+      if (stored.hash !== currentFingerprint.hash) {
+        console.log(`[AUDIT-BUILD] Source/config mismatch (stored ${stored.hash?.slice(0, 8)} vs current ${currentFingerprint.hash.slice(0, 8)}); rebuilding.`);
+        needsRebuild = true;
+      } else {
+        console.log(`[AUDIT-BUILD] Verified build fingerprint matches current source (${stored.hash.slice(0, 8)}). Reusing ${distDir}.`);
+      }
+    } catch {
+      needsRebuild = true;
+    }
+  }
+
+  if (needsRebuild) {
+    if (fs.existsSync(distDir)) {
+      console.log(`Cleaning existing ${distDir}...`);
+      fs.rmSync(distDir, { recursive: true, force: true });
+    }
     console.log(`Building isolated test distribution in ${distDir}...`);
     execSync("npx next build", {
       stdio: "inherit",
       env: isolatedEnv,
     });
+
+    fs.writeFileSync(
+      fingerprintPath,
+      JSON.stringify(
+        {
+          commit: currentFingerprint.commit,
+          allUncommitted: currentFingerprint.allUncommitted,
+          appUncommitted: currentFingerprint.appUncommitted,
+          hash: currentFingerprint.hash,
+          builtAt: new Date().toISOString(),
+        },
+        null,
+        2
+      ),
+      "utf8"
+    );
   }
 
   console.log(`Starting isolated Next.js server on ${BASE_URL} from ${distDir}...`);
@@ -150,7 +293,9 @@ async function startIsolatedNextServer() {
   }
 
   killServerProcess(child);
-  throw new Error(`Isolated Next.js server failed to start on ${BASE_URL} within 35s. Server output:\n${serverOutput.join("")}`);
+  throw new Error(
+    `Isolated Next.js server failed to start on ${BASE_URL} within 35s. Server output:\n${serverOutput.join("")}`
+  );
 }
 
 function killServerProcess(child) {
@@ -2215,13 +2360,15 @@ async function runAllAudits() {
 
   let nextServerProcess = null;
   const watchdog = setTimeout(() => {
-    console.error("[FAIL] Watchdog Timeout - Audit exceeded 150 seconds; terminating.");
+    console.error("[FAIL] Watchdog Timeout - Audit exceeded 300 seconds; terminating.");
     if (nextServerProcess) killServerProcess(nextServerProcess);
     process.exit(1);
-  }, 150000);
+  }, 300000);
   watchdog.unref();
 
   try {
+    stashEnvLocal();
+
     // 1. Run core library & contract suites
     await testCaseG_StrictOwnershipRejection();
     await testCaseH_DuplicateKeyRecoveryDifferentContent();
@@ -2242,6 +2389,7 @@ async function runAllAudits() {
       console.log(`Stopping isolated Next.js server (PID ${nextServerProcess.pid})...`);
       killServerProcess(nextServerProcess);
     }
+    restoreEnvLocal();
   }
 
   console.log("\n==================================================");

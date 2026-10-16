@@ -2,7 +2,6 @@ import {
   S3Client,
   PutObjectCommand,
   GetObjectCommand,
-  HeadObjectCommand,
 } from "@aws-sdk/client-s3";
 import crypto from "crypto";
 
@@ -12,12 +11,18 @@ const secretAccessKey = process.env.CLOUDFLARE_R2_SECRET_ACCESS_KEY || "";
 const bucketName = process.env.CLOUDFLARE_R2_BUCKET_NAME || "tierlistmaker-items";
 const publicUrl = process.env.CLOUDFLARE_R2_PUBLIC_URL || "";
 
-let mockR2Uploader: any = undefined;
+export type MockR2UploaderFn = (params: {
+  buffer: Buffer;
+  contentType: string;
+  key?: string;
+}) => Promise<{ key: string; url: string; size: number }>;
+
+let mockR2Uploader: MockR2UploaderFn | undefined = undefined;
 
 /**
  * Test helper to inject a controlled R2 upload mock during testing.
  */
-export function setMockR2Uploader(uploader: any) {
+export function setMockR2Uploader(uploader: MockR2UploaderFn) {
   mockR2Uploader = uploader;
 }
 

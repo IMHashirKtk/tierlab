@@ -17,6 +17,7 @@ tests/.tmp*
 
 # next.js
 /.next/
+/.next-test-audit/
 /out/
 
 # production

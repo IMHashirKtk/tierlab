@@ -169,7 +169,7 @@ export async function uploadItemsToCloud(
       throw new Error(serverErrorMsg);
     }
 
-    let data: any;
+    let data: { success?: boolean; error?: string; items?: unknown[] } | null = null;
     try {
       data = await res.json();
     } catch {
@@ -204,11 +204,12 @@ export async function uploadItemsToCloud(
     const seenIds = new Set<string>();
     const validatedUpdates: { targetIdx: number; persistentUrl: string }[] = [];
 
-    for (const returnedItem of data.items) {
-      if (!returnedItem || typeof returnedItem !== "object") {
+    for (const rawItem of data.items) {
+      if (!rawItem || typeof rawItem !== "object") {
         throw new Error("Upload failed: Batch item in server response is invalid.");
       }
 
+      const returnedItem = rawItem as Record<string, unknown>;
       const id = returnedItem.id;
       if (!id || typeof id !== "string") {
         throw new Error("Upload failed: Server returned an item with missing or invalid ID.");
@@ -223,7 +224,8 @@ export async function uploadItemsToCloud(
       }
       seenIds.add(id);
 
-      const validatedUrl = validatePersistentImageUrl(id, returnedItem.imageUrl);
+      const rawUrl = typeof returnedItem.imageUrl === "string" ? returnedItem.imageUrl : undefined;
+      const validatedUrl = validatePersistentImageUrl(id, rawUrl);
       const targetIdx = requestedMap.get(id)!;
       validatedUpdates.push({ targetIdx, persistentUrl: validatedUrl });
     }

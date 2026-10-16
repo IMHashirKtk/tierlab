@@ -41,13 +41,29 @@ export default function MyProjectsPage() {
   };
 
   useEffect(() => {
-    loadProjects();
+    let cancelled = false;
+    listProjects()
+      .then((data) => {
+        if (!cancelled) {
+          setProjects(data);
+          setIsLoading(false);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to load projects", err);
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      });
 
     const handleSync = () => {
       loadProjects();
     };
     window.addEventListener("tierlistmaker-data-synced", handleSync);
-    return () => window.removeEventListener("tierlistmaker-data-synced", handleSync);
+    return () => {
+      cancelled = true;
+      window.removeEventListener("tierlistmaker-data-synced", handleSync);
+    };
   }, []);
 
   const handleDelete = async (id: string) => {

@@ -38,15 +38,16 @@ export function emptyTiers(): TierRow[] {
 export function normalizeDefaultTiers(raw: unknown): { label: string; color: string }[] | undefined {
   if (!Array.isArray(raw)) return undefined;
   const filtered = raw.filter(
-    (entry): entry is { label: string; color: string } =>
-      Boolean(
-        entry &&
-          typeof entry === "object" &&
-          typeof (entry as any).label === "string" &&
-          (entry as any).label.trim().length > 0 &&
-          typeof (entry as any).color === "string" &&
-          (entry as any).color.trim().length > 0
-      )
+    (entry): entry is { label: string; color: string } => {
+      if (!entry || typeof entry !== "object" || Array.isArray(entry)) return false;
+      const rec = entry as Record<string, unknown>;
+      return (
+        typeof rec.label === "string" &&
+        rec.label.trim().length > 0 &&
+        typeof rec.color === "string" &&
+        rec.color.trim().length > 0
+      );
+    }
   );
   return filtered.length > 0 ? filtered : undefined;
 }

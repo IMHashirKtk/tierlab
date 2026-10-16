@@ -47,7 +47,9 @@ export function PublishModal({ isOpen, onClose, draftId = "default" }: PublishMo
   // Load saved draft asynchronously from IndexedDB (or migrate legacy localStorage) when modal opens or draftId changes
   useEffect(() => {
     if (!isOpen) return;
-    setIsHydrated(false);
+    queueMicrotask(() => {
+      setIsHydrated(false);
+    });
     hasUserEditedRef.current = false;
     discardGenRef.current = getDraftGeneration(draftId);
     const seq = ++hydrationSeqRef.current;
@@ -94,7 +96,11 @@ export function PublishModal({ isOpen, onClose, draftId = "default" }: PublishMo
     if (!isOpen || !isHydrated) return;
     if (!createdTemplateId && (title || items.length > 0)) {
       const stablePendingId = pendingId || generateTemplateSlug(title || "template");
-      if (!pendingId) setPendingId(stablePendingId);
+      if (!pendingId) {
+        queueMicrotask(() => {
+          setPendingId((prev) => prev || stablePendingId);
+        });
+      }
       const expectedGen = discardGenRef.current;
 
       saveTemplateDraft(
@@ -110,10 +116,11 @@ export function PublishModal({ isOpen, onClose, draftId = "default" }: PublishMo
         },
         draftId,
         expectedGen
-      ).catch((err: any) => {
+      ).catch((err: unknown) => {
         if (discardGenRef.current === expectedGen) {
+          const msg = err instanceof Error ? err.message : String(err);
           setPublishError(
-            `Autosave failed: ${err?.message || "Could not save template draft locally."}`
+            `Autosave failed: ${msg || "Could not save template draft locally."}`
           );
         }
       });
@@ -183,10 +190,11 @@ export function PublishModal({ isOpen, onClose, draftId = "default" }: PublishMo
     try {
       await deleteTemplateDraft(draftId);
       discardGenRef.current = getDraftGeneration(draftId);
-    } catch (err: any) {
+    } catch (err: unknown) {
       discardGenRef.current = getDraftGeneration(draftId);
+      const msg = err instanceof Error ? err.message : String(err);
       setPublishError(
-        `Failed to discard draft from storage: ${err?.message || "Storage cleanup error"}`
+        `Failed to discard draft from storage: ${msg || "Storage cleanup error"}`
       );
     }
   };
@@ -224,10 +232,11 @@ export function PublishModal({ isOpen, onClose, draftId = "default" }: PublishMo
         draftId,
         expectedGen
       );
-    } catch (storageErr: any) {
+    } catch (storageErr: unknown) {
       console.error("Failed to persist draft before publishing", storageErr);
+      const msg = storageErr instanceof Error ? storageErr.message : String(storageErr);
       setPublishError(
-        `Draft storage failed: ${storageErr?.message || "Storage error"}. Draft was not safely saved; publication aborted.`
+        `Draft storage failed: ${msg || "Storage error"}. Draft was not safely saved; publication aborted.`
       );
       isSubmittingRef.current = false;
       setIsSubmitting(false);
@@ -271,13 +280,14 @@ export function PublishModal({ isOpen, onClose, draftId = "default" }: PublishMo
       try {
         await deleteTemplateDraft(draftId);
         discardGenRef.current = getDraftGeneration(draftId);
-      } catch (cleanupErr: any) {
+      } catch (cleanupErr: unknown) {
         console.warn("Draft cleanup after publish failed:", cleanupErr);
       }
       setCreatedTemplateId(created.id);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Failed to publish template", err);
-      setPublishError(err?.message || "Error publishing template. Please try again.");
+      const msg = err instanceof Error ? err.message : String(err);
+      setPublishError(msg || "Error publishing template. Please try again.");
     } finally {
       isSubmittingRef.current = false;
       setIsSubmitting(false);

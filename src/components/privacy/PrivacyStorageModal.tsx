@@ -80,9 +80,11 @@ export function PrivacyStorageModal({
 
   useEffect(() => {
     if (isOpen) {
-      loadStats();
-      setShowConfirmClear(false);
-      setStatusMessage(null);
+      queueMicrotask(() => {
+        loadStats();
+        setShowConfirmClear(false);
+        setStatusMessage(null);
+      });
     }
   }, [isOpen]);
 
@@ -106,10 +108,11 @@ export function PrivacyStorageModal({
         type: "success",
         text: "Backup exported successfully! All projects and rankings downloaded.",
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
       setStatusMessage({
         type: "error",
-        text: `Export failed: ${err.message || "Unknown error"}`,
+        text: `Export failed: ${msg || "Unknown error"}`,
       });
     }
   };
@@ -127,10 +130,11 @@ export function PrivacyStorageModal({
         text: `Restored ${res.restoredProjects} project(s) to device storage!`,
       });
       window.dispatchEvent(new Event("tierlistmaker-data-synced"));
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
       setStatusMessage({
         type: "error",
-        text: err?.message || `Import failed: Invalid backup file format.`,
+        text: msg || `Import failed: Invalid backup file format.`,
       });
     } finally {
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -151,10 +155,11 @@ export function PrivacyStorageModal({
         text: "Device storage cleared. All local drafts have been purged.",
       });
       window.dispatchEvent(new Event("tierlistmaker-data-synced"));
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
       setStatusMessage({
         type: "error",
-        text: `Failed to clear storage: ${err.message || "Unknown error"}`,
+        text: `Failed to clear storage: ${msg || "Unknown error"}`,
       });
     } finally {
       setIsClearing(false);

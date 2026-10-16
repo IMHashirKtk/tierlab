@@ -101,9 +101,10 @@ export function VideoExportModal({
       setRenderedBlob(result.blob);
       setRenderedMime(result.mimeType);
       setIsRendering(false);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Video render failed:", err);
-      setError(err?.message || "Failed to render video. Please try again.");
+      const msg = err instanceof Error ? err.message : String(err);
+      setError(msg || "Failed to render video. Please try again.");
       setIsRendering(false);
     }
   };

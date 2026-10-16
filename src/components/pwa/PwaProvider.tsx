@@ -27,25 +27,44 @@ export function usePwa() {
   return useContext(PwaContext);
 }
 
-export function PwaProvider({ children }: { children: React.ReactNode }) {
-  const [isOnline, setIsOnline] = useState<boolean>(true);
-  const [isInstallable, setIsInstallable] = useState<boolean>(false);
-  const [isInstalled, setIsInstalled] = useState<boolean>(false);
-  const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState<boolean>(false);
-  const deferredPromptRef = useRef<any>(null);
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
+}
 
-  // 1. Online / Offline listeners & Service Worker registration
+function subscribeOnline(callback: () => void) {
+  window.addEventListener("online", callback);
+  window.addEventListener("offline", callback);
+  return () => {
+    window.removeEventListener("online", callback);
+    window.removeEventListener("offline", callback);
+  };
+}
+
+function getOnlineSnapshot() {
+  return typeof navigator !== "undefined" ? navigator.onLine : true;
+}
+
+function getOnlineServerSnapshot() {
+  return true;
+}
+
+export function PwaProvider({ children }: { children: React.ReactNode }) {
+  const isOnline = React.useSyncExternalStore(subscribeOnline, getOnlineSnapshot, getOnlineServerSnapshot);
+  const [isInstallable, setIsInstallable] = useState<boolean>(false);
+  const [isInstalled, setIsInstalled] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return (
+      window.matchMedia("(display-mode: standalone)").matches ||
+      (window.navigator as unknown as { standalone?: boolean }).standalone === true
+    );
+  });
+  const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState<boolean>(false);
+  const deferredPromptRef = useRef<BeforeInstallPromptEvent | null>(null);
+
+  // 1. Service Worker registration & PWA prompt listeners
   useEffect(() => {
     if (typeof window === "undefined") return;
-
-    // Set initial online status
-    setIsOnline(navigator.onLine);
-
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
-
-    window.addEventListener("online", handleOnline);
-    window.addEventListener("offline", handleOffline);
 
     // Register Service Worker
     if ("serviceWorker" in navigator) {
@@ -70,18 +89,10 @@ export function PwaProvider({ children }: { children: React.ReactNode }) {
         });
     }
 
-    // Check if running in standalone display mode
-    const isStandalone =
-      window.matchMedia("(display-mode: standalone)").matches ||
-      (window.navigator as any).standalone === true;
-    if (isStandalone) {
-      setIsInstalled(true);
-    }
-
     // Listen for BeforeInstallPrompt
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
-      deferredPromptRef.current = e;
+      deferredPromptRef.current = e as BeforeInstallPromptEvent;
       setIsInstallable(true);
     };
 
@@ -102,8 +113,6 @@ export function PwaProvider({ children }: { children: React.ReactNode }) {
     window.addEventListener("open-privacy-storage", handleCustomOpenPrivacy);
 
     return () => {
-      window.removeEventListener("online", handleOnline);
-      window.removeEventListener("offline", handleOffline);
       window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
       window.removeEventListener("appinstalled", handleAppInstalled);
       window.removeEventListener("open-privacy-storage", handleCustomOpenPrivacy);

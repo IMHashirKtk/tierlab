@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
-import { BrainCircuit, CheckCircle2, Zap, Sparkles, ChevronRight, HelpCircle, X } from "lucide-react";
+import { BrainCircuit, CheckCircle2, Zap, Sparkles, HelpCircle, X } from "lucide-react";
 import { SEED_TEMPLATES } from "@/data/seed-templates";
 import { calculateConsensus } from "@/lib/consensus";
 import { fetchSubmissionsForTemplateWithStatus } from "@/lib/community";
@@ -19,7 +19,6 @@ export function ConsensusShowcase() {
   useEffect(() => {
     if (!selectedTemplate?.id) return;
     let cancelled = false;
-    setFetchError(null);
     fetchSubmissionsForTemplateWithStatus(selectedTemplate.id).then(({ submissions: data, fetchError: err }) => {
       if (!cancelled) {
         setSubmissions(data);

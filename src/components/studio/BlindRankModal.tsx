@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { X, Dices, Sparkles, CheckCircle2, RotateCcw, ArrowRight, Flame } from "lucide-react";
+import { X, Dices, Sparkles, CheckCircle2, RotateCcw, ArrowRight } from "lucide-react";
 import confetti from "canvas-confetti";
 import type { Item, TierRow } from "@/types";
 import type { Board } from "@/lib/board";
@@ -30,18 +30,19 @@ export function BlindRankModal({
   useEffect(() => {
     if (!isOpen) return;
 
-    // Use unranked items first, or if unranked is empty, shuffle all items on the board
-    let pool: Item[] = [...board.unranked];
-    if (pool.length === 0) {
-      board.tiers.forEach((t) => pool.push(...t.items));
-    }
+    queueMicrotask(() => {
+      // Use unranked items first, or if unranked is empty, shuffle all items on the board
+      const pool: Item[] = board.unranked.length > 0
+        ? [...board.unranked]
+        : board.tiers.flatMap((t) => t.items);
 
-    // Fisher-Yates shuffle
-    const shuffled = [...pool].sort(() => Math.random() - 0.5);
-    setDeck(shuffled);
-    setCurrentIndex(0);
-    setIsCompleted(false);
-    setPlacedHistory([]);
+      // Fisher-Yates shuffle
+      const shuffled = [...pool].sort(() => Math.random() - 0.5);
+      setDeck(shuffled);
+      setCurrentIndex(0);
+      setIsCompleted(false);
+      setPlacedHistory([]);
+    });
   }, [isOpen]);
 
   useEffect(() => {

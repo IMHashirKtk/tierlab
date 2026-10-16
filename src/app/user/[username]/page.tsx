@@ -3,7 +3,7 @@
 import React, { useEffect, useState, Suspense } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, User, Sparkles, Layers, ArrowBigUp, Award, Calendar, ExternalLink } from "lucide-react";
+import { ArrowLeft, Sparkles, Layers, ArrowBigUp, Award, Calendar, ExternalLink } from "lucide-react";
 import { fetchUserProfile, type UserProfileData } from "@/lib/community";
 
 function getAvatarGradient(name: string): string {
@@ -32,14 +32,21 @@ function UserProfileContent() {
 
   useEffect(() => {
     if (!username) return;
-    setLoading(true);
+    let cancelled = false;
     fetchUserProfile(username).then((data) => {
-      setProfile(data);
-      setLoading(false);
+      if (!cancelled) {
+        setProfile(data);
+        setLoading(false);
+      }
     });
+    return () => {
+      cancelled = true;
+    };
   }, [username]);
 
-  if (loading) {
+  const isLoading = loading || !profile || profile.username.toLowerCase() !== username.toLowerCase();
+
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-[#09090b] text-zinc-400 flex items-center justify-center text-xs">
         Loading creator profile...

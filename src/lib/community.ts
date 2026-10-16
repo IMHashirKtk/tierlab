@@ -100,7 +100,7 @@ export async function fetchTemplates(options?: {
           slug: d.id,
           title: d.title,
           description: d.description || "",
-          category: d.category as any,
+          category: (d.category || "gaming") as Template["category"],
           author: { username: d.author_name || "Community" },
           itemCount: Array.isArray(d.items) ? d.items.length : 0,
           remixCount: d.rank_count || 0,
@@ -171,7 +171,7 @@ export async function fetchTemplateById(id: string): Promise<Template | null> {
           slug: data.id,
           title: data.title,
           description: data.description || "",
-          category: data.category as any,
+          category: (data.category || "gaming") as Template["category"],
           author: { username: data.author_name || "Community" },
           itemCount: Array.isArray(data.items) ? data.items.length : 0,
           remixCount: data.rank_count || 0,
@@ -202,7 +202,7 @@ export function generateTemplateSlug(title: string): string {
   return base ? `${base}-${suffix}` : `tpl-${createId("ugc")}`;
 }
 
-export function areSemanticJsonEqual(a: any, b: any): boolean {
+export function areSemanticJsonEqual(a: unknown, b: unknown): boolean {
   if (a === b) return true;
   if (a === null || b === null || a === undefined || b === undefined) return a === b;
   if (typeof a !== typeof b) return false;
@@ -210,7 +210,7 @@ export function areSemanticJsonEqual(a: any, b: any): boolean {
 
   if (Array.isArray(a) !== Array.isArray(b)) return false;
 
-  if (Array.isArray(a)) {
+  if (Array.isArray(a) && Array.isArray(b)) {
     if (a.length !== b.length) return false;
     for (let i = 0; i < a.length; i++) {
       if (!areSemanticJsonEqual(a[i], b[i])) return false;
@@ -218,19 +218,21 @@ export function areSemanticJsonEqual(a: any, b: any): boolean {
     return true;
   }
 
-  const keysA = Object.keys(a).filter((k) => a[k] !== undefined);
-  const keysB = Object.keys(b).filter((k) => b[k] !== undefined);
+  const objA = a as Record<string, unknown>;
+  const objB = b as Record<string, unknown>;
+  const keysA = Object.keys(objA).filter((k) => objA[k] !== undefined);
+  const keysB = Object.keys(objB).filter((k) => objB[k] !== undefined);
   if (keysA.length !== keysB.length) return false;
 
   for (const key of keysA) {
-    if (!Object.prototype.hasOwnProperty.call(b, key)) return false;
-    if (!areSemanticJsonEqual(a[key], b[key])) return false;
+    if (!Object.prototype.hasOwnProperty.call(objB, key)) return false;
+    if (!areSemanticJsonEqual(objA[key], objB[key])) return false;
   }
   return true;
 }
 
 async function handleExistingTemplate(
-  existing: any,
+  existing: Record<string, unknown>,
   targetId: string,
   sessionUserId: string,
   payload: {
@@ -239,7 +241,7 @@ async function handleExistingTemplate(
     category: string;
     authorName: string;
     items: Item[];
-    defaultTiers: any[];
+    defaultTiers: unknown[];
   }
 ): Promise<Template> {
   if (!supabase) {
@@ -248,7 +250,7 @@ async function handleExistingTemplate(
 
   // 1. Verify expected ID
   if (existing.id !== targetId) {
-    throw new Error(`Lookup error: Returned template ID "${existing.id}" did not match target "${targetId}".`);
+    throw new Error(`Lookup error: Returned template ID "${String(existing.id)}" did not match target "${targetId}".`);
   }
 
   // 2. Strict ownership check: accept only when existing.author_id === sessionUserId
@@ -257,29 +259,30 @@ async function handleExistingTemplate(
   }
 
   // 3. Check if content changed (semantic JSON comparison for items and tiers)
+  const existingAuthorName = typeof existing.author_name === "string" ? existing.author_name : "";
   const contentMatches =
     existing.title === payload.title &&
     (existing.description || "") === payload.description &&
     existing.category === payload.category &&
-    (existing.author_name || "").trim() === payload.authorName &&
+    existingAuthorName.trim() === payload.authorName &&
     areSemanticJsonEqual(existing.items || [], payload.items) &&
     areSemanticJsonEqual(existing.default_tiers || [], payload.defaultTiers);
 
   if (contentMatches) {
     // Idempotent retry: earlier attempt already succeeded and content is identical
     const confirmedTemplate: Template = {
-      id: existing.id,
-      slug: existing.id,
-      title: existing.title,
-      description: existing.description || "",
-      category: existing.category as any,
-      author: { username: existing.author_name || payload.authorName },
+      id: String(existing.id),
+      slug: String(existing.id),
+      title: String(existing.title || payload.title),
+      description: typeof existing.description === "string" ? existing.description : "",
+      category: (existing.category || payload.category) as Template["category"],
+      author: { username: existingAuthorName || payload.authorName },
       itemCount: Array.isArray(existing.items) ? existing.items.length : 0,
-      remixCount: existing.rank_count || 0,
-      upvotes: existing.upvotes || 0,
-      createdAt: existing.created_at ? new Date(existing.created_at).toLocaleDateString() : "Just now",
-      items: existing.items || [],
-      defaultTiers: existing.default_tiers || undefined,
+      remixCount: Number(existing.rank_count) || 0,
+      upvotes: Number(existing.upvotes) || 0,
+      createdAt: typeof existing.created_at === "string" ? new Date(existing.created_at).toLocaleDateString() : "Just now",
+      items: (existing.items as Item[]) || [],
+      defaultTiers: (existing.default_tiers as { label: string; color: string }[]) || undefined,
     };
     saveLocalUserTemplate(confirmedTemplate);
     return confirmedTemplate;
@@ -318,7 +321,7 @@ async function handleExistingTemplate(
     slug: row.id,
     title: row.title,
     description: row.description || "",
-    category: row.category as any,
+    category: (row.category || payload.category) as Template["category"],
     author: { username: row.author_name || payload.authorName },
     itemCount: Array.isArray(row.items) ? row.items.length : 0,
     remixCount: row.rank_count || 0,
@@ -356,7 +359,7 @@ export async function publishTemplate(payload: {
   const targetId = payload.existingId || payload.id || generateTemplateSlug(payload.title);
   const cleanTitle = payload.title.trim();
   const cleanDescription = payload.description?.trim() || `User-created template featuring ${payload.items.length} items.`;
-  const cleanCategory = (payload.category as any) || "gaming";
+  const cleanCategory = (payload.category as Template["category"]) || "gaming";
   const cleanAuthorName = payload.authorName?.trim() || "Creator";
   const defaultTiers = payload.defaultTiers || [];
 
@@ -386,7 +389,7 @@ export async function publishTemplate(payload: {
     }
 
     // 2. Insert new record
-    const insertPayload: Record<string, any> = {
+    const insertPayload: Record<string, unknown> = {
       id: targetId,
       title: cleanTitle,
       description: cleanDescription,
@@ -440,7 +443,7 @@ export async function publishTemplate(payload: {
       slug: row.id,
       title: row.title,
       description: row.description || "",
-      category: row.category as any,
+      category: (row.category as Template["category"]) || "gaming",
       author: { username: row.author_name || cleanAuthorName },
       itemCount: Array.isArray(row.items) ? row.items.length : 0,
       remixCount: row.rank_count || 0,
@@ -451,13 +454,14 @@ export async function publishTemplate(payload: {
     };
     saveLocalUserTemplate(confirmedTemplate);
     return confirmedTemplate;
-  } catch (err: any) {
-    throw new Error(err?.message || "Cloud template publication encountered an unexpected error.");
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    throw new Error(message || "Cloud template publication encountered an unexpected error.");
   }
 }
 
 async function handleExistingTierList(
-  existing: any,
+  existing: Record<string, unknown>,
   targetId: string,
   sessionUserId: string,
   payload: {
@@ -474,7 +478,7 @@ async function handleExistingTierList(
 
   // 1. Verify expected ID
   if (existing.id !== targetId) {
-    throw new Error(`Lookup error: Returned tier list ID "${existing.id}" did not match target "${targetId}".`);
+    throw new Error(`Lookup error: Returned tier list ID "${String(existing.id)}" did not match target "${targetId}".`);
   }
 
   // 2. Strict ownership check: accept only when existing.author_id === sessionUserId
@@ -483,24 +487,25 @@ async function handleExistingTierList(
   }
 
   // 3. Check if content changed (semantic JSON comparison for tiers and unranked)
+  const existingAuthorName = typeof existing.author_name === "string" ? existing.author_name : "";
   const contentMatches =
     existing.title === payload.title &&
-    (existing.author_name || "").trim() === payload.authorName &&
+    existingAuthorName.trim() === payload.authorName &&
     (existing.template_id || null) === payload.templateId &&
-    areSemanticJsonEqual(existing.tiers || [], payload.tiers) &&
-    areSemanticJsonEqual(existing.unranked || [], payload.unranked);
+    areSemanticJsonEqual((existing.tiers as TierRow[]) || [], payload.tiers) &&
+    areSemanticJsonEqual((existing.unranked as Item[]) || [], payload.unranked);
 
   if (contentMatches) {
     // Idempotent retry: earlier attempt already succeeded and content is identical
     const confirmedTierList: PublishedTierList = {
-      id: existing.id,
-      templateId: existing.template_id || undefined,
-      title: existing.title,
-      authorName: existing.author_name || payload.authorName,
-      tiers: existing.tiers || [],
-      unranked: existing.unranked || [],
-      upvotes: existing.upvotes || 0,
-      createdAt: existing.created_at ? new Date(existing.created_at).getTime() : Date.now(),
+      id: String(existing.id),
+      templateId: typeof existing.template_id === "string" ? existing.template_id : undefined,
+      title: String(existing.title || payload.title),
+      authorName: existingAuthorName || payload.authorName,
+      tiers: Array.isArray(existing.tiers) ? (existing.tiers as TierRow[]) : [],
+      unranked: Array.isArray(existing.unranked) ? (existing.unranked as Item[]) : [],
+      upvotes: Number(existing.upvotes) || 0,
+      createdAt: existing.created_at ? new Date(String(existing.created_at)).getTime() : Date.now(),
     };
     saveLocalPublishedRanking(confirmedTierList);
     return confirmedTierList;
@@ -598,7 +603,7 @@ export async function publishTierList(payload: {
     }
 
     // 2. Insert new record
-    const insertPayload: Record<string, any> = {
+    const insertPayload: Record<string, unknown> = {
       id: targetId,
       template_id: templateId,
       title: cleanTitle,
@@ -657,8 +662,9 @@ export async function publishTierList(payload: {
     };
     saveLocalPublishedRanking(confirmedTierList);
     return confirmedTierList;
-  } catch (err: any) {
-    throw new Error(err?.message || "Cloud tier list publication encountered an unexpected error.");
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    throw new Error(message || "Cloud tier list publication encountered an unexpected error.");
   }
 }
 
@@ -724,8 +730,9 @@ export async function toggleUpvote(
       }
 
       if (data && typeof data === "object") {
-        isUpvotedResult = Boolean((data as any).isUpvoted);
-        newCount = Number((data as any).newCount) || 0;
+        const voteData = data as { isUpvoted?: boolean; newCount?: number };
+        isUpvotedResult = Boolean(voteData.isUpvoted);
+        newCount = Number(voteData.newCount) || 0;
       }
     } catch (err) {
       console.warn("Supabase toggle upvote exception:", err);
@@ -756,16 +763,16 @@ function formatRelativeTimestamp(ms: number): string {
 }
 
 /** Map a raw Supabase `tier_lists` row into a PublishedTierList. */
-function mapTierListRow(d: any): PublishedTierList {
+function mapTierListRow(d: Record<string, unknown>): PublishedTierList {
   return {
-    id: d.id,
-    templateId: d.template_id || undefined,
-    title: d.title,
-    authorName: d.author_name || "Community",
-    tiers: Array.isArray(d.tiers) ? d.tiers : [],
-    unranked: Array.isArray(d.unranked) ? d.unranked : [],
-    upvotes: d.upvotes || 0,
-    createdAt: new Date(d.created_at).getTime(),
+    id: String(d.id),
+    templateId: typeof d.template_id === "string" ? d.template_id : undefined,
+    title: typeof d.title === "string" ? d.title : "",
+    authorName: typeof d.author_name === "string" ? d.author_name : "Community",
+    tiers: Array.isArray(d.tiers) ? (d.tiers as TierRow[]) : [],
+    unranked: Array.isArray(d.unranked) ? (d.unranked as Item[]) : [],
+    upvotes: Number(d.upvotes) || 0,
+    createdAt: d.created_at ? new Date(String(d.created_at)).getTime() : Date.now(),
   };
 }
 
@@ -860,8 +867,9 @@ export async function fetchSubmissionsForTemplateWithStatus(templateId: string):
       } else if (data) {
         cloud = data.map(mapTierListRow);
       }
-    } catch (err: any) {
-      fetchError = err?.message || "Failed to fetch community submissions.";
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      fetchError = message || "Failed to fetch community submissions.";
     }
   }
 
@@ -967,7 +975,7 @@ export async function fetchComments(tierListId: string): Promise<Comment[]> {
 }
 
 function handleExistingComment(
-  existing: any,
+  existing: Record<string, unknown>,
   targetId: string,
   sessionUserId: string,
   payload: {
@@ -978,7 +986,7 @@ function handleExistingComment(
 ): Comment {
   // 1. Verify expected ID
   if (existing.id !== targetId) {
-    throw new Error(`Lookup error: Returned comment ID "${existing.id}" did not match target "${targetId}".`);
+    throw new Error(`Lookup error: Returned comment ID "${String(existing.id)}" did not match target "${targetId}".`);
   }
 
   // 2. Strict ownership check: accept only when existing.author_id === sessionUserId
@@ -987,10 +995,12 @@ function handleExistingComment(
   }
 
   // 3. Verify matching target tier list, author name, and content
+  const existingAuthorName = typeof existing.author_name === "string" ? existing.author_name : "";
+  const existingContent = typeof existing.content === "string" ? existing.content : "";
   const matches =
     existing.tier_list_id === payload.tierListId &&
-    (existing.author_name || "").trim() === payload.authorName.trim() &&
-    existing.content.trim() === payload.content.trim();
+    existingAuthorName.trim() === payload.authorName.trim() &&
+    existingContent.trim() === payload.content.trim();
 
   if (!matches) {
     throw new Error(
@@ -999,12 +1009,12 @@ function handleExistingComment(
   }
 
   const confirmedComment: Comment = {
-    id: existing.id,
-    tierListId: existing.tier_list_id,
-    authorName: existing.author_name || payload.authorName,
-    content: existing.content,
-    upvotes: existing.upvotes || 0,
-    createdAt: existing.created_at ? new Date(existing.created_at).getTime() : Date.now(),
+    id: String(existing.id),
+    tierListId: String(existing.tier_list_id || payload.tierListId),
+    authorName: existingAuthorName || payload.authorName,
+    content: existingContent || payload.content,
+    upvotes: Number(existing.upvotes) || 0,
+    createdAt: existing.created_at ? new Date(String(existing.created_at)).getTime() : Date.now(),
   };
   saveLocalComment(confirmedComment);
   return confirmedComment;
@@ -1060,7 +1070,7 @@ export async function postComment(payload: {
     }
 
     // 2. Insert comment
-    const insertPayload: Record<string, any> = {
+    const insertPayload: Record<string, unknown> = {
       id: targetId,
       tier_list_id: payload.tierListId,
       author_name: cleanAuthorName,
@@ -1115,8 +1125,9 @@ export async function postComment(payload: {
     };
     saveLocalComment(confirmedComment);
     return confirmedComment;
-  } catch (err: any) {
-    throw new Error(err?.message || "Comment publication encountered an unexpected error.");
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    throw new Error(message || "Comment publication encountered an unexpected error.");
   }
 }
 
@@ -1153,8 +1164,9 @@ export async function toggleCommentUpvote(
       }
 
       if (data && typeof data === "object") {
-        isUpvotedResult = Boolean((data as any).isUpvoted);
-        newCount = Number((data as any).newCount) || 0;
+        const voteData = data as { isUpvoted?: boolean; newCount?: number };
+        isUpvotedResult = Boolean(voteData.isUpvoted);
+        newCount = Number(voteData.newCount) || 0;
       }
     } catch (err) {
       console.warn("Supabase toggle comment upvote exception:", err);
@@ -1218,7 +1230,7 @@ export async function fetchUserProfile(username: string): Promise<UserProfileDat
           slug: d.id,
           title: d.title,
           description: d.description || "",
-          category: d.category as any,
+          category: (d.category as Template["category"]) || "gaming",
           author: { username: d.author_name || "Community" },
           itemCount: Array.isArray(d.items) ? d.items.length : 0,
           remixCount: d.rank_count || 0,

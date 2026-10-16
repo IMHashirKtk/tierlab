@@ -1,10 +1,10 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
 
-let mockSupabaseClient: any = undefined;
-let mockSessionUserId: any = undefined;
+let mockSupabaseClient: SupabaseClient | null | undefined = undefined;
+let mockSessionUserId: string | null | undefined = undefined;
 
 export const isSupabaseConfigured = (): boolean => {
   if (mockSupabaseClient !== undefined) {
@@ -14,7 +14,9 @@ export const isSupabaseConfigured = (): boolean => {
     supabaseUrl &&
       supabaseAnonKey &&
       !supabaseUrl.includes("placeholder") &&
-      supabaseUrl.startsWith("https://")
+      (supabaseUrl.startsWith("https://") ||
+        supabaseUrl.startsWith("http://127.0.0.1:") ||
+        supabaseUrl.startsWith("http://localhost:"))
   );
 };
 
@@ -25,7 +27,7 @@ const defaultSupabase = isSupabaseConfigured()
 // Singleton Supabase Client (live binding for test boundary mocking)
 export let supabase = defaultSupabase;
 
-export function setMockSupabaseClient(client: any) {
+export function setMockSupabaseClient(client: SupabaseClient | null) {
   mockSupabaseClient = client;
   supabase = client;
 }
@@ -35,7 +37,7 @@ export function resetMockSupabaseClient() {
   supabase = defaultSupabase;
 }
 
-export function setMockSessionUserId(id: any) {
+export function setMockSessionUserId(id: string | null) {
   mockSessionUserId = id;
   if (typeof window !== "undefined" && typeof window.dispatchEvent === "function") {
     try {
@@ -57,15 +59,6 @@ let sessionPromise: Promise<string | null> | null = null;
  * anonymous sign-in so every client receives a signed JWT with auth.uid().
  */
 export async function ensureAuthenticatedSession(): Promise<string | null> {
-  if (typeof window !== "undefined") {
-    const authDelayMs = Number((window as any).__TL_AUTH_DELAY_MS__ || 0);
-    if (authDelayMs > 0) {
-      await new Promise((r) => setTimeout(r, authDelayMs));
-    }
-    if ((window as any).__TL_MOCK_SESSION_USER_ID__ !== undefined) {
-      return (window as any).__TL_MOCK_SESSION_USER_ID__;
-    }
-  }
   if (mockSessionUserId !== undefined) {
     return mockSessionUserId;
   }
@@ -105,12 +98,12 @@ export async function ensureAuthenticatedSession(): Promise<string | null> {
   return sessionPromise;
 }
 
-let mockSessionToken: any = undefined;
+let mockSessionToken: string | null | undefined = undefined;
 
 /**
  * Test helper to inject a controlled mock access token during testing.
  */
-export function setMockSessionToken(token: any) {
+export function setMockSessionToken(token: string | null) {
   mockSessionToken = token;
 }
 
@@ -165,10 +158,9 @@ export async function getAuthenticatedSessionToken(): Promise<string> {
     }
 
     return data.session.access_token;
-  } catch (err: any) {
-    throw new Error(
-      err?.message || "Failed to obtain Supabase authentication access token."
-    );
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Failed to obtain Supabase authentication access token.";
+    throw new Error(msg);
   }
 }
 

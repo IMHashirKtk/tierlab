@@ -101,24 +101,47 @@ async function startIsolatedNextServer() {
     );
   }
 
-  console.log(`Starting isolated Next.js server on ${BASE_URL}...`);
-  const env = {
+  const fs = await import("fs");
+  const path = await import("path");
+  const distDir = ".next-test-audit";
+  const guardPath = path.resolve(process.cwd(), "tests/server-network-guard.mjs").replace(/\\/g, "/");
+
+  const isolatedEnv = {
     ...process.env,
     NODE_ENV: "production",
+    NEXT_TEST_DIST_DIR: distDir,
+    NODE_OPTIONS: `--require "${guardPath}"`,
     PORT: String(TEST_PORT),
-    NEXT_PUBLIC_SUPABASE_URL: "https://mock.supabase.test",
+    NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
     NEXT_PUBLIC_SUPABASE_ANON_KEY: "mock-anon-key-for-isolated-audit",
     SUPABASE_SERVICE_ROLE_KEY: "mock-service-role-key-for-isolated-audit",
+    CLOUDFLARE_R2_ACCOUNT_ID: "mock-account-id",
+    CLOUDFLARE_R2_ACCESS_KEY_ID: "mock-access-key",
+    CLOUDFLARE_R2_SECRET_ACCESS_KEY: "mock-secret-key",
+    CLOUDFLARE_R2_BUCKET_NAME: "mock-bucket",
+    CLOUDFLARE_R2_PUBLIC_URL: "http://127.0.0.1:8787",
   };
 
+  if (!fs.existsSync(distDir) || process.env.FORCE_AUDIT_BUILD === "1") {
+    console.log(`Building isolated test distribution in ${distDir}...`);
+    execSync("npx next build", {
+      stdio: "inherit",
+      env: isolatedEnv,
+    });
+  }
+
+  console.log(`Starting isolated Next.js server on ${BASE_URL} from ${distDir}...`);
+  const serverOutput = [];
   const child = spawn("npx", ["next", "start", "-p", String(TEST_PORT)], {
     shell: true,
-    stdio: "ignore",
-    env,
+    stdio: ["ignore", "pipe", "pipe"],
+    env: isolatedEnv,
   });
+  child.stdout?.on("data", (d) => serverOutput.push(d.toString()));
+  child.stderr?.on("data", (d) => serverOutput.push(d.toString()));
 
   const start = Date.now();
-  while (Date.now() - start < 20000) {
+  while (Date.now() - start < 35000) {
     await new Promise((r) => setTimeout(r, 400));
     if (await isServerListening(BASE_URL)) {
       console.log(`Isolated Next.js server ready on ${BASE_URL} (PID ${child.pid}).`);
@@ -127,7 +150,7 @@ async function startIsolatedNextServer() {
   }
 
   killServerProcess(child);
-  throw new Error(`Isolated Next.js server failed to start on ${BASE_URL} within 20s.`);
+  throw new Error(`Isolated Next.js server failed to start on ${BASE_URL} within 35s. Server output:\n${serverOutput.join("")}`);
 }
 
 function killServerProcess(child) {
@@ -781,6 +804,11 @@ async function runBrowserAudit() {
           const tlId = tierListIdParam.slice(3);
           rows = rows.filter((r) => r.tier_list_id === tlId);
         }
+        const templateIdParam = parsedUrl.searchParams.get("template_id");
+        if (templateIdParam && templateIdParam.startsWith("eq.")) {
+          const tplId = templateIdParam.slice(3);
+          rows = rows.filter((r) => r.template_id === tplId);
+        }
         await route.fulfill({
           status: 200,
           contentType: "application/json",
@@ -1419,9 +1447,19 @@ async function runBrowserAudit() {
     console.log("\n--- TEST N & SCENARIOS 1–3: Storage Failures & IDB Abort in Real UIs ---");
     resetMockCloudModes();
 
-    // N.1 & Scenario 3: PublishModal with IndexedDB transaction abort (__TL_SIMULATE_IDB_ABORT__)
+    // N.1 & Scenario 3: PublishModal with IndexedDB transaction abort
     await page.evaluate(() => {
-      window.__TL_SIMULATE_IDB_ABORT__ = true;
+      const origTx = IDBDatabase.prototype.transaction;
+      IDBDatabase.prototype.transaction = function(...args) {
+        const tx = origTx.apply(this, args);
+        setTimeout(() => {
+          try { tx.abort(); } catch {}
+        }, 0);
+        return tx;
+      };
+      window.__restoreIdbTx__ = () => {
+        IDBDatabase.prototype.transaction = origTx;
+      };
     });
     await (await page.waitForSelector("button:has-text('New Template')", { timeout: 5000 })).click();
     await page.waitForSelector(".fixed.inset-0.z-50:has-text('Publish Community Template')", { timeout: 5000 });
@@ -1434,7 +1472,7 @@ async function runBrowserAudit() {
     const contentRetainedOnIdbAbort = (await page.inputValue("input[placeholder*='Sci-Fi Movies']")) === "Draft That Fails Upload";
 
     await page.evaluate(() => {
-      window.__TL_SIMULATE_IDB_ABORT__ = false;
+      if (window.__restoreIdbTx__) window.__restoreIdbTx__();
     });
     await (await page.waitForSelector("button[aria-label='Close']")).click();
     await page.waitForSelector(".fixed.inset-0.z-50", { state: "detached", timeout: 3000 });
@@ -1443,7 +1481,13 @@ async function runBrowserAudit() {
     await page.goto(`${BASE_URL}/create?id=proj-unpub-switch`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(300);
     await page.evaluate(() => {
-      window.__TL_SIMULATE_STORAGE_FAILURE__ = true;
+      const origSet = Storage.prototype.setItem;
+      Storage.prototype.setItem = function() {
+        throw new DOMException("QuotaExceededError", "QuotaExceededError");
+      };
+      window.__restoreStorage__ = () => {
+        Storage.prototype.setItem = origSet;
+      };
     });
     await (await page.waitForSelector("button:has-text('Share')")).click();
     await page.waitForSelector(".fixed.inset-0.z-50:has-text('Share Your Tier List')", { timeout: 5000 });
@@ -1454,7 +1498,7 @@ async function runBrowserAudit() {
       .catch(() => null);
     const zeroWritesOnShareStorageFail = mockCloud.dbWrites.length === 0;
     await page.evaluate(() => {
-      window.__TL_SIMULATE_STORAGE_FAILURE__ = false;
+      if (window.__restoreStorage__) window.__restoreStorage__();
     });
     await (await page.waitForSelector(".fixed.inset-0.z-50 button[aria-label='Close']")).click();
     await page.waitForSelector(".fixed.inset-0.z-50", { state: "detached", timeout: 3000 });
@@ -1466,7 +1510,13 @@ async function runBrowserAudit() {
     await commentTextarea.fill("My hot take when storage is full");
 
     await page.evaluate(() => {
-      window.__TL_SIMULATE_STORAGE_FAILURE__ = true;
+      const origSet = Storage.prototype.setItem;
+      Storage.prototype.setItem = function() {
+        throw new DOMException("QuotaExceededError", "QuotaExceededError");
+      };
+      window.__restoreStorage__ = () => {
+        Storage.prototype.setItem = origSet;
+      };
     });
     const postTakeBtn = await page.waitForSelector("button:has-text('Post Take'):not([disabled])", { timeout: 5000 });
     await postTakeBtn.click();
@@ -1476,7 +1526,7 @@ async function runBrowserAudit() {
     const zeroWritesOnCommentStorageFail = mockCloud.dbWrites.length === 0;
 
     await page.evaluate(() => {
-      window.__TL_SIMULATE_STORAGE_FAILURE__ = false;
+      if (window.__restoreStorage__) window.__restoreStorage__();
     });
 
     if (
@@ -1573,7 +1623,21 @@ async function runBrowserAudit() {
           updatedAt: Date.now(),
         })
       );
-      window.__TL_SIMULATE_IDB_ABORT__ = true;
+      const origTx = IDBDatabase.prototype.transaction;
+      window.__failIdbWrite__ = true;
+      IDBDatabase.prototype.transaction = function(...args) {
+        const tx = origTx.apply(this, args);
+        if (args[1] === "readwrite" && window.__failIdbWrite__) {
+          setTimeout(() => {
+            try { tx.abort(); } catch {}
+          }, 0);
+        }
+        return tx;
+      };
+      window.__restoreIdbWrite__ = () => {
+        window.__failIdbWrite__ = false;
+        IDBDatabase.prototype.transaction = origTx;
+      };
     });
 
     await (await page.waitForSelector("button:has-text('New Template')")).click();
@@ -1589,7 +1653,7 @@ async function runBrowserAudit() {
 
     // Now allow IDB write to succeed -> migrates to IDB and removes localStorage key
     await page.evaluate(() => {
-      window.__TL_SIMULATE_IDB_ABORT__ = false;
+      if (window.__restoreIdbWrite__) window.__restoreIdbWrite__();
     });
     await (await page.waitForSelector("button:has-text('New Template')")).click();
     await page.waitForSelector(".fixed.inset-0.z-50:has-text('Publish Community Template')", { timeout: 5000 });
@@ -1623,7 +1687,31 @@ async function runBrowserAudit() {
     // -------------------------------------------------------------
     console.log("\n--- SCENARIO 6: Discard while autosave is in flight ---");
     await page.evaluate(() => {
-      window.__TL_SIMULATE_AUTOSAVE_DELAY_MS__ = 600;
+      const origTransaction = IDBDatabase.prototype.transaction;
+      window.__delayAutosaveActive__ = true;
+      IDBDatabase.prototype.transaction = function(...args) {
+        const tx = origTransaction.apply(this, args);
+        if (window.__delayAutosaveActive__ && args[0] === "template_drafts" && args[1] === "readwrite") {
+          let realOncomplete = null;
+          Object.defineProperty(tx, "oncomplete", {
+            get() { return realOncomplete; },
+            set(fn) {
+              realOncomplete = fn;
+              tx.addEventListener("complete", (ev) => {
+                setTimeout(() => {
+                  if (typeof realOncomplete === "function") realOncomplete.call(tx, ev);
+                }, 600);
+              }, { once: true });
+            },
+            configurable: true,
+          });
+        }
+        return tx;
+      };
+      window.__restoreAutosaveDelay__ = () => {
+        window.__delayAutosaveActive__ = false;
+        IDBDatabase.prototype.transaction = origTransaction;
+      };
     });
 
     await page.fill("input[placeholder*='Sci-Fi Movies']", "Typing Before Immediate Discard");
@@ -1633,7 +1721,7 @@ async function runBrowserAudit() {
 
     await page.waitForTimeout(900);
     await page.evaluate(() => {
-      window.__TL_SIMULATE_AUTOSAVE_DELAY_MS__ = 0;
+      if (window.__restoreAutosaveDelay__) window.__restoreAutosaveDelay__();
     });
 
     const idbAfterDelayedAutosave = await page.evaluate(() => window.__AUDIT_IDB__.getDraft("default"));
@@ -1670,7 +1758,32 @@ async function runBrowserAudit() {
         ],
         updatedAt: Date.now(),
       });
-      window.__TL_DRAFT_HYDRATION_DELAY_MS__ = 500;
+
+      const origTransaction = IDBDatabase.prototype.transaction;
+      window.__hydrationDelayMs__ = 500;
+      IDBDatabase.prototype.transaction = function(...args) {
+        const tx = origTransaction.apply(this, args);
+        if (window.__hydrationDelayMs__ > 0 && args[0] === "template_drafts" && args[1] === "readonly") {
+          let realOncomplete = null;
+          Object.defineProperty(tx, "oncomplete", {
+            get() { return realOncomplete; },
+            set(fn) {
+              realOncomplete = fn;
+              tx.addEventListener("complete", (ev) => {
+                setTimeout(() => {
+                  if (typeof realOncomplete === "function") realOncomplete.call(tx, ev);
+                }, window.__hydrationDelayMs__);
+              }, { once: true });
+            },
+            configurable: true,
+          });
+        }
+        return tx;
+      };
+      window.__restoreHydrationDelay__ = () => {
+        window.__hydrationDelayMs__ = 0;
+        IDBDatabase.prototype.transaction = origTransaction;
+      };
     });
 
     await (await page.waitForSelector("button:has-text('New Template')")).click();
@@ -1682,7 +1795,7 @@ async function runBrowserAudit() {
     await page.waitForSelector(".fixed.inset-0.z-50", { state: "detached", timeout: 3000 });
 
     await page.evaluate(() => {
-      window.__TL_DRAFT_HYDRATION_DELAY_MS__ = 600;
+      window.__hydrationDelayMs__ = 600;
     });
     await (await page.waitForSelector("button:has-text('New Template')")).click();
     await page.waitForSelector(".fixed.inset-0.z-50:has-text('Publish Community Template')", { timeout: 5000 });
@@ -1691,7 +1804,7 @@ async function runBrowserAudit() {
 
     const titleAfterHydration8b = await page.inputValue("input[placeholder*='Sci-Fi Movies']");
     await page.evaluate(() => {
-      window.__TL_DRAFT_HYDRATION_DELAY_MS__ = 0;
+      if (window.__restoreHydrationDelay__) window.__restoreHydrationDelay__();
     });
 
     if (
@@ -1723,7 +1836,6 @@ async function runBrowserAudit() {
     await page.goto(`${BASE_URL}/share/share-audit-1`, { waitUntil: "domcontentloaded" });
     await page.evaluate(() => {
       localStorage.clear();
-      window.__TL_MOCK_SESSION_USER_ID__ = "user-session-A";
       window.dispatchEvent(new CustomEvent("tl-auth-state-change", { detail: { userId: "user-session-A" } }));
     });
     await page.waitForTimeout(300);
@@ -1738,7 +1850,6 @@ async function runBrowserAudit() {
 
     mockCloud.currentUserId = "user-session-B";
     await page.evaluate(() => {
-      window.__TL_MOCK_SESSION_USER_ID__ = "user-session-B";
       window.dispatchEvent(new CustomEvent("tl-auth-state-change", { detail: { userId: "user-session-B" } }));
     });
     await page.waitForTimeout(350);
@@ -1782,7 +1893,21 @@ async function runBrowserAudit() {
     await page.goto(`${BASE_URL}/create?id=proj-unpub-switch`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(300);
     await page.evaluate(() => {
-      window.__TL_SIMULATE_SAVE_PROJECT_FAILURE__ = true;
+      const origTx = IDBDatabase.prototype.transaction;
+      window.__failSaveProjectActive__ = true;
+      IDBDatabase.prototype.transaction = function(...args) {
+        const tx = origTx.apply(this, args);
+        if (window.__failSaveProjectActive__ && args[0] === "projects" && args[1] === "readwrite") {
+          setTimeout(() => {
+            try { tx.abort(); } catch {}
+          }, 0);
+        }
+        return tx;
+      };
+      window.__restoreSaveProject__ = () => {
+        window.__failSaveProjectActive__ = false;
+        IDBDatabase.prototype.transaction = origTx;
+      };
     });
 
     await (await page.waitForSelector("button:has-text('Share')")).click();
@@ -1799,7 +1924,7 @@ async function runBrowserAudit() {
     const cloudInsertCountAfterFirst = mockCloud.dbWrites.filter((w) => w.table === "tier_lists" && w.method === "POST").length;
 
     await page.evaluate(() => {
-      window.__TL_SIMULATE_SAVE_PROJECT_FAILURE__ = false;
+      if (window.__restoreSaveProject__) window.__restoreSaveProject__();
     });
     await (await page.waitForSelector("button:has-text('Retry Publish')")).click();
     await page.waitForSelector(".fixed.inset-0.z-50:has-text('Public Link')", { timeout: 5000 });
@@ -1832,12 +1957,12 @@ async function runBrowserAudit() {
     // -------------------------------------------------------------
     console.log("\n--- SCENARIO 10: Lost response -> reload -> retry across Template, Share & Comment ---");
     resetMockCloudModes();
+    mockCloud.currentUserId = "user-session-B";
 
     // 10a: Template lost response -> reload -> retry
     await page.goto(`${BASE_URL}/`, { waitUntil: "domcontentloaded" });
     await installPageHelpers();
     await page.evaluate(async () => {
-      window.__TL_MOCK_SESSION_USER_ID__ = "user-session-B";
       await window.__AUDIT_IDB__.putDraft("default", {
         pendingId: "tmpl-lost-resp-10",
         title: "Lost Response Template 10",
@@ -1861,9 +1986,6 @@ async function runBrowserAudit() {
     mockCloud.dbWriteMode = "success";
     await page.reload({ waitUntil: "domcontentloaded" });
     await installPageHelpers();
-    await page.evaluate(() => {
-      window.__TL_MOCK_SESSION_USER_ID__ = "user-session-B";
-    });
     await (await page.waitForSelector("button:has-text('New Template')")).click();
     await page.waitForSelector(".fixed.inset-0.z-50:has-text('Publish Community Template')", { timeout: 5000 });
     await (await page.waitForSelector(".fixed.inset-0.z-50 button[type='submit']:not([disabled])")).click();
@@ -1887,9 +2009,6 @@ async function runBrowserAudit() {
     });
     await page.goto(`${BASE_URL}/create?id=proj-lost-resp-10b`, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(300);
-    await page.evaluate(() => {
-      window.__TL_MOCK_SESSION_USER_ID__ = "user-session-B";
-    });
     mockCloud.dbWriteMode = "commit_then_abort";
     await (await page.waitForSelector("button:has-text('Share')")).click();
     await page.waitForSelector(".fixed.inset-0.z-50:has-text('Share Your Tier List')", { timeout: 5000 });
@@ -1899,9 +2018,6 @@ async function runBrowserAudit() {
     mockCloud.dbWriteMode = "success";
     await page.reload({ waitUntil: "domcontentloaded" });
     await page.waitForTimeout(300);
-    await page.evaluate(() => {
-      window.__TL_MOCK_SESSION_USER_ID__ = "user-session-B";
-    });
     await (await page.waitForSelector("button:has-text('Share')")).click();
     await page.waitForSelector(".fixed.inset-0.z-50:has-text('Share Your Tier List')", { timeout: 5000 });
     await (await page.waitForSelector("button:has-text('Publish Ranking to Cloud')")).click();
@@ -1916,9 +2032,6 @@ async function runBrowserAudit() {
     resetMockCloudModes();
     mockCloud.currentUserId = "user-session-B";
     await page.goto(`${BASE_URL}/share/share-audit-1`, { waitUntil: "domcontentloaded" });
-    await page.evaluate(() => {
-      window.__TL_MOCK_SESSION_USER_ID__ = "user-session-B";
-    });
 
     const cmt10 = await page.waitForSelector("textarea[placeholder*='Drop your take']", { timeout: 5000 });
     await cmt10.fill("Lost response comment 10c");
@@ -1928,9 +2041,6 @@ async function runBrowserAudit() {
 
     mockCloud.dbWriteMode = "success";
     await page.reload({ waitUntil: "domcontentloaded" });
-    await page.evaluate(() => {
-      window.__TL_MOCK_SESSION_USER_ID__ = "user-session-B";
-    });
     await page.waitForSelector("textarea[placeholder*='Drop your take']", { timeout: 5000 });
     await page.waitForTimeout(300);
     await (await page.waitForSelector("button:has-text('Post Take'):not([disabled])")).click();
@@ -1953,6 +2063,120 @@ async function runBrowserAudit() {
       fail(
         "Scenario 10: Lost Response -> Reload -> Retry (Template, Share, Comment)",
         `templatePosts=${templatePosts10}, draftAfter=${JSON.stringify(draftDeletedAfter10a)}, sharePosts=${sharePosts10}, shareCleared=${sharePendingCleared10b}, commentPosts=${commentPosts10}`
+      );
+    }
+
+    // -------------------------------------------------------------
+    // TEST P: Missing IndexedDB stops before network publication, preserves draft, displays error
+    // -------------------------------------------------------------
+    console.log("\n--- TEST P: Missing IndexedDB stops publishing before network request ---");
+    resetMockCloudModes();
+    mockCloud.currentUserId = "user-audit-p";
+    await page.goto(`${BASE_URL}/`, { waitUntil: "domcontentloaded" });
+
+    // Prototype mock: simulate unavailable indexedDB on window
+    await page.evaluate(() => {
+      const origIdb = window.indexedDB;
+      Object.defineProperty(window, "indexedDB", {
+        get() { return undefined; },
+        configurable: true,
+      });
+      window.__restoreIdbAvailable__ = () => {
+        Object.defineProperty(window, "indexedDB", {
+          get() { return origIdb; },
+          configurable: true,
+        });
+      };
+    });
+
+    await (await page.waitForSelector("button:has-text('New Template')", { timeout: 5000 })).click();
+    await page.waitForSelector(".fixed.inset-0.z-50:has-text('Publish Community Template')", { timeout: 5000 });
+    await page.fill("input[placeholder*='Sci-Fi Movies']", "Draft With Missing IDB");
+    await page.fill("input[placeholder*='Iron Man']", "Alpha Item, Beta Item");
+    await page.click("button:has-text('Add')");
+    await page.waitForTimeout(200);
+
+    const submitBtnP = await page.waitForSelector(".fixed.inset-0.z-50 button[type='submit']:not([disabled])", { timeout: 5000 });
+    await submitBtnP.click();
+
+    const errorBannerP = await page.waitForSelector(".fixed.inset-0.z-50 .bg-rose-500\\/10", { timeout: 4000 }).catch(() => null);
+    const errorTextP = errorBannerP ? await errorBannerP.innerText() : "";
+    const titlePreservedP = await page.inputValue("input[placeholder*='Sci-Fi Movies']");
+    const templateWritesP = mockCloud.dbWrites.filter((w) => w.table === "templates").length;
+    const uploadRequestsP = mockCloud.uploadRequests;
+
+    await page.evaluate(() => {
+      if (window.__restoreIdbAvailable__) window.__restoreIdbAvailable__();
+    });
+
+    if (
+      errorBannerP &&
+      errorTextP.includes("Browser storage (IndexedDB) is unavailable") &&
+      templateWritesP === 0 &&
+      uploadRequestsP === 0 &&
+      titlePreservedP === "Draft With Missing IDB"
+    ) {
+      pass(
+        "Test P: Missing IndexedDB Stops Publishing",
+        "Publishing stopped before network publication; displayed actionable storage error and preserved user's in-memory draft"
+      );
+    } else {
+      fail(
+        "Test P: Missing IndexedDB Stops Publishing",
+        `banner=${Boolean(errorBannerP)}, text="${errorTextP}", writes=${templateWritesP}, uploads=${uploadRequestsP}, preservedTitle="${titlePreservedP}"`
+      );
+    }
+
+    await (await page.waitForSelector("button[aria-label='Close']")).click();
+    await page.waitForSelector(".fixed.inset-0.z-50", { state: "detached", timeout: 3000 });
+
+    // -------------------------------------------------------------
+    // TEST Q: Template Page Consensus displays real submissions
+    // -------------------------------------------------------------
+    console.log("\n--- TEST Q: Template Page Consensus displays real submissions ---");
+    resetMockCloudModes();
+    mockCloud.tier_lists.set("sub-er-1", {
+      id: "sub-er-1",
+      template_id: "elden-ring-bosses",
+      title: "ER Rank 1",
+      author_name: "Tarnished1",
+      author_id: "user-t1",
+      upvotes: 5,
+      tiers: [
+        { id: "tier-S", label: "S", color: "from-rose-500 to-red-600", items: [{ id: "er-1", name: "Malenia, Blade of Miquella" }] },
+        { id: "tier-A", label: "A", color: "from-amber-500 to-orange-500", items: [{ id: "er-8", name: "Starscourge Radahn" }] },
+      ],
+      unranked: [],
+      created_at: new Date().toISOString(),
+    });
+    mockCloud.tier_lists.set("sub-er-2", {
+      id: "sub-er-2",
+      template_id: "elden-ring-bosses",
+      title: "ER Rank 2",
+      author_name: "Tarnished2",
+      author_id: "user-t2",
+      upvotes: 3,
+      tiers: [
+        { id: "tier-S", label: "S", color: "from-rose-500 to-red-600", items: [{ id: "er-1", name: "Malenia, Blade of Miquella" }] },
+        { id: "tier-B", label: "B", color: "from-blue-500 to-cyan-500", items: [{ id: "er-8", name: "Starscourge Radahn" }] },
+      ],
+      unranked: [],
+      created_at: new Date().toISOString(),
+    });
+
+    await page.goto(`${BASE_URL}/template/elden-ring-bosses`, { waitUntil: "domcontentloaded" });
+    const consensusSection = await page.waitForSelector("[data-testid='consensus-section']", { timeout: 8000 });
+    const consensusText = await consensusSection.innerText();
+
+    if (consensusText.includes("2 submissions") && consensusText.includes("Malenia") && !consensusText.includes("No submissions yet")) {
+      pass(
+        "Test Q: Template Consensus Display",
+        "Real submissions fetched and displayed in consensus tiers with actual submission count"
+      );
+    } else {
+      fail(
+        "Test Q: Template Consensus Display",
+        `consensusText="${consensusText}"`
       );
     }
 
@@ -1984,12 +2208,17 @@ async function runAllAudits() {
   console.log("STARTING COMPLETE PUBLISHING & PERSISTENCE AUDIT");
   console.log("==================================================");
 
+  if (process.env.SIMULATE_AUDIT_STARTUP_EXCEPTION === "1") {
+    console.error("[TEST-NEGATIVE] Simulating startup exception for negative exit-code test.");
+    process.exit(1);
+  }
+
   let nextServerProcess = null;
   const watchdog = setTimeout(() => {
-    console.error("[FAIL] Watchdog Timeout - Audit exceeded 90 seconds; terminating.");
+    console.error("[FAIL] Watchdog Timeout - Audit exceeded 150 seconds; terminating.");
     if (nextServerProcess) killServerProcess(nextServerProcess);
     process.exit(1);
-  }, 90000);
+  }, 150000);
   watchdog.unref();
 
   try {

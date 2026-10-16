@@ -7,12 +7,12 @@ if (typeof window !== "undefined") {
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || "";
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 
-let mockAdminClient: any = undefined;
+let mockAdminClient: SupabaseClient | null | undefined = undefined;
 
 /**
  * Test helper to inject a controlled Supabase mock client during testing.
  */
-export function setMockSupabaseAdmin(client: any) {
+export function setMockSupabaseAdmin(client: SupabaseClient | null) {
   mockAdminClient = client;
 }
 
@@ -36,7 +36,9 @@ export function isSupabaseAdminConfigured(): boolean {
     serviceRoleKey &&
     !supabaseUrl.includes("placeholder") &&
     !serviceRoleKey.includes("placeholder") &&
-    supabaseUrl.startsWith("https://")
+    (supabaseUrl.startsWith("https://") ||
+      supabaseUrl.startsWith("http://127.0.0.1:") ||
+      supabaseUrl.startsWith("http://localhost:"))
   );
 }
 

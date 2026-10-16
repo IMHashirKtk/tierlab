@@ -53,41 +53,46 @@ export function ShareModal({
   useEffect(() => {
     const projectChanged = activeProjectIdRef.current !== projectId;
     activeProjectIdRef.current = projectId;
-    setShareId(publishedShareId || null);
-    setPublishError(null);
-    if (projectChanged) {
-      setIsPublishing(false);
-      isPublishingRef.current = false;
-    }
 
-    if (publishedShareId) {
-      setPendingShareId(publishedShareId);
-    } else if (projectId) {
-      const savedPending = getProjectPendingShareId(projectId);
-      if (savedPending) {
-        setPendingShareId(savedPending);
-      } else {
-        const freshPending = `share-${createId("tier")}`;
-        setPendingShareId(freshPending);
-        try {
-          saveProjectPendingShareId(projectId, freshPending);
-        } catch {
-          // Will be enforced and surfaced when the user initiates publication
-        }
+    queueMicrotask(() => {
+      setShareId(publishedShareId || null);
+      setPublishError(null);
+      if (projectChanged) {
+        setIsPublishing(false);
+        isPublishingRef.current = false;
       }
-    } else {
-      setPendingShareId(`share-${createId("tier")}`);
-    }
+
+      if (publishedShareId) {
+        setPendingShareId(publishedShareId);
+      } else if (projectId) {
+        const savedPending = getProjectPendingShareId(projectId);
+        if (savedPending) {
+          setPendingShareId(savedPending);
+        } else {
+          const freshPending = `share-${createId("tier")}`;
+          setPendingShareId(freshPending);
+          try {
+            saveProjectPendingShareId(projectId, freshPending);
+          } catch {
+            // Will be enforced and surfaced when the user initiates publication
+          }
+        }
+      } else {
+        setPendingShareId(`share-${createId("tier")}`);
+      }
+    });
   }, [projectId, publishedShareId]);
 
   // Load saved creator handle from localStorage on mount
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const savedHandle = localStorage.getItem("tl_commenter_name") || "";
-        if (savedHandle) setAuthorName(savedHandle);
-      } catch {}
-    }
+    queueMicrotask(() => {
+      if (typeof window !== "undefined") {
+        try {
+          const savedHandle = localStorage.getItem("tl_commenter_name") || "";
+          if (savedHandle) setAuthorName(savedHandle);
+        } catch {}
+      }
+    });
   }, []);
 
   const executePublish = async (handle: string) => {
@@ -114,10 +119,11 @@ export function ShareModal({
     if (!shareId) {
       try {
         saveProjectPendingShareId(publishProjectId || "default", targetId);
-      } catch (storageErr: any) {
+      } catch (storageErr: unknown) {
         if (activeProjectIdRef.current === publishProjectId) {
+          const msg = storageErr instanceof Error ? storageErr.message : String(storageErr);
           setPublishError(
-            `Pending share storage failed: ${storageErr?.message || "Storage error"}. Publication aborted so recovery identity is not lost.`
+            `Pending share storage failed: ${msg || "Storage error"}. Publication aborted so recovery identity is not lost.`
           );
           setIsPublishing(false);
         }
@@ -150,10 +156,11 @@ export function ShareModal({
       if (onPublishSuccess) {
         try {
           await onPublishSuccess(pub.id, publishProjectId);
-        } catch (localSaveErr: any) {
+        } catch (localSaveErr: unknown) {
           if (activeProjectIdRef.current === publishProjectId) {
+            const msg = localSaveErr instanceof Error ? localSaveErr.message : String(localSaveErr);
             setPublishError(
-              `Cloud publication succeeded (${pub.id}), but saving confirmation locally failed: ${localSaveErr?.message || "Local storage error"}. Your pending publication ID is preserved for recovery — click Retry to complete local saving against the same cloud record.`
+              `Cloud publication succeeded (${pub.id}), but saving confirmation locally failed: ${msg || "Local storage error"}. Your pending publication ID is preserved for recovery — click Retry to complete local saving against the same cloud record.`
             );
           }
           return;
@@ -164,11 +171,12 @@ export function ShareModal({
       if (publishProjectId) {
         try {
           clearProjectPendingShareId(publishProjectId);
-        } catch (cleanupErr: any) {
+        } catch (cleanupErr: unknown) {
           if (activeProjectIdRef.current === publishProjectId) {
             setShareId(pub.id);
+            const msg = cleanupErr instanceof Error ? cleanupErr.message : String(cleanupErr);
             setPublishError(
-              `Published and saved locally (${pub.id}), but failed to clear pending recovery key: ${cleanupErr?.message || "Storage cleanup error"}.`
+              `Published and saved locally (${pub.id}), but failed to clear pending recovery key: ${msg || "Storage cleanup error"}.`
             );
           }
           return;
@@ -178,10 +186,11 @@ export function ShareModal({
       if (activeProjectIdRef.current === publishProjectId) {
         setShareId(pub.id);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Publish failed:", err);
       if (activeProjectIdRef.current === publishProjectId) {
-        setPublishError(err?.message || "Failed to publish tier list to cloud.");
+        const msg = err instanceof Error ? err.message : String(err);
+        setPublishError(msg || "Failed to publish tier list to cloud.");
       }
     } finally {
       isPublishingRef.current = false;

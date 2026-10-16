@@ -68,7 +68,7 @@ export function CreatorExportModal({
       link.href = dataUrl;
       link.click();
       onClose();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Failed to render export image", err);
       setExportError(
         "Export failed: Some external images blocked cross-origin rendering (CORS). Try re-uploading or removing external images."

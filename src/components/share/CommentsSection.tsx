@@ -80,7 +80,9 @@ export function CommentsSection({ tierListId, creatorName }: CommentsSectionProp
   // Restore pending attempt and session identity after mount/reload, and listen for auth changes
   useEffect(() => {
     let isMounted = true;
-    setIsHydrated(false);
+    queueMicrotask(() => {
+      setIsHydrated(false);
+    });
     hasUserEditedInSessionRef.current = false;
 
     const hydrateSessionDraft = async (
@@ -88,13 +90,6 @@ export function CommentsSection({ tierListId, creatorName }: CommentsSectionProp
       seq: number,
       isAuthSwitch = false
     ) => {
-      const delayMs =
-        typeof window !== "undefined"
-          ? Number((window as any).__TL_DRAFT_HYDRATION_DELAY_MS__ || 0)
-          : 0;
-      if (delayMs > 0) {
-        await new Promise((r) => setTimeout(r, delayMs));
-      }
       if (!isMounted || hydrationSeqRef.current !== seq) return;
 
       if (typeof window !== "undefined" && !isAuthSwitch) {
@@ -158,7 +153,7 @@ export function CommentsSection({ tierListId, creatorName }: CommentsSectionProp
       .then((userId) => hydrateSessionDraft(userId, initialSeq, false))
       .catch(() => hydrateSessionDraft(null, initialSeq, false));
 
-    const authListener = supabase?.auth?.onAuthStateChange?.((_event: string, session: any) => {
+    const authListener = supabase?.auth?.onAuthStateChange?.((_event: string, session: { user?: { id?: string | null } } | null) => {
       if (!isMounted) return;
       const newUserId = session?.user?.id || null;
       if (newUserId && newUserId !== sessionIdRef.current) {
@@ -194,7 +189,11 @@ export function CommentsSection({ tierListId, creatorName }: CommentsSectionProp
   useEffect(() => {
     if (!isHydrated || !content.trim() || !sessionId) return;
     const activePendingId = pendingCommentId || `cmt-${createId("c")}`;
-    if (!pendingCommentId) setPendingCommentId(activePendingId);
+    if (!pendingCommentId) {
+      queueMicrotask(() => {
+        setPendingCommentId((prev) => prev || activePendingId);
+      });
+    }
     try {
       savePendingCommentDraft({
         pendingId: activePendingId,
@@ -213,16 +212,21 @@ export function CommentsSection({ tierListId, creatorName }: CommentsSectionProp
   // Fetch comments for this tier list
   useEffect(() => {
     if (!tierListId) return;
-    setLoading(true);
+    let isCancelled = false;
     fetchComments(tierListId).then((data) => {
-      setComments(data);
-      const statusMap: Record<string, boolean> = {};
-      data.forEach((c) => {
-        statusMap[c.id] = hasUpvotedComment(c.id);
-      });
-      setUpvotedMap(statusMap);
-      setLoading(false);
+      if (!isCancelled) {
+        setComments(data);
+        const statusMap: Record<string, boolean> = {};
+        data.forEach((c) => {
+          statusMap[c.id] = hasUpvotedComment(c.id);
+        });
+        setUpvotedMap(statusMap);
+        setLoading(false);
+      }
     });
+    return () => {
+      isCancelled = true;
+    };
   }, [tierListId]);
 
   const handleSubmit = async (e?: React.FormEvent) => {
@@ -293,9 +297,10 @@ export function CommentsSection({ tierListId, creatorName }: CommentsSectionProp
         sessionUserId: activeUserId,
         updatedAt: Date.now(),
       });
-    } catch (storageErr: any) {
+    } catch (storageErr: unknown) {
+      const msg = storageErr instanceof Error ? storageErr.message : String(storageErr);
       setCommentError(
-        `Pending comment storage failed: ${storageErr?.message || "Storage error"}. Submission aborted so your comment is not lost.`
+        `Pending comment storage failed: ${msg || "Storage error"}. Submission aborted so your comment is not lost.`
       );
       isSubmittingRef.current = false;
       setIsSubmitting(false);
@@ -322,7 +327,7 @@ export function CommentsSection({ tierListId, creatorName }: CommentsSectionProp
       // Clear pending attempt only after confirmed success
       try {
         clearPendingCommentDraft(tierListId, activeUserId);
-      } catch (cleanupErr: any) {
+      } catch (cleanupErr: unknown) {
         console.warn("Failed to clear pending comment draft:", cleanupErr);
       }
 
@@ -330,10 +335,11 @@ export function CommentsSection({ tierListId, creatorName }: CommentsSectionProp
       setContent("");
       // Fresh ID strictly for the NEXT new comment
       setPendingCommentId(`cmt-${createId("c")}`);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Failed to post comment", err);
       // Keep user's text and pendingCommentId intact on error/conflict
-      setCommentError(err?.message || "Failed to post comment. Please try again.");
+      const msg = err instanceof Error ? err.message : String(err);
+      setCommentError(msg || "Failed to post comment. Please try again.");
     } finally {
       isSubmittingRef.current = false;
       setIsSubmitting(false);

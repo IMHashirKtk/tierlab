@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo, useState, useEffect } from "react";
-import { X, BrainCircuit, CheckCircle2, Zap, Flame, Sparkles, AlertCircle } from "lucide-react";
+import { X, BrainCircuit, CheckCircle2, Flame, AlertCircle } from "lucide-react";
 import type { Board } from "@/lib/board";
 import type { Template, PublishedTierList } from "@/types";
 import { calculateConsensus, compareUserBoardWithConsensus } from "@/lib/consensus";
@@ -26,7 +26,6 @@ export function ConsensusComparisonModal({
   useEffect(() => {
     if (!isOpen || !template?.id) return;
     let cancelled = false;
-    setFetchError(null);
     fetchSubmissionsForTemplateWithStatus(template.id).then(({ submissions: data, fetchError: err }) => {
       if (!cancelled) {
         setSubmissions(data);

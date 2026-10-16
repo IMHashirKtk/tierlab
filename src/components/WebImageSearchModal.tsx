@@ -70,23 +70,23 @@ export function WebImageSearchModal({ isOpen, onClose, onAddItems }: WebImageSea
   useEffect(() => {
     if (!isOpen) return;
 
-    if (source === "presets" || query.trim().length < 2) {
-      setLiveResults([]);
-      setIsLoading(false);
-      setSearchError(null);
-      return;
-    }
-
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
     const controller = new AbortController();
     abortControllerRef.current = controller;
 
-    setIsLoading(true);
-    setSearchError(null);
-
     const timer = setTimeout(async () => {
+      if (source === "presets" || query.trim().length < 2) {
+        setLiveResults([]);
+        setIsLoading(false);
+        setSearchError(null);
+        return;
+      }
+
+      setIsLoading(true);
+      setSearchError(null);
+
       try {
         const q = query.trim();
         let items: { name: string; url: string }[] = [];

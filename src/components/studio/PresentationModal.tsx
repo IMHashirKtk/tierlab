@@ -23,6 +23,16 @@ export function PresentationModal({
 }: PresentationModalProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
 
+  const toggleFullscreen = React.useCallback(() => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+      setIsFullscreen(true);
+    } else {
+      document.exitFullscreen().catch(() => {});
+      setIsFullscreen(false);
+    }
+  }, []);
+
   // Esc key listener
   useEffect(() => {
     if (!isOpen) return;
@@ -41,17 +51,7 @@ export function PresentationModal({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen]);
-
-  const toggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch(() => {});
-      setIsFullscreen(true);
-    } else {
-      document.exitFullscreen().catch(() => {});
-      setIsFullscreen(false);
-    }
-  };
+  }, [isOpen, onClose, toggleFullscreen]);
 
   if (!isOpen) return null;
 

@@ -5,7 +5,7 @@
  * compressed image thumbnails (data URLs), which would quickly exceed
  * localStorage's ~5 MB limit.
  */
-import type { Project } from "@/types";
+import type { Project, PublishedTierList, Template } from "@/types";
 
 const DB_NAME = "tierlistmaker";
 const DB_VERSION = 2;
@@ -25,9 +25,6 @@ export function setSimulateIdbAbort(shouldAbort: boolean, message?: string) {
 }
 
 export function isSimulateIdbAbort(): boolean {
-  if (typeof window !== "undefined" && (window as any).__TL_SIMULATE_IDB_ABORT__) {
-    return true;
-  }
   return simulateIdbAbort;
 }
 
@@ -37,9 +34,6 @@ export function setSimulateSaveProjectFailure(shouldFail: boolean, message?: str
 }
 
 export function isSimulateSaveProjectFailure(): boolean {
-  if (typeof window !== "undefined" && (window as any).__TL_SIMULATE_SAVE_PROJECT_FAILURE__) {
-    return true;
-  }
   return simulateSaveProjectFailure;
 }
 
@@ -54,8 +48,13 @@ export async function resetDbConnectionForTests(): Promise<void> {
 }
 
 function openDb(): Promise<IDBDatabase> {
-  if (typeof indexedDB === "undefined") {
-    return Promise.reject(new Error("IndexedDB is not available in this browser."));
+  if (typeof indexedDB === "undefined" || !indexedDB || typeof indexedDB.open !== "function") {
+    dbPromise = null;
+    return Promise.reject(
+      new Error(
+        "Browser storage (IndexedDB) is unavailable. Your draft remains in memory, but cannot be durably saved or published until browser storage is enabled."
+      )
+    );
   }
   if (!dbPromise) {
     dbPromise = new Promise((resolve, reject) => {
@@ -134,12 +133,7 @@ export function getProject(id: string): Promise<Project | undefined> {
 
 export async function saveProject(project: Project): Promise<void> {
   if (isSimulateSaveProjectFailure()) {
-    throw new Error(
-      (typeof window !== "undefined" &&
-        typeof (window as any).__TL_SIMULATE_SAVE_PROJECT_FAILURE_MESSAGE__ === "string" &&
-        (window as any).__TL_SIMULATE_SAVE_PROJECT_FAILURE_MESSAGE__) ||
-        simulateSaveProjectFailureMessage
-    );
+    throw new Error(simulateSaveProjectFailureMessage);
   }
   await run("readwrite", (store) => store.put(project));
 }
@@ -164,8 +158,8 @@ export async function clearAllProjects(): Promise<void> {
 /** Export entire local storage as a JSON backup bundle */
 export async function exportAllData(): Promise<string> {
   const projects = await listProjects();
-  let userTemplates: any[] = [];
-  let publishedRankings: any[] = [];
+  let userTemplates: Template[] = [];
+  let publishedRankings: PublishedTierList[] = [];
   let commenterName: string | null = null;
 
   if (typeof window !== "undefined") {
@@ -195,7 +189,7 @@ export async function exportAllData(): Promise<string> {
 
 /** Restore projects from a JSON backup bundle. Validates strict schema and returns count of restored projects. */
 export async function importAllData(jsonString: string): Promise<{ restoredProjects: number }> {
-  let parsed: any;
+  let parsed: unknown;
   try {
     parsed = JSON.parse(jsonString);
   } catch {
@@ -206,16 +200,18 @@ export async function importAllData(jsonString: string): Promise<{ restoredProje
     throw new Error("Invalid backup file: Root must be an object.");
   }
 
-  if (parsed.version === undefined || (typeof parsed.version !== "string" && typeof parsed.version !== "number")) {
+  const root = parsed as Record<string, unknown>;
+
+  if (root.version === undefined || (typeof root.version !== "string" && typeof root.version !== "number")) {
     throw new Error("Invalid backup file: Missing or invalid version string.");
   }
 
-  if (!Array.isArray(parsed.projects)) {
+  if (!Array.isArray(root.projects)) {
     throw new Error("Invalid backup file: Missing 'projects' array.");
   }
 
-  for (let i = 0; i < parsed.projects.length; i++) {
-    const p = parsed.projects[i];
+  for (let i = 0; i < root.projects.length; i++) {
+    const p = root.projects[i] as Record<string, unknown> | null | undefined;
     if (!p || typeof p !== "object" || Array.isArray(p)) {
       throw new Error(`Invalid project at index ${i}: Project must be an object.`);
     }
@@ -233,7 +229,7 @@ export async function importAllData(jsonString: string): Promise<{ restoredProje
     }
 
     for (let tIdx = 0; tIdx < p.tiers.length; tIdx++) {
-      const tier = p.tiers[tIdx];
+      const tier = p.tiers[tIdx] as Record<string, unknown> | null | undefined;
       if (!tier || typeof tier !== "object" || Array.isArray(tier)) {
         throw new Error(`Invalid tier at index ${tIdx} in project "${p.id}": Tier must be an object.`);
       }
@@ -250,7 +246,7 @@ export async function importAllData(jsonString: string): Promise<{ restoredProje
         throw new Error(`Invalid tier "${tier.id}" in project "${p.id}": 'items' must be an array.`);
       }
       for (let itemIdx = 0; itemIdx < tier.items.length; itemIdx++) {
-        const item = tier.items[itemIdx];
+        const item = tier.items[itemIdx] as Record<string, unknown> | null | undefined;
         if (!item || typeof item !== "object" || typeof item.id !== "string" || typeof item.name !== "string") {
           throw new Error(`Invalid item at index ${itemIdx} in tier "${tier.id}" of project "${p.id}": Items must have 'id' and 'name'.`);
         }
@@ -258,7 +254,7 @@ export async function importAllData(jsonString: string): Promise<{ restoredProje
     }
 
     for (let uIdx = 0; uIdx < p.unranked.length; uIdx++) {
-      const item = p.unranked[uIdx];
+      const item = p.unranked[uIdx] as Record<string, unknown> | null | undefined;
       if (!item || typeof item !== "object" || typeof item.id !== "string" || typeof item.name !== "string") {
         throw new Error(`Invalid item at index ${uIdx} in unranked of project "${p.id}": Items must have 'id' and 'name'.`);
       }
@@ -267,45 +263,46 @@ export async function importAllData(jsonString: string): Promise<{ restoredProje
 
   // All projects validated successfully. Persist to storage.
   let count = 0;
-  for (const p of parsed.projects) {
-    await saveProject(p);
+  for (const rawProj of root.projects) {
+    await saveProject(rawProj as Project);
     count++;
   }
 
   if (typeof window !== "undefined") {
     // Restore user templates if present
-    if (Array.isArray(parsed.tl_user_templates)) {
+    if (Array.isArray(root.tl_user_templates)) {
       try {
-        const existing = JSON.parse(localStorage.getItem("tl_user_templates") || "[]");
+        const existing: Template[] = JSON.parse(localStorage.getItem("tl_user_templates") || "[]");
+        const incoming = root.tl_user_templates as Template[];
         const merged = [
-          ...parsed.tl_user_templates,
-          ...existing.filter((e: any) => !parsed.tl_user_templates.some((p: any) => p.id === e.id)),
+          ...incoming,
+          ...existing.filter((e) => !incoming.some((p) => p.id === e.id)),
         ];
         localStorage.setItem("tl_user_templates", JSON.stringify(merged));
       } catch {}
     }
 
     // Restore published rankings if present
-    const incomingRankings = Array.isArray(parsed.tl_published_rankings)
-      ? parsed.tl_published_rankings
-      : Array.isArray(parsed.publishedRankings)
-      ? parsed.publishedRankings
+    const incomingRankings = Array.isArray(root.tl_published_rankings)
+      ? (root.tl_published_rankings as PublishedTierList[])
+      : Array.isArray(root.publishedRankings)
+      ? (root.publishedRankings as PublishedTierList[])
       : null;
 
     if (incomingRankings) {
       try {
-        const existing = JSON.parse(localStorage.getItem("tl_published_rankings") || "[]");
+        const existing: PublishedTierList[] = JSON.parse(localStorage.getItem("tl_published_rankings") || "[]");
         const merged = [
           ...incomingRankings,
-          ...existing.filter((e: any) => !incomingRankings.some((p: any) => p.id === e.id)),
+          ...existing.filter((e) => !incomingRankings.some((p) => p.id === e.id)),
         ];
         localStorage.setItem("tl_published_rankings", JSON.stringify(merged));
       } catch {}
     }
 
     // Restore commenter name if present
-    if (typeof parsed.tl_commenter_name === "string" && parsed.tl_commenter_name.trim()) {
-      localStorage.setItem("tl_commenter_name", parsed.tl_commenter_name.trim());
+    if (typeof root.tl_commenter_name === "string" && root.tl_commenter_name.trim()) {
+      localStorage.setItem("tl_commenter_name", root.tl_commenter_name.trim());
     }
   }
 

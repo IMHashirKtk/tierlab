@@ -171,7 +171,7 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
   const [loadedTemplateId, setLoadedTemplateId] = useState<string | undefined>(initialTemplate?.id);
   const [resolvedTemplate, setResolvedTemplate] = useState<Template | null>(initialTemplate || null);
   const [publishedShareId, setPublishedShareId] = useState<string | undefined>(undefined);
-  const [projectCreatedAt, setProjectCreatedAt] = useState<number>(Date.now());
+  const [projectCreatedAt, setProjectCreatedAt] = useState<number>(() => Date.now());
   const [isProjectHydrated, setIsProjectHydrated] = useState<boolean>(!initialProjectId);
   const activeProjectIdRef = useRef<string>(projectId);
 
@@ -211,11 +211,9 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
   // Load existing project if initialProjectId provided
   useEffect(() => {
     if (!initialProjectId) {
-      setIsProjectHydrated(true);
       return;
     }
     let isCancelled = false;
-    setIsProjectHydrated(false);
     getProject(initialProjectId)
       .then((loaded) => {
         if (isCancelled) return;
@@ -290,8 +288,8 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
     }
     if (!isProjectHydrated || activeItem) return;
 
-    setSaveStatus("saving");
     const timer = setTimeout(() => {
+      setSaveStatus("saving");
       const currentProject: Project = {
         id: projectId,
         title,
@@ -1523,7 +1521,7 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
                   emptyHint={
                     board.unranked.length > 0 && filteredUnranked.length === 0 ? (
                       <div className="w-full py-8 text-center text-xs text-zinc-500 space-y-1.5">
-                        <p>No unranked items match "{unrankedSearch}"</p>
+                        <p>No unranked items match &quot;{unrankedSearch}&quot;</p>
                         <button
                           onClick={() => setUnrankedSearch("")}
                           className="text-indigo-400 hover:underline text-[11px] cursor-pointer"

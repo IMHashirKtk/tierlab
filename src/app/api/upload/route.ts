@@ -211,18 +211,26 @@ export async function POST(req: NextRequest) {
       );
     }
     verifiedUserId = userData.user.id;
-  } catch (authException: any) {
+  } catch (authException: unknown) {
+    const msg = authException instanceof Error ? authException.message : "Unknown error";
     return NextResponse.json(
       {
         success: false,
-        error: `Authorization verification failure: ${authException?.message || "Unknown error"}`,
+        error: `Authorization verification failure: ${msg}`,
       },
       { status: 401 }
     );
   }
 
   // 3. Server-Only Fixed-Window Rate Limiting RPC
-  let quotaResult: any;
+  interface QuotaRpcResult {
+    allowed?: boolean;
+    remaining?: number;
+    retry_after?: number;
+    current_count?: number;
+    reset_at?: string;
+  }
+  let quotaResult: QuotaRpcResult | null = null;
   try {
     const { data, error } = await adminClient.rpc("consume_upload_quota", {
       v_user_id: verifiedUserId,
@@ -237,8 +245,8 @@ export async function POST(req: NextRequest) {
         { status: 503 }
       );
     }
-    quotaResult = data;
-  } catch (rpcErr: any) {
+    quotaResult = data as QuotaRpcResult;
+  } catch (rpcErr: unknown) {
     console.error("Quota limiter RPC exception:", rpcErr);
     return NextResponse.json(
       {
@@ -297,9 +305,17 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      let body: any;
+      interface UploadItemInput {
+        id?: string;
+        name?: string;
+        dataUrl?: string;
+        imageUrl?: string;
+        data?: string;
+      }
+
+      let body: Record<string, unknown>;
       try {
-        body = JSON.parse(rawText);
+        body = JSON.parse(rawText) as Record<string, unknown>;
       } catch {
         return NextResponse.json(
           { success: false, error: "Invalid JSON body." },
@@ -307,13 +323,14 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      const items = Array.isArray(body.items) ? body.items : Array.isArray(body.files) ? body.files : null;
-      if (!items) {
+      const rawItems = Array.isArray(body.items) ? body.items : Array.isArray(body.files) ? body.files : null;
+      if (!rawItems) {
         return NextResponse.json(
           { success: false, error: "Invalid payload: 'items' array required." },
           { status: 400 }
         );
       }
+      const items = rawItems as UploadItemInput[];
 
       if (items.length > MAX_ITEMS_PER_BATCH) {
         return NextResponse.json(
@@ -326,7 +343,7 @@ export async function POST(req: NextRequest) {
       }
 
       // Validate each item
-      const parsedBuffers: { item: any; buffer: Buffer; info: ImageHeaderInfo }[] = [];
+      const parsedBuffers: { item: UploadItemInput; buffer: Buffer; info: ImageHeaderInfo }[] = [];
 
       for (const item of items) {
         const rawUrl = item.dataUrl || item.imageUrl || item.data || "";
@@ -412,11 +429,13 @@ export async function POST(req: NextRequest) {
           buffer: entry.buffer,
           contentType: entry.info.mime,
         });
-        uploadedMap.set(entry.item.id, uploaded.url);
+        if (entry.item.id) {
+          uploadedMap.set(entry.item.id, uploaded.url);
+        }
       }
 
-      const uploadedItems = items.map((item: any) => {
-        if (uploadedMap.has(item.id)) {
+      const uploadedItems = items.map((item) => {
+        if (item.id && uploadedMap.has(item.id)) {
           return {
             id: item.id,
             name: item.name,
@@ -536,10 +555,11 @@ export async function POST(req: NextRequest) {
       { success: false, error: "Unsupported Content-Type header." },
       { status: 400 }
     );
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("R2 Upload Error:", err);
+    const msg = err instanceof Error ? err.message : "Failed to upload to Cloudflare R2.";
     return NextResponse.json(
-      { success: false, error: err.message || "Failed to upload to Cloudflare R2." },
+      { success: false, error: msg },
       { status: 500 }
     );
   }

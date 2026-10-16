@@ -21,19 +21,18 @@ export function Navbar({ onOpenPublish }: NavbarProps) {
   const [creatorHandle, setCreatorHandle] = useState("Creator");
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("tl_commenter_name");
-      if (saved && saved.trim()) {
-        setCreatorHandle(saved.trim());
+    queueMicrotask(() => {
+      if (typeof window !== "undefined") {
+        const saved = localStorage.getItem("tl_commenter_name");
+        if (saved && saved.trim()) {
+          setCreatorHandle(saved.trim());
+        }
       }
-    }
+    });
   }, []);
 
   useEffect(() => {
-    if (!searchQuery.trim()) {
-      setMatchingTemplates([]);
-      return;
-    }
+    if (!searchQuery.trim()) return;
     let isCancelled = false;
     fetchTemplates({ search: searchQuery }).then((res) => {
       if (!isCancelled) {

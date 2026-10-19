@@ -234,6 +234,8 @@ async function TemplateContent({ params }: { params: Promise<{ id: string }> }) 
           </section>
         )}
 
+        <p className="text-xs text-zinc-400"><Link href="/contact">Report a problem with this template</Link></p>
+
         {/* Community Consensus Snapshot */}
         <TemplateConsensusSection
           template={template}

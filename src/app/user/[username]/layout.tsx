@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { connection } from "next/server";
+import { fetchUserProfile } from "@/lib/community";
 import { canIndexSite } from "@/lib/seo";
 
 interface Props {
@@ -12,13 +13,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { username } = await params;
   const decoded = decodeURIComponent(username || "Creator");
 
+  const profile = await fetchUserProfile(decoded);
+  const hasPublicContent = profile.templates.length > 0 || profile.tierLists.length > 0;
+
   const title = `@${decoded}'s Tier Lists & Creator Profile`;
   const description = `Explore tier lists, rankings, and custom templates published by @${decoded} on Tier List Maker.`;
 
   return {
     title,
     description,
-    robots: { index: canIndexSite() && decoded.toLowerCase() !== "launch-test", follow: true },
+    robots: { index: canIndexSite() && hasPublicContent && decoded.toLowerCase() !== "launch-test", follow: true },
     alternates: { canonical: `/user/${encodeURIComponent(decoded)}` },
     openGraph: {
       url: `/user/${encodeURIComponent(decoded)}`,

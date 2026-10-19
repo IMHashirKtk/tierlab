@@ -12,5 +12,5 @@ export function getSiteUrl(): string {
 }
 
 export function canIndexSite(): boolean {
-  return process.env.VERCEL_ENV !== "preview" && process.env.VERCEL_ENV !== "development";
+  return process.env.NEXT_PUBLIC_ALLOW_INDEXING !== "false" && process.env.VERCEL_ENV !== "preview" && process.env.VERCEL_ENV !== "development";
 }

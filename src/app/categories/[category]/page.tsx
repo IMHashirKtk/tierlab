@@ -34,11 +34,12 @@ export async function generateMetadata({
   params: Promise<{ category: string }>;
 }): Promise<Metadata> {
   const { category } = await params;
-  const catObj = CATEGORIES.find((c) => c.id.toLowerCase() === category.toLowerCase());
+  const catObj = CATEGORIES.find((c) => c.id === category && c.id !== "all");
+  if (!catObj) notFound();
   const categoryName = catObj?.name || category.charAt(0).toUpperCase() + category.slice(1);
 
   const title = `${categoryName} Tier List Maker — Free Templates & Community Rankings`;
-  const description = `Create and rank ${categoryName.toLowerCase()} tier lists online for free. Browse trending ${categoryName.toLowerCase()} templates, compare against crowd consensus, and export 4K PNGs or TikTok reveal videos with zero watermarks.`;
+  const description = `Create and rank ${categoryName.toLowerCase()} tier lists online for free. Browse ${categoryName.toLowerCase()} starter and community templates, compare against crowd consensus, and export 4K PNGs or TikTok reveal videos with zero watermarks.`;
   const canonicalUrl = `/categories/${category}`;
   const ogUrl = `/api/og?title=${encodeURIComponent(categoryName + " Tier Lists")}&category=${encodeURIComponent(categoryName)}&mode=template`;
 
@@ -78,8 +79,10 @@ async function CategoryContent({
 }) {
   const { category } = await params;
   const currentCat = CATEGORIES.find(
-    (c) => c.id.toLowerCase() === category.toLowerCase()
+    (c) => c.id === category && c.id !== "all"
   );
+
+  if (!currentCat) notFound();
 
   const categoryName =
     currentCat?.name || category.charAt(0).toUpperCase() + category.slice(1);
@@ -191,7 +194,7 @@ async function CategoryContent({
               {categoryName} Tier List Maker & Templates
             </h1>
             <p className="text-zinc-400 text-sm sm:text-base mt-2 max-w-2xl leading-relaxed">
-              Explore the most popular {categoryName.toLowerCase()} tier list templates created by fans. Drag and drop items to build your personal ranking or compare against the community consensus.
+              Browse {categoryName.toLowerCase()} starter templates and public community creations. Drag and drop items to build your personal ranking or compare against the community consensus.
             </p>
           </div>
 
@@ -226,7 +229,7 @@ async function CategoryContent({
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight flex items-center gap-2">
               <Flame className="w-5 h-5 text-indigo-400" />
-              <span>Trending {categoryName} Tier Lists</span>
+              <span>Browse {categoryName} Tier Lists</span>
             </h2>
             <span className="text-xs text-zinc-400">
               Showing {categoryTemplates.length} templates

@@ -353,6 +353,8 @@ export function SharedTierListClient({ id }: SharedTierListClientProps) {
 
         {/* Community Comments & Takes */}
         <div className="pt-2">
+        <p className="text-xs text-zinc-400"><Link href="/contact" className="text-indigo-300 hover:underline">Report this ranking or a comment</Link></p>
+
           <CommentsSection tierListId={ranking.id} creatorName={ranking.authorName} />
         </div>
       </main>

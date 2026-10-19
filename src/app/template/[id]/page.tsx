@@ -2,6 +2,7 @@ import { ItemImage } from "@/components/ItemImage";
 import React, { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { STARTER_GUIDES } from "@/data/starter-guides";
 import { SEED_TEMPLATES } from "@/data/seed-templates";
 import { fetchTemplateById, fetchSubmissionsForTemplateWithStatus } from "@/lib/community";
 import { safeJsonLd, canIndexSite } from "@/lib/seo";
@@ -85,7 +86,8 @@ async function TemplateContent({ params }: { params: Promise<{ id: string }> }) 
   }
 
   const { submissions, fetchError } = await fetchSubmissionsForTemplateWithStatus(template.id);
-  const relatedTemplates = SEED_TEMPLATES.filter((t) => t.id !== id).slice(0, 3);
+  const relatedTemplates = SEED_TEMPLATES.filter((t) => t.id !== id && t.category === template.category).slice(0, 3);
+  const guide = STARTER_GUIDES[template.id];
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://tierlistmaker.app";
 
   const jsonLd = {
@@ -222,6 +224,17 @@ async function TemplateContent({ params }: { params: Promise<{ id: string }> }) 
             ))}
           </div>
         </div>
+
+        {guide && (
+          <section className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-5 space-y-3">
+            <h2 className="text-lg font-semibold text-white">Choose your ranking criteria</h2>
+            <p className="text-sm text-zinc-300 leading-relaxed">{guide.criteria}</p>
+            <p className="text-xs text-zinc-400">This is a curated starter roster. Leave unfamiliar items unranked, add missing picks, and rename tiers to explain your scale.</p>
+            {!template.items.some(item => item.imageUrl) && <p className="text-xs text-zinc-400">This template uses text cards. You can add your own permitted images in the studio.</p>}
+          </section>
+        )}
+
+        <p className="text-xs text-zinc-400"><Link href="/contact">Report a problem with this template</Link></p>
 
         {/* Community Consensus Snapshot */}
         <TemplateConsensusSection

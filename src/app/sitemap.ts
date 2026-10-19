@@ -10,6 +10,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: siteUrl, changeFrequency: "weekly", priority: 1 },
     { url: `${siteUrl}/tiermaker-alternative`, changeFrequency: "monthly", priority: 0.7 },
+    ...["about", "contact", "privacy", "terms", "copyright"].map(path => ({
+      url: `${siteUrl}/${path}`, changeFrequency: "monthly" as const, priority: 0.3,
+    })),
   ];
   const categoryRoutes: MetadataRoute.Sitemap = CATEGORIES.filter(c => c.id !== "all").map(c => ({
     url: `${siteUrl}/categories/${encodeURIComponent(c.id)}`,

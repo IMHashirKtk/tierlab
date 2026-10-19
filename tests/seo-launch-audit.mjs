@@ -6,6 +6,7 @@ import { setMockSupabaseClient, resetMockSupabaseClient } from '../src/lib/supab
 
 const site = process.env.NEXT_PUBLIC_SITE_URL;
 const environment = process.env.VERCEL_ENV;
+const indexing = process.env.NEXT_PUBLIC_ALLOW_INDEXING;
 process.env.NEXT_PUBLIC_SITE_URL='https://tierlistmaker.app/';
 setMockSupabaseClient({from() {return { select(){return this;}, order(){return this;}, async limit(){return {error:null,data:[
   {id:'launch-test-reusable-template-h3mu',items:[1,2,3],updated_at:'2026-10-19'},
@@ -22,7 +23,13 @@ try {
   assert(routes.every(r=>r.url.startsWith('https://tierlistmaker.app')));
   assert(!routes.some(r=>/launch-test|invalid-items|empty-template|\/create$|\/versus$|\/my-projects/.test(r.url)));
   assert.equal(routes.find(r=>r.url==='https://tierlistmaker.app').lastModified,undefined);
+  assert(robots().rules.allow.includes('/api/cdn/'));
+  assert(robots().rules.allow.includes('/api/og'));
   assert.equal(robots().sitemap,'https://tierlistmaker.app/sitemap.xml');
+  process.env.NEXT_PUBLIC_ALLOW_INDEXING='false';
+  assert.equal(canIndexSite(),false);
+  assert.deepEqual(await sitemap(),[]);
+  delete process.env.NEXT_PUBLIC_ALLOW_INDEXING;
   process.env.VERCEL_ENV='preview';
   assert.equal(canIndexSite(),false);
   assert.deepEqual(await sitemap(),[]);
@@ -30,6 +37,7 @@ try {
   console.log('PASS: production sitemap, preview exclusion, test/invalid/utility filtering, honest timestamps, domain consistency, and JSON-LD escaping');
 } finally {
   resetMockSupabaseClient();
+  if(indexing===undefined) delete process.env.NEXT_PUBLIC_ALLOW_INDEXING; else process.env.NEXT_PUBLIC_ALLOW_INDEXING=indexing;
   if(site===undefined) delete process.env.NEXT_PUBLIC_SITE_URL; else process.env.NEXT_PUBLIC_SITE_URL=site;
   if(environment===undefined) delete process.env.VERCEL_ENV; else process.env.VERCEL_ENV=environment;
 }

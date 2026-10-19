@@ -1,5 +1,7 @@
 "use client";
 
+import { WEB_IMAGE_SEARCH_ENABLED } from "@/lib/features";
+
 import { ItemImage } from "@/components/ItemImage";
 import { useDialogFocus } from "@/lib/use-dialog-focus";
 import React, { useState, useEffect, useRef, useTransition, useCallback, useMemo } from "react";
@@ -1293,13 +1295,15 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
                 </div>
                 <div className="flex items-center gap-1.5">
                   {/* Instant Web Search Trigger */}
-                  <button
-                    onClick={() => setIsWebSearchOpen(true)}
-                    className="p-2 min-w-[32px] min-h-[32px] flex items-center justify-center rounded-lg bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-400 hover:text-indigo-300 transition-colors cursor-pointer border border-indigo-500/30"
-                    title="Search Web & Icons"
-                  >
-                    <Globe className="w-3.5 h-3.5" />
-                  </button>
+                  {WEB_IMAGE_SEARCH_ENABLED && (
+                    <button
+                      onClick={() => setIsWebSearchOpen(true)}
+                      className="p-2 min-w-[32px] min-h-[32px] flex items-center justify-center rounded-lg bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-400 hover:text-indigo-300 transition-colors cursor-pointer border border-indigo-500/30"
+                      title="Search Web & Icons"
+                    >
+                      <Globe className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                   {/* Local Upload */}
                   <button
                     onClick={() => fileInputRef.current?.click()}
@@ -1417,13 +1421,14 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
                       <div className="w-full py-5 text-center text-xs text-zinc-400 space-y-2">
                         <p className="text-zinc-300">{board.tiers.some(t => t.items.length) ? "All items have been ranked." : "Start with your own images or text."}</p>
                         <div className="flex justify-center gap-2 pt-1">
-                          <button
-                            onClick={() => setIsWebSearchOpen(true)}
-                            className="text-indigo-400 hover:underline font-medium text-[11px] cursor-pointer"
-                          >
-                            + Search Web
-                          </button>
-                          <span>•</span>
+                          {WEB_IMAGE_SEARCH_ENABLED && (
+                            <button
+                              onClick={() => setIsWebSearchOpen(true)}
+                              className="text-indigo-400 hover:underline font-medium text-[11px] cursor-pointer"
+                            >
+                              + Search Web
+                            </button>
+                          )}
                           <button
                             onClick={() => fileInputRef.current?.click()}
                             className="text-indigo-400 hover:underline font-medium text-[11px] cursor-pointer"
@@ -1442,15 +1447,17 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
             </div>
 
             {/* Quick Action Buttons */}
-            <div className="hidden lg:grid grid-cols-2 gap-2">
-              <button
-                onClick={() => setIsWebSearchOpen(true)}
-                className="p-3 rounded-xl border border-dashed border-indigo-500/40 hover:border-indigo-500 bg-indigo-500/10 hover:bg-indigo-500/20 text-center transition-colors cursor-pointer"
-              >
-                <Globe className="w-4 h-4 text-indigo-400 mx-auto mb-1" />
-                <span className="text-xs font-semibold text-indigo-300 block">Web Search</span>
-                <span className="text-[10px] text-zinc-400">Instant Icons</span>
-              </button>
+            <div className={`hidden lg:grid gap-2 ${WEB_IMAGE_SEARCH_ENABLED ? "grid-cols-2" : "grid-cols-1"}`}>
+              {WEB_IMAGE_SEARCH_ENABLED && (
+                <button
+                  onClick={() => setIsWebSearchOpen(true)}
+                  className="p-3 rounded-xl border border-dashed border-indigo-500/40 hover:border-indigo-500 bg-indigo-500/10 hover:bg-indigo-500/20 text-center transition-colors cursor-pointer"
+                >
+                  <Globe className="w-4 h-4 text-indigo-400 mx-auto mb-1" />
+                  <span className="text-xs font-semibold text-indigo-300 block">Web Search</span>
+                  <span className="text-[10px] text-zinc-400">Instant Icons</span>
+                </button>
+              )}
               <button
                 onClick={() => fileInputRef.current?.click()}
                 className="p-3 rounded-xl border border-dashed border-zinc-700/80 hover:border-zinc-500 bg-zinc-800/40 hover:bg-zinc-800/70 text-center transition-colors cursor-pointer"
@@ -1469,16 +1476,18 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
         </DragOverlay>
 
         {/* Modals */}
-        <WebImageSearchModal
-          isOpen={isWebSearchOpen}
-          onClose={() => setIsWebSearchOpen(false)}
-          onAddItems={(newItems) =>
-            commitBoardChange((prev) => ({
-              ...prev,
-              unranked: [...newItems, ...prev.unranked],
-            }))
-          }
-        />
+        {WEB_IMAGE_SEARCH_ENABLED && (
+          <WebImageSearchModal
+            isOpen={isWebSearchOpen}
+            onClose={() => setIsWebSearchOpen(false)}
+            onAddItems={(newItems) =>
+              commitBoardChange((prev) => ({
+                ...prev,
+                unranked: [...newItems, ...prev.unranked],
+              }))
+            }
+          />
+        )}
 
         <ShareModal
           isOpen={isShareModalOpen}

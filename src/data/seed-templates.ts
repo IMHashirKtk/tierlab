@@ -1,513 +1,754 @@
-import type { Template, UserRanking } from "@/types";
+import type { Template } from "@/types";
 import { presentTemplate } from "@/lib/catalog";
 
 export const CATEGORIES = [
-  { id: "all", name: "All Categories", icon: "🔥", count: 12 },
-  { id: "gaming", name: "Gaming", icon: "🎮", count: 3 },
-  { id: "anime", name: "Anime & Manga", icon: "🎌", count: 1 },
-  { id: "food", name: "Food & Drinks", icon: "🍔", count: 2 },
-  { id: "movies", name: "Movies & TV", icon: "🎬", count: 1 },
-  { id: "music", name: "Music & Albums", icon: "🎵", count: 1 },
-  { id: "sports", name: "Sports", icon: "⚽", count: 2 },
-  { id: "pop-culture", name: "Pop Culture & Tech", icon: "⚡", count: 2 },
+  {
+    "id": "all",
+    "name": "All Categories",
+    "icon": "🔥",
+    "count": 12
+  },
+  {
+    "id": "gaming",
+    "name": "Gaming",
+    "icon": "🎮",
+    "count": 3
+  },
+  {
+    "id": "anime",
+    "name": "Anime & Manga",
+    "icon": "🎌",
+    "count": 1
+  },
+  {
+    "id": "food",
+    "name": "Food & Drinks",
+    "icon": "🍔",
+    "count": 2
+  },
+  {
+    "id": "movies",
+    "name": "Movies & TV",
+    "icon": "🎬",
+    "count": 1
+  },
+  {
+    "id": "music",
+    "name": "Music & Albums",
+    "icon": "🎵",
+    "count": 1
+  },
+  {
+    "id": "sports",
+    "name": "Sports",
+    "icon": "⚽",
+    "count": 2
+  },
+  {
+    "id": "pop-culture",
+    "name": "Pop Culture & Tech",
+    "icon": "⚡",
+    "count": 2
+  }
 ];
 
 const STARTER_TEMPLATES: Template[] = [
   {
-    id: "elden-ring-bosses",
-    slug: "elden-ring-shadow-erdtree-bosses",
-    title: "Elden Ring: Shadow of the Erdtree Bosses",
-    description: "Rank every main remembrance boss from the Lands Between and Realm of Shadow by mechanical difficulty and design.",
-    category: "gaming",
-    author: {
-      username: "EldenLord",
-      verified: true,
+    "id": "elden-ring-bosses",
+    "slug": "elden-ring-shadow-erdtree-bosses",
+    "title": "Elden Ring: Shadow of the Erdtree Bosses",
+    "description": "Rank every main remembrance boss from the Lands Between and Realm of Shadow by mechanical difficulty and design.",
+    "category": "gaming",
+    "author": {
+      "username": "Template Library"
     },
-    itemCount: 10,
-    remixCount: 14280,
-    upvotes: 3840,
-    createdAt: "2h ago",
-    featured: true,
-    previewRows: [
-      { tier: "S", color: "from-rose-500 to-red-600", items: ["Promised Consort Radahn", "Malenia", "Messmer the Impaler"] },
-      { tier: "A", color: "from-amber-500 to-orange-500", items: ["Mohg, Lord of Blood", "Godfrey, First Elden Lord", "Bayle the Dread"] },
+    "itemCount": 10,
+    "remixCount": 0,
+    "upvotes": 0,
+    "createdAt": "Starter template",
+    "featured": false,
+    "items": [
+      {
+        "id": "er-1",
+        "name": "Malenia, Blade of Miquella"
+      },
+      {
+        "id": "er-2",
+        "name": "Promised Consort Radahn"
+      },
+      {
+        "id": "er-3",
+        "name": "Messmer the Impaler"
+      },
+      {
+        "id": "er-4",
+        "name": "Bayle the Dread"
+      },
+      {
+        "id": "er-5",
+        "name": "Mohg, Lord of Blood"
+      },
+      {
+        "id": "er-6",
+        "name": "Godfrey, First Elden Lord"
+      },
+      {
+        "id": "er-7",
+        "name": "Maliketh, the Black Blade"
+      },
+      {
+        "id": "er-8",
+        "name": "Starscourge Radahn"
+      },
+      {
+        "id": "er-9",
+        "name": "Midra, Lord of Frenzied Flame"
+      },
+      {
+        "id": "er-10",
+        "name": "Rellana, Twin Moon Knight"
+      }
     ],
-    items: [
-      { id: "er-1", name: "Malenia, Blade of Miquella", imageUrl: "https://images.unsplash.com/photo-1579783902614-a3fb3927b675?auto=format&fit=crop&w=300&q=80" },
-      { id: "er-2", name: "Promised Consort Radahn", imageUrl: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=300&q=80" },
-      { id: "er-3", name: "Messmer the Impaler", imageUrl: "https://images.unsplash.com/photo-1563089145-599997674d42?auto=format&fit=crop&w=300&q=80" },
-      { id: "er-4", name: "Bayle the Dread", imageUrl: "https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=300&q=80" },
-      { id: "er-5", name: "Mohg, Lord of Blood", imageUrl: "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?auto=format&fit=crop&w=300&q=80" },
-      { id: "er-6", name: "Godfrey, First Elden Lord", imageUrl: "https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=300&q=80" },
-      { id: "er-7", name: "Maliketh, the Black Blade", imageUrl: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=300&q=80" },
-      { id: "er-8", name: "Starscourge Radahn", imageUrl: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=300&q=80" },
-      { id: "er-9", name: "Midra, Lord of Frenzied Flame", imageUrl: "https://images.unsplash.com/photo-1508739773434-c26b3d09e071?auto=format&fit=crop&w=300&q=80" },
-      { id: "er-10", name: "Rellana, Twin Moon Knight", imageUrl: "https://images.unsplash.com/photo-1516339901601-2e1b62dc0c45?auto=format&fit=crop&w=300&q=80" },
-    ],
+    "isStarter": true
   },
   {
-    id: "mcu-movies",
-    slug: "mcu-all-phases-ranked",
-    title: "Marvel Cinematic Universe (All Phases)",
-    description: "From Iron Man (2008) to Deadpool & Wolverine. Determine the definitive hierarchy of Marvel Studios films.",
-    category: "movies",
-    author: {
-      username: "CinemaGeek",
-      verified: true,
+    "id": "mcu-movies",
+    "slug": "mcu-all-phases-ranked",
+    "title": "Marvel Cinematic Universe (All Phases)",
+    "description": "From Iron Man (2008) to Deadpool & Wolverine. Determine the definitive hierarchy of Marvel Studios films.",
+    "category": "movies",
+    "author": {
+      "username": "Template Library"
     },
-    itemCount: 10,
-    remixCount: 22190,
-    upvotes: 5120,
-    createdAt: "4h ago",
-    featured: true,
-    previewRows: [
-      { tier: "S", color: "from-rose-500 to-red-600", items: ["Avengers: Infinity War", "Avengers: Endgame", "Winter Soldier"] },
-      { tier: "A", color: "from-amber-500 to-orange-500", items: ["Captain America: Civil War", "Guardians Vol. 1", "Iron Man"] },
+    "itemCount": 10,
+    "remixCount": 0,
+    "upvotes": 0,
+    "createdAt": "Starter template",
+    "featured": false,
+    "items": [
+      {
+        "id": "mcu-1",
+        "name": "Avengers: Infinity War"
+      },
+      {
+        "id": "mcu-2",
+        "name": "Avengers: Endgame"
+      },
+      {
+        "id": "mcu-3",
+        "name": "Captain America: The Winter Soldier"
+      },
+      {
+        "id": "mcu-4",
+        "name": "Captain America: Civil War"
+      },
+      {
+        "id": "mcu-5",
+        "name": "Guardians of the Galaxy Vol. 1"
+      },
+      {
+        "id": "mcu-6",
+        "name": "Deadpool & Wolverine"
+      },
+      {
+        "id": "mcu-7",
+        "name": "Spider-Man: No Way Home"
+      },
+      {
+        "id": "mcu-8",
+        "name": "Iron Man"
+      },
+      {
+        "id": "mcu-9",
+        "name": "Thor: Ragnarok"
+      },
+      {
+        "id": "mcu-10",
+        "name": "Black Panther"
+      }
     ],
-    items: [
-      { id: "mcu-1", name: "Avengers: Infinity War", imageUrl: "https://images.unsplash.com/photo-1635805737707-575885ab0820?auto=format&fit=crop&w=300&q=80" },
-      { id: "mcu-2", name: "Avengers: Endgame", imageUrl: "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?auto=format&fit=crop&w=300&q=80" },
-      { id: "mcu-3", name: "Captain America: The Winter Soldier", imageUrl: "https://images.unsplash.com/photo-1569003339405-ea396a5a8a90?auto=format&fit=crop&w=300&q=80" },
-      { id: "mcu-4", name: "Captain America: Civil War", imageUrl: "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&w=300&q=80" },
-      { id: "mcu-5", name: "Guardians of the Galaxy Vol. 1", imageUrl: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=300&q=80" },
-      { id: "mcu-6", name: "Deadpool & Wolverine", imageUrl: "https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=300&q=80" },
-      { id: "mcu-7", name: "Spider-Man: No Way Home", imageUrl: "https://images.unsplash.com/photo-1531259683007-016a7b628fc3?auto=format&fit=crop&w=300&q=80" },
-      { id: "mcu-8", name: "Iron Man", imageUrl: "https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=300&q=80" },
-      { id: "mcu-9", name: "Thor: Ragnarok", imageUrl: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=300&q=80" },
-      { id: "mcu-10", name: "Black Panther", imageUrl: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=300&q=80" },
-    ],
+    "isStarter": true
   },
   {
-    id: "modern-shonen-anime",
-    slug: "top-modern-shonen-anime",
-    title: "Top Modern Shonen Anime (2020–2026)",
-    description: "Rank Jujutsu Kaisen, Frieren, Demon Slayer, Chainsaw Man, Solo Leveling, and Bleach TYBW.",
-    category: "anime",
-    author: {
-      username: "OtakuRanks",
-      verified: false,
+    "id": "modern-shonen-anime",
+    "slug": "top-modern-shonen-anime",
+    "title": "Top Modern Shonen Anime (2020–2026)",
+    "description": "Rank Jujutsu Kaisen, Frieren, Demon Slayer, Chainsaw Man, Solo Leveling, and Bleach TYBW.",
+    "category": "anime",
+    "author": {
+      "username": "Template Library"
     },
-    itemCount: 10,
-    remixCount: 18450,
-    upvotes: 4210,
-    createdAt: "5h ago",
-    featured: true,
-    previewRows: [
-      { tier: "S", color: "from-rose-500 to-red-600", items: ["Frieren: Beyond Journey's End", "Jujutsu Kaisen Season 2"] },
-      { tier: "A", color: "from-amber-500 to-orange-500", items: ["Chainsaw Man", "Bleach: TYBW", "Demon Slayer: Swordsmith"] },
+    "itemCount": 10,
+    "remixCount": 0,
+    "upvotes": 0,
+    "createdAt": "Starter template",
+    "featured": false,
+    "items": [
+      {
+        "id": "an-1",
+        "name": "Frieren: Beyond Journey's End"
+      },
+      {
+        "id": "an-2",
+        "name": "Jujutsu Kaisen"
+      },
+      {
+        "id": "an-3",
+        "name": "Chainsaw Man"
+      },
+      {
+        "id": "an-4",
+        "name": "Demon Slayer"
+      },
+      {
+        "id": "an-5",
+        "name": "Bleach: Thousand-Year Blood War"
+      },
+      {
+        "id": "an-6",
+        "name": "Solo Leveling"
+      },
+      {
+        "id": "an-7",
+        "name": "Dandadan"
+      },
+      {
+        "id": "an-8",
+        "name": "Kaiju No. 8"
+      },
+      {
+        "id": "an-9",
+        "name": "Hell's Paradise"
+      },
+      {
+        "id": "an-10",
+        "name": "Oshi no Ko"
+      }
     ],
-    items: [
-      { id: "an-1", name: "Frieren: Beyond Journey's End", imageUrl: "https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=300&q=80" },
-      { id: "an-2", name: "Jujutsu Kaisen", imageUrl: "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?auto=format&fit=crop&w=300&q=80" },
-      { id: "an-3", name: "Chainsaw Man", imageUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=300&q=80" },
-      { id: "an-4", name: "Demon Slayer", imageUrl: "https://images.unsplash.com/photo-1563089145-599997674d42?auto=format&fit=crop&w=300&q=80" },
-      { id: "an-5", name: "Bleach: Thousand-Year Blood War", imageUrl: "https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=300&q=80" },
-      { id: "an-6", name: "Solo Leveling", imageUrl: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=300&q=80" },
-      { id: "an-7", name: "Dandadan", imageUrl: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=300&q=80" },
-      { id: "an-8", name: "Kaiju No. 8", imageUrl: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=300&q=80" },
-      { id: "an-9", name: "Hell's Paradise", imageUrl: "https://images.unsplash.com/photo-1508739773434-c26b3d09e071?auto=format&fit=crop&w=300&q=80" },
-      { id: "an-10", name: "Oshi no Ko", imageUrl: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=300&q=80" },
-    ],
+    "isStarter": true
   },
   {
-    id: "fast-food-fries",
-    slug: "fast-food-french-fries",
-    title: "Fast Food French Fries Showdown",
-    description: "Crispiness, seasoning, potato texture, and sauce compatibility across all major fast food drive-thrus.",
-    category: "food",
-    author: {
-      username: "FryConnoisseur",
-      verified: false,
+    "id": "fast-food-fries",
+    "slug": "fast-food-french-fries",
+    "title": "Fast Food French Fries Showdown",
+    "description": "Crispiness, seasoning, potato texture, and sauce compatibility across all major fast food drive-thrus.",
+    "category": "food",
+    "author": {
+      "username": "Template Library"
     },
-    itemCount: 10,
-    remixCount: 9420,
-    upvotes: 2180,
-    createdAt: "8h ago",
-    featured: false,
-    previewRows: [
-      { tier: "S", color: "from-rose-500 to-red-600", items: ["McDonald's (Fresh)", "Five Guys (Cajun)"] },
-      { tier: "A", color: "from-amber-500 to-orange-500", items: ["Arby's Curly Fries", "Popeyes Cajun Fries"] },
+    "itemCount": 10,
+    "remixCount": 0,
+    "upvotes": 0,
+    "createdAt": "Starter template",
+    "featured": false,
+    "items": [
+      {
+        "id": "ff-1",
+        "name": "McDonald's"
+      },
+      {
+        "id": "ff-2",
+        "name": "Five Guys (Cajun)"
+      },
+      {
+        "id": "ff-3",
+        "name": "Popeyes Cajun Fries"
+      },
+      {
+        "id": "ff-4",
+        "name": "Arby's Curly Fries"
+      },
+      {
+        "id": "ff-5",
+        "name": "Wendy's Hot & Crispy"
+      },
+      {
+        "id": "ff-6",
+        "name": "Chick-fil-A Waffle Fries"
+      },
+      {
+        "id": "ff-7",
+        "name": "Burger King"
+      },
+      {
+        "id": "ff-8",
+        "name": "Shake Shack Crinkle Cut"
+      },
+      {
+        "id": "ff-9",
+        "name": "In-N-Out (Well-Done)"
+      },
+      {
+        "id": "ff-10",
+        "name": "Taco Bell Nacho Fries"
+      }
     ],
-    items: [
-      { id: "ff-1", name: "McDonald's", imageUrl: "https://images.unsplash.com/photo-1576107232684-1279f3908594?auto=format&fit=crop&w=300&q=80" },
-      { id: "ff-2", name: "Five Guys (Cajun)", imageUrl: "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?auto=format&fit=crop&w=300&q=80" },
-      { id: "ff-3", name: "Popeyes Cajun Fries", imageUrl: "https://images.unsplash.com/photo-1585109649139-366815a0d713?auto=format&fit=crop&w=300&q=80" },
-      { id: "ff-4", name: "Arby's Curly Fries", imageUrl: "https://images.unsplash.com/photo-1630384060421-cb20d0e0649d?auto=format&fit=crop&w=300&q=80" },
-      { id: "ff-5", name: "Wendy's Hot & Crispy", imageUrl: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=300&q=80" },
-      { id: "ff-6", name: "Chick-fil-A Waffle Fries", imageUrl: "https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=300&q=80" },
-      { id: "ff-7", name: "Burger King", imageUrl: "https://images.unsplash.com/photo-1561758033-d89a9ad46330?auto=format&fit=crop&w=300&q=80" },
-      { id: "ff-8", name: "Shake Shack Crinkle Cut", imageUrl: "https://images.unsplash.com/photo-1586190848861-99aa4a171e90?auto=format&fit=crop&w=300&q=80" },
-      { id: "ff-9", name: "In-N-Out (Well-Done)", imageUrl: "https://images.unsplash.com/photo-1551782450-a2132b4ba21d?auto=format&fit=crop&w=300&q=80" },
-      { id: "ff-10", name: "Taco Bell Nacho Fries", imageUrl: "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?auto=format&fit=crop&w=300&q=80" },
-    ],
+    "isStarter": true
   },
   {
-    id: "roblox-games",
-    slug: "roblox-top-games-meta",
-    title: "Roblox Most Played Games (2026)",
-    description: "Blox Fruits, Brookhaven, Blade Ball, Dress to Impress, Anime Defenders, and Pet Simulator.",
-    category: "gaming",
-    author: {
-      username: "BloxRanker",
-      verified: true,
+    "id": "roblox-games",
+    "slug": "roblox-top-games-meta",
+    "title": "Roblox Most Played Games (2026)",
+    "description": "Blox Fruits, Brookhaven, Blade Ball, Dress to Impress, Anime Defenders, and Pet Simulator.",
+    "category": "gaming",
+    "author": {
+      "username": "Template Library"
     },
-    itemCount: 10,
-    remixCount: 31200,
-    upvotes: 8900,
-    createdAt: "1d ago",
-    featured: true,
-    previewRows: [
-      { tier: "S", color: "from-rose-500 to-red-600", items: ["Blox Fruits", "Dress to Impress"] },
-      { tier: "A", color: "from-amber-500 to-orange-500", items: ["Anime Defenders", "Blade Ball", "Doors"] },
+    "itemCount": 10,
+    "remixCount": 0,
+    "upvotes": 0,
+    "createdAt": "Starter template",
+    "featured": false,
+    "items": [
+      {
+        "id": "rb-1",
+        "name": "Blox Fruits"
+      },
+      {
+        "id": "rb-2",
+        "name": "Dress to Impress"
+      },
+      {
+        "id": "rb-3",
+        "name": "Anime Defenders"
+      },
+      {
+        "id": "rb-4",
+        "name": "Blade Ball"
+      },
+      {
+        "id": "rb-5",
+        "name": "Brookhaven RP"
+      },
+      {
+        "id": "rb-6",
+        "name": "Doors"
+      },
+      {
+        "id": "rb-7",
+        "name": "Pet Simulator 99"
+      },
+      {
+        "id": "rb-8",
+        "name": "Murder Mystery 2"
+      },
+      {
+        "id": "rb-9",
+        "name": "Fisch"
+      },
+      {
+        "id": "rb-10",
+        "name": "Arsenal"
+      }
     ],
-    items: [
-      { id: "rb-1", name: "Blox Fruits", imageUrl: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=300&q=80" },
-      { id: "rb-2", name: "Dress to Impress", imageUrl: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=300&q=80" },
-      { id: "rb-3", name: "Anime Defenders", imageUrl: "https://images.unsplash.com/photo-1563089145-599997674d42?auto=format&fit=crop&w=300&q=80" },
-      { id: "rb-4", name: "Blade Ball", imageUrl: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=300&q=80" },
-      { id: "rb-5", name: "Brookhaven RP", imageUrl: "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=300&q=80" },
-      { id: "rb-6", name: "Doors", imageUrl: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=300&q=80" },
-      { id: "rb-7", name: "Pet Simulator 99", imageUrl: "https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=300&q=80" },
-      { id: "rb-8", name: "Murder Mystery 2", imageUrl: "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&w=300&q=80" },
-      { id: "rb-9", name: "Fisch", imageUrl: "https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?auto=format&fit=crop&w=300&q=80" },
-      { id: "rb-10", name: "Arsenal", imageUrl: "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=300&q=80" },
-    ],
+    "isStarter": true
   },
   {
-    id: "hip-hop-2020s",
-    slug: "defining-hip-hop-albums-2020s",
-    title: "Defining Hip-Hop Albums of the 2020s",
-    description: "Rank Kendrick Lamar, Travis Scott, Drake, J. Cole, Tyler the Creator, and Future's defining projects.",
-    category: "music",
-    author: {
-      username: "VinylHead",
-      verified: false,
+    "id": "hip-hop-2020s",
+    "slug": "defining-hip-hop-albums-2020s",
+    "title": "Defining Hip-Hop Albums of the 2020s",
+    "description": "Rank Kendrick Lamar, Travis Scott, Drake, J. Cole, Tyler the Creator, and Future's defining projects.",
+    "category": "music",
+    "author": {
+      "username": "Template Library"
     },
-    itemCount: 10,
-    remixCount: 7890,
-    upvotes: 1840,
-    createdAt: "1d ago",
-    featured: false,
-    previewRows: [
-      { tier: "S", color: "from-rose-500 to-red-600", items: ["Mr. Morale & The Big Steppers", "Call Me If You Get Lost"] },
-      { tier: "A", color: "from-amber-500 to-orange-500", items: ["Utopia", "The Melodic Blue", "Heroes & Villains"] },
+    "itemCount": 10,
+    "remixCount": 0,
+    "upvotes": 0,
+    "createdAt": "Starter template",
+    "featured": false,
+    "items": [
+      {
+        "id": "hh-1",
+        "name": "Mr. Morale & The Big Steppers"
+      },
+      {
+        "id": "hh-2",
+        "name": "Call Me If You Get Lost"
+      },
+      {
+        "id": "hh-3",
+        "name": "Utopia"
+      },
+      {
+        "id": "hh-4",
+        "name": "Heroes & Villains"
+      },
+      {
+        "id": "hh-5",
+        "name": "The Melodic Blue"
+      },
+      {
+        "id": "hh-6",
+        "name": "We Don't Trust You"
+      },
+      {
+        "id": "hh-7",
+        "name": "The Off-Season"
+      },
+      {
+        "id": "hh-8",
+        "name": "Her Loss"
+      },
+      {
+        "id": "hh-9",
+        "name": "Chromakopia"
+      },
+      {
+        "id": "hh-10",
+        "name": "Donda"
+      }
     ],
-    items: [
-      { id: "hh-1", name: "Mr. Morale & The Big Steppers", imageUrl: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=300&q=80" },
-      { id: "hh-2", name: "Call Me If You Get Lost", imageUrl: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=300&q=80" },
-      { id: "hh-3", name: "Utopia", imageUrl: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=300&q=80" },
-      { id: "hh-4", name: "Heroes & Villains", imageUrl: "https://images.unsplash.com/photo-1511379938547-c1f69419868d?auto=format&fit=crop&w=300&q=80" },
-      { id: "hh-5", name: "The Melodic Blue", imageUrl: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=300&q=80" },
-      { id: "hh-6", name: "We Don't Trust You", imageUrl: "https://images.unsplash.com/photo-1445985543468-7940e9f8299b?auto=format&fit=crop&w=300&q=80" },
-      { id: "hh-7", name: "The Off-Season", imageUrl: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=300&q=80" },
-      { id: "hh-8", name: "Her Loss", imageUrl: "https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?auto=format&fit=crop&w=300&q=80" },
-      { id: "hh-9", name: "Chromakopia", imageUrl: "https://images.unsplash.com/photo-1465847899084-d164df4dedc6?auto=format&fit=crop&w=300&q=80" },
-      { id: "hh-10", name: "Donda", imageUrl: "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&fit=crop&w=300&q=80" },
-    ],
+    "isStarter": true
   },
   {
-    id: "nba-all-time-goat",
-    slug: "nba-all-time-goat-legends",
-    title: "NBA All-Time GOAT Legends",
-    description: "Rank the greatest NBA legends from Jordan and LeBron to Curry and Kobe by peak, rings, and legacy.",
-    category: "sports",
-    author: {
-      username: "HoopsAnalyst",
-      verified: true,
+    "id": "nba-all-time-goat",
+    "slug": "nba-all-time-goat-legends",
+    "title": "NBA All-Time GOAT Legends",
+    "description": "Rank the greatest NBA legends from Jordan and LeBron to Curry and Kobe by peak, rings, and legacy.",
+    "category": "sports",
+    "author": {
+      "username": "Template Library"
     },
-    itemCount: 10,
-    remixCount: 16500,
-    upvotes: 4320,
-    createdAt: "6h ago",
-    featured: true,
-    previewRows: [
-      { tier: "S", color: "from-rose-500 to-red-600", items: ["Michael Jordan", "LeBron James", "Kareem Abdul-Jabbar"] },
-      { tier: "A", color: "from-amber-500 to-orange-500", items: ["Kobe Bryant", "Stephen Curry", "Magic Johnson"] },
+    "itemCount": 10,
+    "remixCount": 0,
+    "upvotes": 0,
+    "createdAt": "Starter template",
+    "featured": false,
+    "items": [
+      {
+        "id": "nba-1",
+        "name": "Michael Jordan"
+      },
+      {
+        "id": "nba-2",
+        "name": "LeBron James"
+      },
+      {
+        "id": "nba-3",
+        "name": "Kareem Abdul-Jabbar"
+      },
+      {
+        "id": "nba-4",
+        "name": "Magic Johnson"
+      },
+      {
+        "id": "nba-5",
+        "name": "Stephen Curry"
+      },
+      {
+        "id": "nba-6",
+        "name": "Kobe Bryant"
+      },
+      {
+        "id": "nba-7",
+        "name": "Larry Bird"
+      },
+      {
+        "id": "nba-8",
+        "name": "Shaquille O'Neal"
+      },
+      {
+        "id": "nba-9",
+        "name": "Tim Duncan"
+      },
+      {
+        "id": "nba-10",
+        "name": "Nikola Jokić"
+      }
     ],
-    items: [
-      { id: "nba-1", name: "Michael Jordan", imageUrl: "https://images.unsplash.com/photo-1546519638-68e109498ffc?auto=format&fit=crop&w=300&q=80" },
-      { id: "nba-2", name: "LeBron James", imageUrl: "https://images.unsplash.com/photo-1519861531473-9200262188bf?auto=format&fit=crop&w=300&q=80" },
-      { id: "nba-3", name: "Kareem Abdul-Jabbar", imageUrl: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=300&q=80" },
-      { id: "nba-4", name: "Magic Johnson", imageUrl: "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=300&q=80" },
-      { id: "nba-5", name: "Stephen Curry", imageUrl: "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?auto=format&fit=crop&w=300&q=80" },
-      { id: "nba-6", name: "Kobe Bryant", imageUrl: "https://images.unsplash.com/photo-1628779238951-be5c9f2a095e?auto=format&fit=crop&w=300&q=80" },
-      { id: "nba-7", name: "Larry Bird", imageUrl: "https://images.unsplash.com/photo-1518063319789-7217e6706b04?auto=format&fit=crop&w=300&q=80" },
-      { id: "nba-8", name: "Shaquille O'Neal", imageUrl: "https://images.unsplash.com/photo-1526676037777-05a232554f77?auto=format&fit=crop&w=300&q=80" },
-      { id: "nba-9", name: "Tim Duncan", imageUrl: "https://images.unsplash.com/photo-1560272564-c83b66b1ad12?auto=format&fit=crop&w=300&q=80" },
-      { id: "nba-10", name: "Nikola Jokić", imageUrl: "https://images.unsplash.com/photo-1517649763962-0c623266ddc0?auto=format&fit=crop&w=300&q=80" },
-    ],
+    "isStarter": true
   },
   {
-    id: "world-football-goats",
-    slug: "football-soccer-21st-century-goats",
-    title: "Football / Soccer 21st Century GOATs",
-    description: "Rank the greatest modern footballers across Ballon d'Or winners, World Cup champions, and Champions League icons.",
-    category: "sports",
-    author: {
-      username: "GolazoKing",
-      verified: true,
+    "id": "world-football-goats",
+    "slug": "football-soccer-21st-century-goats",
+    "title": "Football / Soccer 21st Century GOATs",
+    "description": "Rank the greatest modern footballers across Ballon d'Or winners, World Cup champions, and Champions League icons.",
+    "category": "sports",
+    "author": {
+      "username": "Template Library"
     },
-    itemCount: 10,
-    remixCount: 28400,
-    upvotes: 6890,
-    createdAt: "12h ago",
-    featured: true,
-    previewRows: [
-      { tier: "S", color: "from-rose-500 to-red-600", items: ["Lionel Messi", "Cristiano Ronaldo"] },
-      { tier: "A", color: "from-amber-500 to-orange-500", items: ["Zinedine Zidane", "Ronaldinho", "Luka Modrić"] },
+    "itemCount": 10,
+    "remixCount": 0,
+    "upvotes": 0,
+    "createdAt": "Starter template",
+    "featured": false,
+    "items": [
+      {
+        "id": "wf-1",
+        "name": "Lionel Messi"
+      },
+      {
+        "id": "wf-2",
+        "name": "Cristiano Ronaldo"
+      },
+      {
+        "id": "wf-3",
+        "name": "Zinedine Zidane"
+      },
+      {
+        "id": "wf-4",
+        "name": "Ronaldinho"
+      },
+      {
+        "id": "wf-5",
+        "name": "Kylian Mbappé"
+      },
+      {
+        "id": "wf-6",
+        "name": "Luka Modrić"
+      },
+      {
+        "id": "wf-7",
+        "name": "Andrés Iniesta"
+      },
+      {
+        "id": "wf-8",
+        "name": "Thierry Henry"
+      },
+      {
+        "id": "wf-9",
+        "name": "Neymar Jr"
+      },
+      {
+        "id": "wf-10",
+        "name": "Erling Haaland"
+      }
     ],
-    items: [
-      { id: "wf-1", name: "Lionel Messi", imageUrl: "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=300&q=80" },
-      { id: "wf-2", name: "Cristiano Ronaldo", imageUrl: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=300&q=80" },
-      { id: "wf-3", name: "Zinedine Zidane", imageUrl: "https://images.unsplash.com/photo-1517466787929-bc90951d0974?auto=format&fit=crop&w=300&q=80" },
-      { id: "wf-4", name: "Ronaldinho", imageUrl: "https://images.unsplash.com/photo-1518091043644-c1d4457512c6?auto=format&fit=crop&w=300&q=80" },
-      { id: "wf-5", name: "Kylian Mbappé", imageUrl: "https://images.unsplash.com/photo-1522778119026-d647f0596c20?auto=format&fit=crop&w=300&q=80" },
-      { id: "wf-6", name: "Luka Modrić", imageUrl: "https://images.unsplash.com/photo-1551958219-acbc608c6377?auto=format&fit=crop&w=300&q=80" },
-      { id: "wf-7", name: "Andrés Iniesta", imageUrl: "https://images.unsplash.com/photo-1489944445391-11dd35572130?auto=format&fit=crop&w=300&q=80" },
-      { id: "wf-8", name: "Thierry Henry", imageUrl: "https://images.unsplash.com/photo-1560272564-c83b66b1ad12?auto=format&fit=crop&w=300&q=80" },
-      { id: "wf-9", name: "Neymar Jr", imageUrl: "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?auto=format&fit=crop&w=300&q=80" },
-      { id: "wf-10", name: "Erling Haaland", imageUrl: "https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?auto=format&fit=crop&w=300&q=80" },
-    ],
+    "isStarter": true
   },
   {
-    id: "ai-models-and-tools-2026",
-    slug: "best-ai-tools-llms-2026",
-    title: "Best AI Tools & LLMs (2026 Tier List)",
-    description: "Rank the top foundational models, agentic coding tools, and creative generative AI systems shaping 2026.",
-    category: "pop-culture",
-    author: {
-      username: "NeuralDev",
-      verified: true,
+    "id": "ai-models-and-tools-2026",
+    "slug": "best-ai-tools-llms-2026",
+    "title": "Best AI Tools & LLMs (2026 Tier List)",
+    "description": "Rank the top foundational models, agentic coding tools, and creative generative AI systems shaping 2026.",
+    "category": "pop-culture",
+    "author": {
+      "username": "Template Library"
     },
-    itemCount: 10,
-    remixCount: 19800,
-    upvotes: 5410,
-    createdAt: "3h ago",
-    featured: true,
-    previewRows: [
-      { tier: "S", color: "from-rose-500 to-red-600", items: ["Claude", "ChatGPT", "Cursor / Antigravity"] },
-      { tier: "A", color: "from-amber-500 to-orange-500", items: ["Gemini", "Perplexity", "Midjourney"] },
+    "itemCount": 10,
+    "remixCount": 0,
+    "upvotes": 0,
+    "createdAt": "Starter template",
+    "featured": false,
+    "items": [
+      {
+        "id": "ai-1",
+        "name": "Claude"
+      },
+      {
+        "id": "ai-2",
+        "name": "Gemini"
+      },
+      {
+        "id": "ai-3",
+        "name": "ChatGPT"
+      },
+      {
+        "id": "ai-4",
+        "name": "Cursor / Antigravity"
+      },
+      {
+        "id": "ai-5",
+        "name": "Midjourney"
+      },
+      {
+        "id": "ai-6",
+        "name": "Perplexity"
+      },
+      {
+        "id": "ai-7",
+        "name": "Suno AI"
+      },
+      {
+        "id": "ai-8",
+        "name": "ElevenLabs"
+      },
+      {
+        "id": "ai-9",
+        "name": "v0"
+      },
+      {
+        "id": "ai-10",
+        "name": "NotebookLM"
+      }
     ],
-    items: [
-      { id: "ai-1", name: "Claude", imageUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=300&q=80" },
-      { id: "ai-2", name: "Gemini", imageUrl: "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&w=300&q=80" },
-      { id: "ai-3", name: "ChatGPT", imageUrl: "https://images.unsplash.com/photo-1677442136019-21780efad99a?auto=format&fit=crop&w=300&q=80" },
-      { id: "ai-4", name: "Cursor / Antigravity", imageUrl: "https://images.unsplash.com/photo-1531746790731-6c087fecd65a?auto=format&fit=crop&w=300&q=80" },
-      { id: "ai-5", name: "Midjourney", imageUrl: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=300&q=80" },
-      { id: "ai-6", name: "Perplexity", imageUrl: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=300&q=80" },
-      { id: "ai-7", name: "Suno AI", imageUrl: "https://images.unsplash.com/photo-1535378917042-10a22c95931a?auto=format&fit=crop&w=300&q=80" },
-      { id: "ai-8", name: "ElevenLabs", imageUrl: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=300&q=80" },
-      { id: "ai-9", name: "v0", imageUrl: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=300&q=80" },
-      { id: "ai-10", name: "NotebookLM", imageUrl: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=300&q=80" },
-    ],
+    "isStarter": true
   },
   {
-    id: "programming-languages-meta",
-    slug: "programming-languages-ranked-2026",
-    title: "Programming Languages Ranked (2026 Developer Meta)",
-    description: "Developer happiness, ecosystem maturity, performance, and tooling across modern software engineering stacks.",
-    category: "pop-culture",
-    author: {
-      username: "ByteCraft",
-      verified: false,
+    "id": "programming-languages-meta",
+    "slug": "programming-languages-ranked-2026",
+    "title": "Programming Languages Ranked (2026 Developer Meta)",
+    "description": "Developer happiness, ecosystem maturity, performance, and tooling across modern software engineering stacks.",
+    "category": "pop-culture",
+    "author": {
+      "username": "Template Library"
     },
-    itemCount: 10,
-    remixCount: 11200,
-    upvotes: 3100,
-    createdAt: "1d ago",
-    featured: false,
-    previewRows: [
-      { tier: "S", color: "from-rose-500 to-red-600", items: ["TypeScript", "Rust", "Python"] },
-      { tier: "A", color: "from-amber-500 to-orange-500", items: ["Go", "C++", "C#"] },
+    "itemCount": 10,
+    "remixCount": 0,
+    "upvotes": 0,
+    "createdAt": "Starter template",
+    "featured": false,
+    "items": [
+      {
+        "id": "pl-1",
+        "name": "TypeScript"
+      },
+      {
+        "id": "pl-2",
+        "name": "Python"
+      },
+      {
+        "id": "pl-3",
+        "name": "Rust"
+      },
+      {
+        "id": "pl-4",
+        "name": "Go"
+      },
+      {
+        "id": "pl-5",
+        "name": "C++"
+      },
+      {
+        "id": "pl-6",
+        "name": "Java"
+      },
+      {
+        "id": "pl-7",
+        "name": "C#"
+      },
+      {
+        "id": "pl-8",
+        "name": "Swift"
+      },
+      {
+        "id": "pl-9",
+        "name": "Kotlin"
+      },
+      {
+        "id": "pl-10",
+        "name": "PHP"
+      }
     ],
-    items: [
-      { id: "pl-1", name: "TypeScript", imageUrl: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=300&q=80" },
-      { id: "pl-2", name: "Python", imageUrl: "https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&fit=crop&w=300&q=80" },
-      { id: "pl-3", name: "Rust", imageUrl: "https://images.unsplash.com/photo-1542831371-29b0f74f9713?auto=format&fit=crop&w=300&q=80" },
-      { id: "pl-4", name: "Go", imageUrl: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=300&q=80" },
-      { id: "pl-5", name: "C++", imageUrl: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=300&q=80" },
-      { id: "pl-6", name: "Java", imageUrl: "https://images.unsplash.com/photo-1607799279861-4dd421887fb3?auto=format&fit=crop&w=300&q=80" },
-      { id: "pl-7", name: "C#", imageUrl: "https://images.unsplash.com/photo-1504639725590-34d0984388bd?auto=format&fit=crop&w=300&q=80" },
-      { id: "pl-8", name: "Swift", imageUrl: "https://images.unsplash.com/photo-1587620962725-abab7fe55159?auto=format&fit=crop&w=300&q=80" },
-      { id: "pl-9", name: "Kotlin", imageUrl: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=300&q=80" },
-      { id: "pl-10", name: "PHP", imageUrl: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?auto=format&fit=crop&w=300&q=80" },
-    ],
+    "isStarter": true
   },
   {
-    id: "gta-franchise-games",
-    slug: "grand-theft-auto-gta-franchise-ranked",
-    title: "Grand Theft Auto (GTA) Franchise Ranked",
-    description: "From GTA III's revolution to GTA: San Andreas, GTA IV, and GTA V ahead of the next release.",
-    category: "gaming",
-    author: {
-      username: "ViceCityResident",
-      verified: true,
+    "id": "gta-franchise-games",
+    "slug": "grand-theft-auto-gta-franchise-ranked",
+    "title": "Grand Theft Auto (GTA) Franchise Ranked",
+    "description": "From GTA III's revolution to GTA: San Andreas, GTA IV, and GTA V ahead of the next release.",
+    "category": "gaming",
+    "author": {
+      "username": "Template Library"
     },
-    itemCount: 10,
-    remixCount: 25400,
-    upvotes: 6120,
-    createdAt: "18h ago",
-    featured: true,
-    previewRows: [
-      { tier: "S", color: "from-rose-500 to-red-600", items: ["GTA: San Andreas", "GTA V", "GTA IV"] },
-      { tier: "A", color: "from-amber-500 to-orange-500", items: ["GTA: Vice City", "GTA: The Ballad of Gay Tony"] },
+    "itemCount": 10,
+    "remixCount": 0,
+    "upvotes": 0,
+    "createdAt": "Starter template",
+    "featured": false,
+    "items": [
+      {
+        "id": "gta-1",
+        "name": "GTA: San Andreas"
+      },
+      {
+        "id": "gta-2",
+        "name": "GTA V"
+      },
+      {
+        "id": "gta-3",
+        "name": "GTA IV"
+      },
+      {
+        "id": "gta-4",
+        "name": "GTA: Vice City"
+      },
+      {
+        "id": "gta-5",
+        "name": "GTA III"
+      },
+      {
+        "id": "gta-6",
+        "name": "GTA: Liberty City Stories"
+      },
+      {
+        "id": "gta-7",
+        "name": "GTA: Vice City Stories"
+      },
+      {
+        "id": "gta-8",
+        "name": "GTA: Chinatown Wars"
+      },
+      {
+        "id": "gta-9",
+        "name": "GTA Online"
+      },
+      {
+        "id": "gta-10",
+        "name": "GTA: The Ballad of Gay Tony"
+      }
     ],
-    items: [
-      { id: "gta-1", name: "GTA: San Andreas", imageUrl: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=300&q=80" },
-      { id: "gta-2", name: "GTA V", imageUrl: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=300&q=80" },
-      { id: "gta-3", name: "GTA IV", imageUrl: "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=300&q=80" },
-      { id: "gta-4", name: "GTA: Vice City", imageUrl: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=300&q=80" },
-      { id: "gta-5", name: "GTA III", imageUrl: "https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=300&q=80" },
-      { id: "gta-6", name: "GTA: Liberty City Stories", imageUrl: "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?auto=format&fit=crop&w=300&q=80" },
-      { id: "gta-7", name: "GTA: Vice City Stories", imageUrl: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=300&q=80" },
-      { id: "gta-8", name: "GTA: Chinatown Wars", imageUrl: "https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=300&q=80" },
-      { id: "gta-9", name: "GTA Online", imageUrl: "https://images.unsplash.com/photo-1563089145-599997674d42?auto=format&fit=crop&w=300&q=80" },
-      { id: "gta-10", name: "GTA: The Ballad of Gay Tony", imageUrl: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=300&q=80" },
-    ],
+    "isStarter": true
   },
   {
-    id: "energy-drinks-showdown",
-    slug: "ultimate-energy-drinks-tier-list",
-    title: "Ultimate Energy Drinks Tier List",
-    description: "Flavor profiles, zero-sugar formulas, caffeine kick, and carbonation across the top beverage brands.",
-    category: "food",
-    author: {
-      username: "CaffeineFiend",
-      verified: false,
+    "id": "energy-drinks-showdown",
+    "slug": "ultimate-energy-drinks-tier-list",
+    "title": "Ultimate Energy Drinks Tier List",
+    "description": "Flavor profiles, zero-sugar formulas, caffeine kick, and carbonation across the top beverage brands.",
+    "category": "food",
+    "author": {
+      "username": "Template Library"
     },
-    itemCount: 10,
-    remixCount: 8400,
-    upvotes: 1950,
-    createdAt: "2d ago",
-    featured: false,
-    previewRows: [
-      { tier: "S", color: "from-rose-500 to-red-600", items: ["Monster Ultra White", "Ghost Sour Patch", "Celsius Peach Vibe"] },
-      { tier: "A", color: "from-amber-500 to-orange-500", items: ["Red Bull Original", "C4 Frozen Bombsicle"] },
+    "itemCount": 10,
+    "remixCount": 0,
+    "upvotes": 0,
+    "createdAt": "Starter template",
+    "featured": false,
+    "items": [
+      {
+        "id": "ed-1",
+        "name": "Monster Ultra White"
+      },
+      {
+        "id": "ed-2",
+        "name": "Red Bull Original"
+      },
+      {
+        "id": "ed-3",
+        "name": "Celsius Peach Vibe"
+      },
+      {
+        "id": "ed-4",
+        "name": "Ghost Sour Patch"
+      },
+      {
+        "id": "ed-5",
+        "name": "Reign Orange Dreamsicle"
+      },
+      {
+        "id": "ed-6",
+        "name": "C4 Frozen Bombsicle"
+      },
+      {
+        "id": "ed-7",
+        "name": "Alani Nu Cosmic Stardust"
+      },
+      {
+        "id": "ed-8",
+        "name": "Rockstar Punched"
+      },
+      {
+        "id": "ed-9",
+        "name": "Bang Blue Razz"
+      },
+      {
+        "id": "ed-10",
+        "name": "G Fuel PewDiePie"
+      }
     ],
-    items: [
-      { id: "ed-1", name: "Monster Ultra White", imageUrl: "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=300&q=80" },
-      { id: "ed-2", name: "Red Bull Original", imageUrl: "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&w=300&q=80" },
-      { id: "ed-3", name: "Celsius Peach Vibe", imageUrl: "https://images.unsplash.com/photo-1551024709-8f23befc6f87?auto=format&fit=crop&w=300&q=80" },
-      { id: "ed-4", name: "Ghost Sour Patch", imageUrl: "https://images.unsplash.com/photo-1527661591475-527312dd65f5?auto=format&fit=crop&w=300&q=80" },
-      { id: "ed-5", name: "Reign Orange Dreamsicle", imageUrl: "https://images.unsplash.com/photo-1556881286-fc6915169721?auto=format&fit=crop&w=300&q=80" },
-      { id: "ed-6", name: "C4 Frozen Bombsicle", imageUrl: "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=300&q=80" },
-      { id: "ed-7", name: "Alani Nu Cosmic Stardust", imageUrl: "https://images.unsplash.com/photo-1544145945-f90425340c7e?auto=format&fit=crop&w=300&q=80" },
-      { id: "ed-8", name: "Rockstar Punched", imageUrl: "https://images.unsplash.com/photo-1534353473418-4cfa6c56fd38?auto=format&fit=crop&w=300&q=80" },
-      { id: "ed-9", name: "Bang Blue Razz", imageUrl: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=300&q=80" },
-      { id: "ed-10", name: "G Fuel PewDiePie", imageUrl: "https://images.unsplash.com/photo-1576107232684-1279f3908594?auto=format&fit=crop&w=300&q=80" },
-    ],
-  },
+    "isStarter": true
+  }
 ];
 
 export const SEED_TEMPLATES: Template[] = STARTER_TEMPLATES.map(presentTemplate);
-
-export const SEED_RECENT_RANKINGS: UserRanking[] = [
-  {
-    id: "rank-1",
-    templateId: "elden-ring-bosses",
-    templateTitle: "Elden Ring: Shadow of the Erdtree Bosses",
-    title: "My definitive no-summons solo tier list",
-    author: {
-      username: "alex_tv",
-    },
-    upvotes: 38,
-    commentsCount: 14,
-    createdAt: "4m ago",
-    tierSummary: [
-      { tier: "S", items: ["Promised Consort Radahn", "Bayle the Dread", "Malenia"] },
-      { tier: "A", items: ["Messmer the Impaler", "Mohg"] },
-    ],
-    totalItems: 10,
-    totalTiers: 6,
-  },
-  {
-    id: "rank-2",
-    templateId: "mcu-movies",
-    templateTitle: "Marvel Cinematic Universe (All Phases)",
-    title: "Controversial Phase 4 & 5 hot takes",
-    author: {
-      username: "danica2005",
-    },
-    upvotes: 142,
-    commentsCount: 42,
-    createdAt: "11m ago",
-    tierSummary: [
-      { tier: "S", items: ["Infinity War", "Winter Soldier", "Deadpool & Wolverine"] },
-      { tier: "A", items: ["No Way Home", "Civil War"] },
-    ],
-    totalItems: 10,
-    totalTiers: 5,
-  },
-  {
-    id: "rank-3",
-    templateId: "fast-food-fries",
-    templateTitle: "Fast Food French Fries Showdown",
-    title: "Cajun fries supremacy tier list",
-    author: {
-      username: "sultan_a",
-    },
-    upvotes: 56,
-    commentsCount: 9,
-    createdAt: "22m ago",
-    tierSummary: [
-      { tier: "S", items: ["Five Guys Cajun", "Popeyes"] },
-      { tier: "A", items: ["McDonald's", "Arby's Curly"] },
-    ],
-    totalItems: 10,
-    totalTiers: 5,
-  },
-  {
-    id: "rank-4",
-    templateId: "roblox-games",
-    templateTitle: "Roblox Most Played Games (2026)",
-    title: "Games worth playing with your squad",
-    author: {
-      username: "blox_king_99",
-    },
-    upvotes: 89,
-    commentsCount: 23,
-    createdAt: "35m ago",
-    tierSummary: [
-      { tier: "S", items: ["Fisch", "Doors", "Dress to Impress"] },
-      { tier: "A", items: ["Anime Defenders", "Blade Ball"] },
-    ],
-    totalItems: 10,
-    totalTiers: 5,
-  },
-  {
-    id: "rank-5",
-    templateId: "nba-all-time-goat",
-    templateTitle: "NBA All-Time GOAT Legends",
-    title: "Old school vs modern analytics GOAT ranking",
-    author: {
-      username: "clutch_gene",
-    },
-    upvotes: 115,
-    commentsCount: 38,
-    createdAt: "45m ago",
-    tierSummary: [
-      { tier: "S", items: ["Michael Jordan", "LeBron James"] },
-      { tier: "A", items: ["Kobe Bryant", "Stephen Curry"] },
-    ],
-    totalItems: 10,
-    totalTiers: 5,
-  },
-  {
-    id: "rank-6",
-    templateId: "ai-models-and-tools-2026",
-    templateTitle: "Best AI Tools & LLMs (2026 Tier List)",
-    title: "Daily driver developer tools ranked",
-    author: {
-      username: "fullstack_ai",
-    },
-    upvotes: 94,
-    commentsCount: 29,
-    createdAt: "1h ago",
-    tierSummary: [
-      { tier: "S", items: ["Claude", "Cursor / Antigravity"] },
-      { tier: "A", items: ["ChatGPT", "Perplexity"] },
-    ],
-    totalItems: 10,
-    totalTiers: 5,
-  },
-];

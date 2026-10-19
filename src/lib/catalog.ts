@@ -1,3 +1,4 @@
+import { STARTER_GUIDES } from "@/data/starter-guides";
 import type { PublishedTierList, Template } from "@/types";
 
 // These records were installed by the bundled seed scripts, including their
@@ -19,6 +20,8 @@ export function presentTemplate(template: Template): Template {
   return {
     ...template,
     isStarter: true,
+    title: STARTER_GUIDES[template.id]?.title || template.title,
+    description: STARTER_GUIDES[template.id]?.description || template.description,
     author: { username: "Template Library" },
     upvotes: 0,
     remixCount: 0,

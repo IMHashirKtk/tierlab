@@ -7,6 +7,7 @@ const starter = {
   items: [{ id: "one", name: "Malenia", imageUrl: "https://images.unsplash.com/unrelated.jpg" }],
 };
 const presented = presentTemplate(starter);
+assert.equal(presented.title, "Elden Ring Bosses: Base Game & DLC Selection");
 assert.equal(presented.author.username, "Template Library");
 assert.equal(presented.author.verified, undefined);
 assert.equal(presented.upvotes, 0);

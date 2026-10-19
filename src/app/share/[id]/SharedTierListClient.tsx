@@ -16,7 +16,7 @@ import {
   ArrowRight,
   ExternalLink,
 } from "lucide-react";
-import { fetchSharedTierList, toggleUpvote } from "@/lib/community";
+import { fetchSharedTierList, fetchOwnVote, toggleUpvote } from "@/lib/community";
 import { CommentsSection } from "@/components/share/CommentsSection";
 import type { PublishedTierList } from "@/types";
 
@@ -31,19 +31,26 @@ export function SharedTierListClient({ id }: SharedTierListClientProps) {
   const [isUpvoted, setIsUpvoted] = useState(false);
   const [copied, setCopied] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [exportError, setExportError] = useState("");
   const [showSharePopup, setShowSharePopup] = useState(false);
 
   const boardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!id) return;
+    let active = true;
     fetchSharedTierList(id).then((data) => {
+      if (!active) return;
       if (data) {
         setRanking(data);
         setUpvotes(data.upvotes ?? 0);
       }
       setLoading(false);
     });
+    fetchOwnVote("tier_list", id).then((voted) => {
+      if (active) setIsUpvoted(voted);
+    }).catch(() => {});
+    return () => { active = false; };
   }, [id]);
 
   const [voteError, setVoteError] = useState("");
@@ -70,6 +77,7 @@ export function SharedTierListClient({ id }: SharedTierListClientProps) {
   const handleExportPng = async () => {
     if (!boardRef.current || !ranking) return;
     setIsExporting(true);
+    setExportError("");
     try {
       const { toPng } = await import("html-to-image");
       const dataUrl = await toPng(boardRef.current, { quality: 0.95, pixelRatio: 2 });
@@ -79,6 +87,7 @@ export function SharedTierListClient({ id }: SharedTierListClientProps) {
       link.click();
     } catch (err) {
       console.error("Export failed", err);
+      setExportError("PNG export failed. Check that the ranking images have loaded, then try again.");
     } finally {
       setIsExporting(false);
     }
@@ -121,7 +130,7 @@ export function SharedTierListClient({ id }: SharedTierListClientProps) {
   return (
     <div className="min-h-screen bg-[#09090b] text-[#f4f4f5] flex flex-col">
       {/* Top Navbar */}
-      <header className="sticky top-0 z-40 glass-panel border-b border-zinc-800/80 px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+      <header className="sticky top-0 z-40 glass-panel border-b border-zinc-800/80 px-4 sm:px-6 py-3 sm:py-0 sm:h-16 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div className="flex items-center gap-3 min-w-0">
           <Link
             href="/"
@@ -148,7 +157,7 @@ export function SharedTierListClient({ id }: SharedTierListClientProps) {
         </div>
 
         {/* Header Actions */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between sm:justify-start gap-1 sm:gap-2 shrink-0">
           {/* Head-to-Head Versus Duel Button */}
           <Link
             href={`/versus?a=${ranking.id}&b=consensus`}
@@ -163,6 +172,8 @@ export function SharedTierListClient({ id }: SharedTierListClientProps) {
           <button
             onClick={handleUpvote}
               disabled={voting}
+              aria-label={isUpvoted ? "Remove ranking upvote" : "Upvote ranking"}
+              aria-pressed={isUpvoted}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer border ${
               isUpvoted
                 ? "bg-indigo-600 text-white border-indigo-500 shadow-md shadow-indigo-600/30"
@@ -174,11 +185,12 @@ export function SharedTierListClient({ id }: SharedTierListClientProps) {
           </button>
 
           {/* Share Dropdown Button */}
-          <div className="relative">
+          <div className="sm:relative">
             <button
               onClick={() => setShowSharePopup(!showSharePopup)}
               className="p-2 sm:px-3 sm:py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-700/80 flex items-center gap-1.5 text-xs font-medium cursor-pointer"
               title="Share Tier List"
+              aria-expanded={showSharePopup}
             >
               <Share2 className="w-3.5 h-3.5 text-indigo-400" />
               <span className="hidden sm:inline">Share</span>
@@ -186,7 +198,7 @@ export function SharedTierListClient({ id }: SharedTierListClientProps) {
 
             {/* Quick Share Menu */}
             {showSharePopup && (
-              <div className="absolute right-0 top-full mt-2 w-64 p-3 rounded-2xl bg-zinc-900 border border-zinc-800 shadow-2xl z-50 space-y-2.5">
+              <div className="absolute left-4 right-4 sm:left-auto sm:right-0 top-full mt-2 sm:w-64 p-3 rounded-2xl bg-zinc-900 border border-zinc-800 shadow-2xl z-50 space-y-2.5">
                 <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
                   Viral Social Share
                 </div>
@@ -226,6 +238,7 @@ export function SharedTierListClient({ id }: SharedTierListClientProps) {
           <button
             onClick={handleExportPng}
             disabled={isExporting}
+            aria-label={isExporting ? "Rendering PNG" : "Export PNG"}
             className="px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-700/80 flex items-center gap-1.5 text-xs font-medium cursor-pointer"
           >
             <Download className="w-3.5 h-3.5" />
@@ -246,15 +259,16 @@ export function SharedTierListClient({ id }: SharedTierListClientProps) {
       {/* Main Tier Board Display */}
       <main className="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-6 space-y-6">
         {voteError && <p role="alert" className="text-sm text-rose-300">{voteError}</p>}
+        {exportError && <p role="alert" className="text-sm text-rose-300">{exportError}</p>}
         {/* Template Lineage & Remix Attribution Banner */}
         {ranking.templateId && (
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 px-4 py-3 rounded-2xl bg-zinc-900/60 border border-zinc-800 text-xs text-zinc-400 shadow-sm">
-            <span className="flex items-center gap-2 truncate">
+            <span className="flex flex-wrap items-center gap-x-2 gap-y-1 min-w-0 max-w-full">
               <Sparkles className="w-4 h-4 text-indigo-400 flex-shrink-0" />
               <span>Remixed from community template:</span>
               <Link
                 href={`/template/${ranking.templateId}`}
-                className="text-white font-bold hover:underline hover:text-indigo-300 truncate"
+                className="text-white font-bold hover:underline hover:text-indigo-300 break-words min-w-0 max-w-full"
               >
                 {ranking.title}
               </Link>

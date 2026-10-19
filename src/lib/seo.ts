@@ -7,3 +7,10 @@ export function safeJsonLd(data: unknown): string {
     .replace(/</g, "\\u003c")
     .replace(/>/g, "\\u003e");
 }
+export function getSiteUrl(): string {
+  return new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://tierlistmaker.app").origin;
+}
+
+export function canIndexSite(): boolean {
+  return process.env.VERCEL_ENV !== "preview" && process.env.VERCEL_ENV !== "development";
+}

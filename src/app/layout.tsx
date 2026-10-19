@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { PwaProvider } from "@/components/pwa/PwaProvider";
-import { safeJsonLd } from "@/lib/seo";
+import { safeJsonLd, getSiteUrl, canIndexSite } from "@/lib/seo";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://tierlistmaker.app";
+const siteUrl = getSiteUrl();
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   title: {
-    default: "Tier List Maker — The Next-Gen Community Tier List Platform",
+    default: "Free Tier List Maker — Create, Rank & Share",
     template: "%s | Tier List Maker",
   },
   description:
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: siteUrl,
-    title: "Tier List Maker — The Next-Gen Community Tier List Platform",
+    title: "Free Tier List Maker — Create, Rank & Share",
     description:
       "Create, rank, duel, and remix tier lists with images and text. 4K streamer exports, TikTok blind rank challenge, and global consensus.",
     siteName: "Tier List Maker",
@@ -59,7 +59,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Tier List Maker — The Next-Gen Community Tier List Platform",
+    title: "Free Tier List Maker — Create, Rank & Share",
     description:
       "Create, rank, duel, and remix tier lists with images and text. 4K streamer exports, TikTok blind rank challenge, and global consensus.",
     images: ["/api/og?title=Tier%20List%20Maker%20-%20Next-Gen%20Tier%20List%20Platform&author=Tier%20List%20Maker&category=Platform"],
@@ -81,7 +81,7 @@ export const metadata: Metadata = {
     title: "Tier List Maker",
   },
   robots: {
-    index: true,
+    index: canIndexSite(),
     follow: true,
   },
 };
@@ -91,7 +91,7 @@ const webAppJsonLd = {
   "@type": "WebApplication",
   name: "Tier List Maker",
   alternateName: "TierListMaker.app",
-  url: "https://tierlistmaker.app",
+  url: siteUrl,
   applicationCategory: "EntertainmentApplication",
   operatingSystem: "Any",
   browserRequirements: "Requires JavaScript. Supports offline PWA mode.",
@@ -106,7 +106,7 @@ const webAppJsonLd = {
     "9:16 TikTok & Shorts animated reveal video export",
     "Global mathematical community consensus",
     "1v1 Versus Duel taste comparison",
-    "100% local-first IndexedDB storage",
+    "Local drafts with optional cloud publishing",
   ],
 };
 

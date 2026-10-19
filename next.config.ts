@@ -1,6 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  env: {
+    // Public asset address only. R2 credentials remain server-side.
+    NEXT_PUBLIC_R2_ASSET_BASE_URL: process.env.CLOUDFLARE_R2_PUBLIC_URL || "",
+  },
   distDir: process.env.NEXT_TEST_DIST_DIR || ".next",
   /* config options here */
   cacheComponents: true,

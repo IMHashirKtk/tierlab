@@ -71,6 +71,8 @@ export function CommentsSection({ tierListId, creatorName }: CommentsSectionProp
   const [pendingCommentId, setPendingCommentId] = useState<string>("");
   const [sortBy, setSortBy] = useState<"newest" | "top">("newest");
   const [upvotedMap, setUpvotedMap] = useState<Record<string, boolean>>({});
+  const [votingComments, setVotingComments] = useState<Record<string, boolean>>({});
+  const votingCommentsRef = useRef(new Set<string>());
 
   const isSubmittingRef = useRef(false);
   const sessionIdRef = useRef<string | null>(null);
@@ -347,21 +349,21 @@ export function CommentsSection({ tierListId, creatorName }: CommentsSectionProp
   };
 
   const handleToggleUpvote = async (commentId: string) => {
-    const isCurrentlyUpvoted = Boolean(upvotedMap[commentId]);
-    // Optimistic UI update
-    setUpvotedMap((prev) => ({ ...prev, [commentId]: !isCurrentlyUpvoted }));
-    setComments((prev) =>
-      prev.map((c) =>
-        c.id === commentId
-          ? {
-              ...c,
-              upvotes: Math.max(0, c.upvotes + (isCurrentlyUpvoted ? -1 : 1)),
-            }
-          : c
-      )
-    );
-
-    await toggleCommentUpvote(commentId);
+    if (votingCommentsRef.current.has(commentId)) return;
+    votingCommentsRef.current.add(commentId);
+    setVotingComments((prev) => ({ ...prev, [commentId]: true }));
+    setCommentError(null);
+    try {
+      const result = await toggleCommentUpvote(commentId);
+      setUpvotedMap((prev) => ({ ...prev, [commentId]: result.isUpvoted }));
+      setComments((prev) => prev.map((comment) => comment.id === commentId
+        ? { ...comment, upvotes: result.newCount } : comment));
+    } catch {
+      setCommentError("Comment voting is temporarily unavailable. Please try again.");
+    } finally {
+      votingCommentsRef.current.delete(commentId);
+      setVotingComments((prev) => ({ ...prev, [commentId]: false }));
+    }
   };
 
   const handleInsertQuickTake = (chip: string) => {
@@ -563,6 +565,9 @@ export function CommentsSection({ tierListId, creatorName }: CommentsSectionProp
                   {/* Upvote Button */}
                   <button
                     onClick={() => handleToggleUpvote(comment.id)}
+                    disabled={votingComments[comment.id]}
+                    aria-label={isUpvoted ? "Remove comment upvote" : "Upvote comment"}
+                    aria-pressed={isUpvoted}
                     className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer border ${
                       isUpvoted
                         ? "bg-indigo-600/20 text-indigo-300 border-indigo-500/40"

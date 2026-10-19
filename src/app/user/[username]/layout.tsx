@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { connection } from "next/server";
+import { canIndexSite } from "@/lib/seo";
 
 interface Props {
   params: Promise<{ username: string }>;
@@ -17,8 +18,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title,
     description,
+    robots: { index: canIndexSite() && decoded.toLowerCase() !== "launch-test", follow: true },
     alternates: { canonical: `/user/${encodeURIComponent(decoded)}` },
     openGraph: {
+      url: `/user/${encodeURIComponent(decoded)}`,
       title: `${title} | Tier List Maker`,
       description,
       images: [

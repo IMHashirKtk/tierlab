@@ -2,6 +2,9 @@ import React, { Suspense } from "react";
 import type { Metadata } from "next";
 import { fetchSharedTierList } from "@/lib/community";
 import { SharedTierListClient } from "./SharedTierListClient";
+import { isDiscoverableRanking } from "@/lib/catalog";
+import { canIndexSite } from "@/lib/seo";
+import { notFound } from "next/navigation";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -15,6 +18,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     return {
       title: "Shared Tier List | Tier List Maker",
       description: "Explore community tier lists and rankings on Tier List Maker.",
+      robots: { index: false, follow: true },
+      alternates: { canonical: `/share/${encodeURIComponent(id)}` },
     };
   }
 
@@ -33,7 +38,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: pageTitle,
     description: pageDescription,
+    alternates: { canonical: `/share/${encodeURIComponent(id)}` },
+    robots: { index: canIndexSite() && isDiscoverableRanking(ranking), follow: true },
     openGraph: {
+      url: `/share/${encodeURIComponent(id)}`,
       title: `${pageTitle} | Tier List Maker`,
       description: pageDescription,
       images: [
@@ -60,6 +68,7 @@ import { connection } from "next/server";
 async function SharedContent({ params }: PageProps) {
   await connection();
   const { id } = await params;
+  if (!await fetchSharedTierList(id)) notFound();
   return <SharedTierListClient id={id} />;
 }
 

@@ -2,12 +2,14 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Head-to-Head Versus Duel & Tier Compare",
+  robots: { index: false, follow: true },
   description:
     "Compare your tier list head-to-head against friends and community consensus. Calculate algorithmic similarity scores and debate hot takes.",
   alternates: {
     canonical: "/versus",
   },
   openGraph: {
+    url: "/versus",
     title: "Head-to-Head Versus Duel | Tier List Maker",
     description:
       "Compare your tier list head-to-head against friends and community consensus. Calculate algorithmic similarity scores and debate hot takes.",

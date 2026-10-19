@@ -35,13 +35,29 @@ export function presentTemplate(template: Template): Template {
 // Exclude the known pre-launch audit records from discovery and consensus.
 // This is a presentation filter, not a destructive database cleanup.
 const AUDIT_RANKING_IDS = new Set([
+  "share-tier-mvex6e15-6c189f46", "share-tier-mvexofpx-a3293b8a",
+  "share-tier-mvey922q-10c74f96",
   "share-tier-mv9mh45c-89727d0d", "share-tier-mv9mfkqn-65aafb5c",
   "share-tier-mv9mb83t-4f0d49b8", "share-tier-mv8cfkd0-517a85cc",
   "share-tier-mv8azxzu-d7bbba49", "share-tier-mv8a9tir-d05c6536",
   "share-tier-mv88wdz4-84fad7e6", "share-tier-mv5gu7kp-73e9addb",
 ]);
 
+const AUDIT_TEMPLATE_IDS = new Set(["launch-test-reusable-template-h3mu"]);
+
+export function isAuditTemplate(id: string): boolean {
+  return AUDIT_TEMPLATE_IDS.has(id);
+}
+
+export function isAuditRanking(id: string): boolean {
+  return AUDIT_RANKING_IDS.has(id);
+}
+
+export function isDiscoverableTemplate(template: Pick<Template, "id">): boolean {
+  return !isAuditTemplate(template.id);
+}
+
 export function isDiscoverableRanking(ranking: PublishedTierList): boolean {
-  return !AUDIT_RANKING_IDS.has(ranking.id) &&
+  return !isAuditRanking(ranking.id) &&
     ranking.tiers.some((tier) => tier.items.length > 0);
 }

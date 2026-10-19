@@ -1,6 +1,6 @@
 import { supabase, isSupabaseConfigured, ensureAuthenticatedSession } from "@/lib/supabase";
 import { SEED_TEMPLATES } from "@/data/seed-templates";
-import { isDiscoverableRanking, presentTemplate } from "@/lib/catalog";
+import { isDiscoverableRanking, isDiscoverableTemplate, presentTemplate } from "@/lib/catalog";
 import type { Template, PublishedTierList, UserRanking, Item, TierRow, Comment } from "@/types";
 import { createId } from "@/lib/board";
 
@@ -125,7 +125,7 @@ export async function fetchTemplates(options?: {
     if (!templateMap.has(t.id)) templateMap.set(t.id, t);
   });
 
-  let result = Array.from(templateMap.values()).map(presentTemplate);
+  let result = Array.from(templateMap.values()).filter(isDiscoverableTemplate).map(presentTemplate);
 
   // Category filter
   if (category !== "all") {
@@ -677,13 +677,12 @@ export async function publishTierList(payload: {
  */
 export async function fetchSharedTierList(id: string): Promise<PublishedTierList | null> {
   const local = getLocalPublishedRankings().find((r) => r.id === id);
-  if (local) return local;
 
   if (isSupabaseConfigured() && supabase) {
     try {
       const { data, error } = await supabase.from("tier_lists").select("*").eq("id", id).maybeSingle();
       if (!error && data) {
-        return {
+        const ranking: PublishedTierList = {
           id: data.id,
           templateId: data.template_id || undefined,
           title: data.title,
@@ -693,13 +692,27 @@ export async function fetchSharedTierList(id: string): Promise<PublishedTierList
           upvotes: data.upvotes || 0,
           createdAt: new Date(data.created_at).getTime(),
         };
+        saveLocalPublishedRanking(ranking);
+        return ranking;
       }
+      if (!error) return null;
     } catch (err) {
       console.warn("Failed to fetch shared tier list from Supabase", err);
     }
   }
 
-  return null;
+  return local || null;
+}
+
+/** Read the signed-in user's vote under RLS rather than trusting browser flags. */
+export async function fetchOwnVote(itemType: "template" | "tier_list" | "comment", itemId: string): Promise<boolean> {
+  if (!isSupabaseConfigured() || !supabase) throw new Error("Voting is temporarily unavailable.");
+  const userId = await ensureAuthenticatedSession();
+  if (!userId) throw new Error("Voting is temporarily unavailable.");
+  const { data, error } = await supabase.from("upvotes").select("item_id")
+    .eq("item_type", itemType).eq("item_id", itemId).eq("voter_hash", userId).maybeSingle();
+  if (error) throw new Error("Voting is temporarily unavailable.");
+  return Boolean(data);
 }
 
 /**
@@ -714,7 +727,7 @@ export async function toggleUpvote(
     localUpvotes = JSON.parse(localStorage.getItem(USER_UPVOTES_KEY) || "{}");
   } catch {}
 
-  const currentlyUpvoted = Boolean(localUpvotes[itemId]);
+  const currentlyUpvoted = await fetchOwnVote(itemType, itemId);
   const desiredVote = !currentlyUpvoted;
   let isUpvotedResult = desiredVote;
   let newCount = 0;
@@ -1146,7 +1159,7 @@ export async function toggleCommentUpvote(
     votes = JSON.parse(localStorage.getItem(COMMENT_UPVOTES_KEY) || "{}");
   } catch {}
 
-  const currentlyUpvoted = Boolean(votes[commentId]);
+  const currentlyUpvoted = await fetchOwnVote("comment", commentId);
   const desiredVote = !currentlyUpvoted;
   let isUpvotedResult = desiredVote;
   let newCount = 0;
@@ -1162,7 +1175,7 @@ export async function toggleCommentUpvote(
 
       if (error) {
         console.warn("Supabase set_vote for comment failed:", error.message);
-        return { isUpvoted: currentlyUpvoted, newCount: 0 };
+        throw new Error("Comment voting is temporarily unavailable.");
       }
 
       if (data && typeof data === "object") {
@@ -1172,7 +1185,7 @@ export async function toggleCommentUpvote(
       }
     } catch (err) {
       console.warn("Supabase toggle comment upvote exception:", err);
-      return { isUpvoted: currentlyUpvoted, newCount: 0 };
+      throw new Error("Comment voting is temporarily unavailable.");
     }
   }
 
@@ -1187,12 +1200,7 @@ export async function toggleCommentUpvote(
     const list = all[tid];
     const match = list.find((c) => c.id === commentId);
     if (match) {
-      if (newCount > 0) {
-        match.upvotes = newCount;
-      } else {
-        match.upvotes = Math.max(0, match.upvotes + (isUpvotedResult ? 1 : -1));
-        newCount = match.upvotes;
-      }
+      match.upvotes = newCount;
       localStorage.setItem(COMMENTS_KEY, JSON.stringify(all));
       break;
     }
@@ -1282,7 +1290,7 @@ export async function fetchUserProfile(username: string): Promise<UserProfileDat
   cloudTierLists.forEach((r) => rMap.set(r.id, r));
   localTierLists.forEach((r) => rMap.set(r.id, r));
 
-  const allTemplates = Array.from(tMap.values()).map(presentTemplate).filter((t) => !t.isStarter);
+  const allTemplates = Array.from(tMap.values()).filter(isDiscoverableTemplate).map(presentTemplate).filter((t) => !t.isStarter);
   const allTierLists = Array.from(rMap.values()).filter(isDiscoverableRanking);
 
   const totalUpvotes =

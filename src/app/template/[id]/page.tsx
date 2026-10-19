@@ -4,7 +4,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { SEED_TEMPLATES } from "@/data/seed-templates";
 import { fetchTemplateById, fetchSubmissionsForTemplateWithStatus } from "@/lib/community";
-import { safeJsonLd } from "@/lib/seo";
+import { safeJsonLd, canIndexSite } from "@/lib/seo";
+import { isDiscoverableTemplate } from "@/lib/catalog";
+import { notFound } from "next/navigation";
 import { TemplateClientLoader } from "./TemplateClientLoader";
 import { TemplateConsensusSection } from "./TemplateConsensusSection";
 import {
@@ -30,6 +32,7 @@ export async function generateMetadata({
     return {
       title: "Custom Template | Tier List Maker",
       description: "Create and rank custom tier lists with Tier List Maker.",
+      robots: { index: false, follow: true },
     };
   }
 
@@ -46,6 +49,7 @@ export async function generateMetadata({
   return {
     title: pageTitle,
     description: pageDescription,
+    robots: { index: canIndexSite() && isDiscoverableTemplate(template), follow: true },
     alternates: {
       canonical: canonicalUrl,
     },
@@ -77,7 +81,7 @@ async function TemplateContent({ params }: { params: Promise<{ id: string }> }) 
   const template = await fetchTemplateById(id);
 
   if (!template) {
-    return <TemplateClientLoader templateId={id} serverTemplate={null} />;
+    notFound();
   }
 
   const { submissions, fetchError } = await fetchSubmissionsForTemplateWithStatus(template.id);

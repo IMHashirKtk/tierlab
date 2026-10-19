@@ -2,9 +2,11 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "My Saved Projects & Tier Lists",
+  alternates: { canonical: "/my-projects" },
   description:
     "Manage your local-first tier lists, drafts, and published rankings stored securely in your browser.",
   openGraph: {
+    url: "/my-projects",
     title: "My Saved Projects | Tier List Maker",
     description:
       "Manage your local-first tier lists, drafts, and published rankings stored securely in your browser.",

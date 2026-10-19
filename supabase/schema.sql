@@ -2,6 +2,14 @@
 -- Tier List Maker UGC Platform - Supabase PostgreSQL Production Schema
 -- ==============================================================================
 
+-- Run the ENTIRE file in Supabase Dashboard > SQL Editor as the postgres role.
+-- Supports a fresh database or an upgrade from the repository's old schema.
+-- Existing rows are retained. Legacy rows without ownership stay unowned;
+-- ownership is never assigned to the person running this script.
+-- Replaces the app's legacy policies/RPCs and recalculates engagement counters.
+-- All changes commit together; any error rolls the transaction back.
+begin;
+
 -- 1. Create Templates Table
 create table if not exists public.templates (
   id text primary key,
@@ -75,6 +83,43 @@ create table if not exists public.upload_rate_limits (
   count int not null
 );
 
+-- Upgrade existing tables: CREATE TABLE IF NOT EXISTS does not add columns.
+alter table public.templates add column if not exists author_id text;
+alter table public.tier_lists add column if not exists author_id text;
+alter table public.comments add column if not exists author_id text;
+alter table public.templates alter column author_id set default auth.uid()::text;
+alter table public.tier_lists alter column author_id set default auth.uid()::text;
+alter table public.comments alter column author_id set default auth.uid()::text;
+
+alter table public.upvotes drop constraint if exists upvotes_item_type_check;
+alter table public.upvotes add constraint upvotes_item_type_check
+  check (item_type in ('template', 'tier_list', 'comment'));
+
+-- Retire legacy RPCs that accepted client-controlled identity or counters.
+drop function if exists public.toggle_upvote(text, text, text);
+drop function if exists public.increment_template_rank(text);
+drop function if exists public.increment_template_rank_count(text);
+drop function if exists public.increment_comment_upvote(text, int);
+drop function if exists public.check_upload_rate_limit(text, int, int);
+
+-- Remove permissive policies from the old schema before installing replacements.
+drop policy if exists "Allow public insert on templates" on public.templates;
+drop policy if exists "Allow public insert on tier_lists" on public.tier_lists;
+drop policy if exists "Allow public insert on comments" on public.comments;
+drop policy if exists "Allow public update on comments" on public.comments;
+drop policy if exists "Allow public read on upvotes" on public.upvotes;
+drop policy if exists "Allow public insert on upvotes" on public.upvotes;
+drop policy if exists "Allow public delete on upvotes" on public.upvotes;
+
+-- Explicit privileges work even when automatic Data API grants are disabled.
+revoke all on public.templates, public.tier_lists, public.comments, public.upvotes
+  from public, anon, authenticated;
+grant usage on schema public to anon, authenticated, service_role;
+grant select on public.templates, public.tier_lists, public.comments to anon, authenticated;
+grant insert, delete on public.templates, public.tier_lists, public.comments to authenticated;
+grant select on public.upvotes to authenticated;
+grant all on public.templates, public.tier_lists, public.comments, public.upvotes to service_role;
+
 -- 6. Enable Row Level Security (RLS) on all tables
 alter table public.templates enable row level security;
 alter table public.tier_lists enable row level security;
@@ -111,7 +156,7 @@ drop policy if exists "Allow authenticated insert on templates" on public.templa
 create policy "Allow authenticated insert on templates"
   on public.templates for insert to authenticated
   with check (
-    (author_id is null or author_id = auth.uid()::text)
+    (author_id = (select auth.uid())::text)
     and coalesce(upvotes, 0) = 0
     and coalesce(rank_count, 0) = 0
   );
@@ -120,7 +165,7 @@ drop policy if exists "Allow authenticated insert on tier_lists" on public.tier_
 create policy "Allow authenticated insert on tier_lists"
   on public.tier_lists for insert to authenticated
   with check (
-    (author_id is null or author_id = auth.uid()::text)
+    (author_id = (select auth.uid())::text)
     and coalesce(upvotes, 0) = 0
   );
 
@@ -128,7 +173,7 @@ drop policy if exists "Allow authenticated insert on comments" on public.comment
 create policy "Allow authenticated insert on comments"
   on public.comments for insert to authenticated
   with check (
-    (author_id is null or author_id = auth.uid()::text)
+    (author_id = (select auth.uid())::text)
     and coalesce(upvotes, 0) = 0
   );
 
@@ -435,3 +480,22 @@ $$ language plpgsql security definer set search_path = public;
 revoke all on function public.reconcile_counters() from public, anon, authenticated;
 grant execute on function public.reconcile_counters() to service_role;
 
+
+-- Trigger functions are invoked through their triggers, not as public RPCs.
+revoke all on function public.protect_immutable_columns() from public, anon, authenticated;
+revoke all on function public.sync_template_rank_count() from public, anon, authenticated;
+
+-- Derive counters from saved rankings and votes; preserve content rows.
+select public.reconcile_counters();
+
+-- Refresh the API schema cache after committing the new columns.
+notify pgrst, 'reload schema';
+commit;
+
+-- Verification: both new ownership columns should appear in the result.
+select table_name, column_name, data_type
+from information_schema.columns
+where table_schema = 'public'
+  and table_name in ('templates', 'tier_lists', 'comments')
+  and column_name = 'author_id'
+order by table_name;

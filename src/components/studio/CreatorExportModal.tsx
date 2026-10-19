@@ -267,7 +267,10 @@ export function CreatorExportModal({
             <button
               type="button"
               onClick={() => setShowWatermark(!showWatermark)}
-              className={`w-10 h-6 rounded-full transition-colors relative cursor-pointer ${
+              role="switch"
+              aria-label="Include watermark"
+              aria-checked={showWatermark}
+              className={`w-10 h-6 shrink-0 rounded-full transition-colors relative cursor-pointer ${
                 showWatermark ? "bg-indigo-600" : "bg-zinc-700"
               }`}
             >
@@ -291,7 +294,10 @@ export function CreatorExportModal({
           <button
             type="button"
             onClick={() => setShowTitleHeader(!showTitleHeader)}
-            className={`w-10 h-6 rounded-full transition-colors relative cursor-pointer ${
+            role="switch"
+            aria-label="Display title header"
+            aria-checked={showTitleHeader}
+            className={`w-10 h-6 shrink-0 rounded-full transition-colors relative cursor-pointer ${
               showTitleHeader ? "bg-indigo-600" : "bg-zinc-700"
             }`}
           >
@@ -304,7 +310,7 @@ export function CreatorExportModal({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center justify-between pt-3 border-t border-zinc-800">
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-zinc-800">
           <div className="flex items-center gap-1.5 text-[11px] text-zinc-400">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
             <span>High-speed client-side rendering</span>

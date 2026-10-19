@@ -1,85 +1,47 @@
-import { MetadataRoute } from "next";
+import type { MetadataRoute } from "next";
 import { CATEGORIES, SEED_TEMPLATES } from "@/data/seed-templates";
 import { isSupabaseConfigured, supabase } from "@/lib/supabase";
+import { isDiscoverableTemplate } from "@/lib/catalog";
+import { canIndexSite, getSiteUrl } from "@/lib/seo";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://tierlistmaker.app";
-
+  if (!canIndexSite()) return [];
+  const siteUrl = getSiteUrl();
   const staticRoutes: MetadataRoute.Sitemap = [
-    {
-      url: siteUrl,
-      lastModified: new Date(),
-      changeFrequency: "daily",
-      priority: 1.0,
-    },
-    {
-      url: `${siteUrl}/create`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.9,
-    },
-    {
-      url: `${siteUrl}/versus`,
-      lastModified: new Date(),
-      changeFrequency: "weekly",
-      priority: 0.85,
-    },
-    {
-      url: `${siteUrl}/tiermaker-alternative`,
-      lastModified: new Date(),
-      changeFrequency: "weekly",
-      priority: 0.85,
-    },
+    { url: siteUrl, changeFrequency: "weekly", priority: 1 },
+    { url: `${siteUrl}/tiermaker-alternative`, changeFrequency: "monthly", priority: 0.7 },
   ];
-
-  // Category Hub Routes
-  const categoryRoutes: MetadataRoute.Sitemap = CATEGORIES.filter(
-    (c) => c.id !== "all"
-  ).map((c) => ({
-    url: `${siteUrl}/categories/${c.id}`,
-    lastModified: new Date(),
-    changeFrequency: "weekly",
-    priority: 0.85,
+  const categoryRoutes: MetadataRoute.Sitemap = CATEGORIES.filter(c => c.id !== "all").map(c => ({
+    url: `${siteUrl}/categories/${encodeURIComponent(c.id)}`,
+    changeFrequency: "weekly", priority: 0.8,
   }));
-
-  // Fetch Supabase templates + SEED_TEMPLATES deduplicated
-  const templateMap = new Map<string, { id: string; lastModified: Date }>();
-
-  SEED_TEMPLATES.forEach((t) => {
-    templateMap.set(t.id, { id: t.id, lastModified: new Date() });
-  });
-
+  // Do not invent modification times for static pages and bundled templates.
+  const templates = new Map<string, { id: string; lastModified?: Date }>();
+  SEED_TEMPLATES.forEach(t => templates.set(t.id, { id: t.id }));
   if (isSupabaseConfigured() && supabase) {
     try {
-      const { data, error } = await supabase
-        .from("templates")
-        .select("id, updated_at, items")
-        .order("rank_count", { ascending: false })
-        .limit(500);
-
+      const { data, error } = await supabase.from("templates")
+        .select("id, updated_at, items").order("rank_count", { ascending: false }).limit(500);
+      if (error) console.warn("Sitemap: template query failed; using bundled templates");
       if (!error && data) {
-        data.forEach((row) => {
-          if (!Array.isArray(row.items) || row.items.length >= 3) {
-            templateMap.set(row.id, {
-              id: row.id,
-              lastModified: row.updated_at ? new Date(row.updated_at) : new Date(),
-            });
-          }
-        });
+        for (const row of data) {
+          if (!isDiscoverableTemplate(row) || !Array.isArray(row.items) || row.items.length < 2) continue;
+          const date = row.updated_at ? new Date(row.updated_at) : undefined;
+          templates.set(row.id, {
+            id: row.id,
+            lastModified: date && Number.isFinite(date.getTime()) ? date : undefined,
+          });
+        }
       }
-    } catch (err) {
-      console.warn("Sitemap: Supabase query failed, falling back to seed templates", err);
+    } catch {
+      console.warn("Sitemap: template query failed; using bundled templates");
     }
   }
-
-  const templateRoutes: MetadataRoute.Sitemap = Array.from(templateMap.values()).map(
-    (item) => ({
-      url: `${siteUrl}/template/${item.id}`,
-      lastModified: item.lastModified,
-      changeFrequency: "weekly",
-      priority: 0.8,
-    })
-  );
-
+  const templateRoutes: MetadataRoute.Sitemap = Array.from(templates.values())
+    .filter(isDiscoverableTemplate).map(t => ({
+      url: `${siteUrl}/template/${encodeURIComponent(t.id)}`,
+      ...(t.lastModified ? { lastModified: t.lastModified } : {}),
+      changeFrequency: "weekly", priority: 0.8,
+    }));
   return [...staticRoutes, ...categoryRoutes, ...templateRoutes];
 }

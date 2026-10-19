@@ -2,12 +2,14 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Tier List Maker Studio",
+  robots: { index: false, follow: true },
   description:
     "Design and customize your tier lists with drag-and-drop tiers, streamer mode, color themes, and 4K lossless exports.",
   alternates: {
     canonical: "/create",
   },
   openGraph: {
+    url: "/create",
     title: "Tier List Maker Studio | Tier List Maker",
     description:
       "Design and customize your tier lists with drag-and-drop tiers, streamer mode, color themes, and 4K lossless exports.",

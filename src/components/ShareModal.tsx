@@ -5,6 +5,7 @@ import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { X, Copy, Check, Share2, Code, ExternalLink, Loader2, Sparkles, AlertCircle, RefreshCw } from "lucide-react";
 import { publishTierList } from "@/lib/community";
+import { uploadItemsToCloud } from "@/lib/upload";
 import { createId } from "@/lib/board";
 import {
   getProjectPendingShareId,
@@ -43,6 +44,7 @@ export function ShareModal({
   const [shareId, setShareId] = useState<string | null>(publishedShareId || null);
   const [isPublishing, setIsPublishing] = useState(false);
   const [publishError, setPublishError] = useState<string | null>(null);
+  const [publishStep, setPublishStep] = useState("Publishing ranking to the cloud...");
   const [authorName, setAuthorName] = useState("");
   const [pendingShareId, setPendingShareId] = useState<string>("");
 
@@ -147,12 +149,22 @@ export function ShareModal({
     }
 
     try {
+      setPublishStep("Preparing ranking images...");
+      const sourceItems = [...(tiers || []).flatMap((tier) => tier.items), ...(unranked || [])];
+      const cloudItems = await uploadItemsToCloud(sourceItems, setPublishStep);
+      let itemOffset = 0;
+      const cloudTiers = (tiers || []).map((tier) => {
+        const items = cloudItems.slice(itemOffset, itemOffset + tier.items.length);
+        itemOffset += tier.items.length;
+        return { ...tier, items };
+      });
+      setPublishStep("Publishing ranking to the cloud...");
       const pub = await publishTierList({
         templateId,
         title: boardTitle,
         authorName: cleanHandle || "Anonymous Ranker",
-        tiers,
-        unranked: unranked || [],
+        tiers: cloudTiers,
+        unranked: cloudItems.slice(itemOffset),
         existingId: targetId,
       });
 
@@ -324,7 +336,7 @@ export function ShareModal({
         {isPublishing ? (
           <div className="py-8 text-center space-y-2">
             <Loader2 className="w-6 h-6 animate-spin text-indigo-400 mx-auto" />
-            <p className="text-xs text-zinc-400">Publishing ranking to the cloud...</p>
+            <p className="text-xs text-zinc-400">{publishStep}</p>
           </div>
         ) : publishError ? (
           <div className="py-6 text-center space-y-3">

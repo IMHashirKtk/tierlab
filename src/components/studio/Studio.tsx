@@ -1609,8 +1609,7 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
                 <button
                   key={t.id}
                   onClick={() => handleQuickAssignTier(t.id)}
-                  style={{ backgroundColor: t.color }}
-                  className="min-w-10 min-h-10 px-2.5 py-1 rounded-lg text-xs font-black text-black/90 shadow-sm hover:scale-105 active:scale-95 transition-all flex items-center justify-center cursor-pointer"
+                  className={`min-w-10 min-h-10 px-2.5 py-1 rounded-lg bg-gradient-to-br ${t.color} text-xs font-black text-white shadow-sm hover:scale-105 active:scale-95 transition-all flex items-center justify-center cursor-pointer`}
                   title={`Assign to ${t.label} (Press ${idx + 1})`}
                 >
                   {t.label}

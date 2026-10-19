@@ -3,7 +3,8 @@
 import { useDialogFocus } from "@/lib/use-dialog-focus";
 import { ItemImage } from "@/components/ItemImage";
 import React, { useState, useRef, useEffect } from "react";
-import { X, Download, Smartphone, Monitor, Square, Sparkles, Check, Image as ImageIcon, ShieldCheck, Film, AlertCircle } from "lucide-react";
+import { X, Download, Smartphone, Monitor, Square, Sparkles, Check, ShieldCheck, AlertCircle } from "lucide-react";
+import { ExportFormatTabs } from "./ExportFormatTabs";
 import type { TierRow } from "@/types";
 
 interface CreatorExportModalProps {
@@ -12,7 +13,7 @@ interface CreatorExportModalProps {
   boardTitle: string;
   authorName?: string;
   tiers: TierRow[];
-  onSwitchToVideo?: () => void;
+  onSwitchToVideo: () => void;
 }
 
 export type ExportRatio = "16:9" | "9:16" | "1:1";
@@ -38,11 +39,11 @@ export function CreatorExportModal({
   useEffect(() => {
     if (!isOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape" && !isExporting) onClose();
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, onClose]);
+  }, [isOpen, isExporting, onClose]);
 
   const dialogRef = useDialogFocus(isOpen);
 
@@ -117,6 +118,7 @@ export function CreatorExportModal({
             </div>
           </div>
           <button
+            disabled={isExporting}
             onClick={onClose}
             aria-label="Close dialog"
             className="text-zinc-400 hover:text-white p-1.5 rounded-lg hover:bg-zinc-800 transition-colors cursor-pointer"
@@ -142,28 +144,11 @@ export function CreatorExportModal({
           </div>
         )}
 
-        {/* Export Mode Switcher (Static 4K Image vs Animated Video) */}
-        <div className="flex p-1 rounded-xl bg-zinc-950 border border-zinc-800 text-xs">
-          <button
-            type="button"
-            className="flex-1 py-2 px-3 rounded-lg font-bold bg-zinc-800 text-white shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"
-          >
-            <ImageIcon className="w-3.5 h-3.5 text-indigo-400" />
-            <span>Static 4K Image</span>
-          </button>
-          <button
-            type="button"
-            data-tab="video-export"
-            onClick={() => {
-              onClose();
-              onSwitchToVideo?.();
-            }}
-            className="flex-1 py-2 px-3 rounded-lg font-bold text-zinc-400 hover:text-rose-300 hover:bg-zinc-900/60 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
-          >
-            <Film className="w-3.5 h-3.5 text-rose-400" />
-            <span>🎬 Animated Video (TikTok / Shorts)</span>
-          </button>
-        </div>
+        <ExportFormatTabs
+          format="image"
+          disabled={isExporting}
+          onChange={onSwitchToVideo}
+        />
 
         {/* Aspect Ratio Selector */}
         <div className="space-y-2.5">

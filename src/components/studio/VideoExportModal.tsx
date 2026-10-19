@@ -20,11 +20,13 @@ import {
   Zap,
 } from "lucide-react";
 import { renderAnimatedTierListVideo } from "@/lib/video-renderer";
+import { ExportFormatTabs } from "./ExportFormatTabs";
 import type { TierRow } from "@/types";
 
 interface VideoExportModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSwitchToImage: () => void;
   boardTitle: string;
   authorName?: string;
   tiers: TierRow[];
@@ -33,6 +35,7 @@ interface VideoExportModalProps {
 export function VideoExportModal({
   isOpen,
   onClose,
+  onSwitchToImage,
   boardTitle,
   authorName = "Creator",
   tiers,
@@ -144,7 +147,7 @@ export function VideoExportModal({
               <Film className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-bold text-base text-zinc-100 flex items-center gap-2">
+              <h3 className="font-bold text-base text-zinc-100 flex flex-wrap items-center gap-2">
                 <span>Animated Video Export</span>
                 <span className="px-2 py-0.5 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-300 text-[10px] font-bold uppercase tracking-wider">
                   TikTok / Shorts
@@ -156,6 +159,8 @@ export function VideoExportModal({
             </div>
           </div>
           <button
+            type="button"
+            aria-label="Close dialog"
             onClick={onClose}
             disabled={isRendering}
             className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 disabled:opacity-30 transition-colors cursor-pointer flex-shrink-0"
@@ -166,6 +171,11 @@ export function VideoExportModal({
 
         {/* Content Body */}
         <div className="p-5 space-y-5">
+          <ExportFormatTabs
+            format="video"
+            disabled={isRendering}
+            onChange={onSwitchToImage}
+          />
           {error && (
             <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
               <span>⚠️ {error}</span>

@@ -34,7 +34,7 @@ self.addEventListener("activate", (event) => {
       .then((cacheNames) => {
         return Promise.all(
           cacheNames.map((name) => {
-            if (name !== CACHE_NAME) {
+            if (name.startsWith("tierlistmaker-pwa-") && name !== CACHE_NAME) {
               return caches.delete(name);
             }
           })

@@ -1,5 +1,6 @@
 "use client";
 
+import { ItemImage } from "@/components/ItemImage";
 import React, { useState } from "react";
 import Link from "next/link";
 import {
@@ -24,34 +25,34 @@ const PRESET_COLLECTIONS: Record<string, { label: string; items: QuickItem[] }> 
   gaming: {
     label: "🎮 Gaming GOTY",
     items: [
-      { id: "q-er", name: "Elden Ring", category: "gaming", imageUrl: "https://images.unsplash.com/photo-1579783902614-a3fb3927b675?auto=format&fit=crop&w=200&q=80" },
-      { id: "q-bg3", name: "Baldur's Gate 3", category: "gaming", imageUrl: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=200&q=80" },
-      { id: "q-gow", name: "God of War Ragnarök", category: "gaming", imageUrl: "https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=200&q=80" },
-      { id: "q-zelda", name: "Zelda: Tears of Kingdom", category: "gaming", imageUrl: "https://images.unsplash.com/photo-1563089145-599997674d42?auto=format&fit=crop&w=200&q=80" },
-      { id: "q-sm2", name: "Spider-Man 2", category: "gaming", imageUrl: "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?auto=format&fit=crop&w=200&q=80" },
-      { id: "q-cp", name: "Cyberpunk 2077", category: "gaming", imageUrl: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=200&q=80" },
+      { id: "q-er", name: "Elden Ring", category: "gaming" },
+      { id: "q-bg3", name: "Baldur's Gate 3", category: "gaming" },
+      { id: "q-gow", name: "God of War Ragnarök", category: "gaming" },
+      { id: "q-zelda", name: "Zelda: Tears of Kingdom", category: "gaming" },
+      { id: "q-sm2", name: "Spider-Man 2", category: "gaming" },
+      { id: "q-cp", name: "Cyberpunk 2077", category: "gaming" },
     ],
   },
   food: {
     label: "🍔 Fast Food",
     items: [
-      { id: "q-mcd", name: "McDonald's", category: "food", imageUrl: "https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=200&q=80" },
-      { id: "q-wnd", name: "Wendy's", category: "food", imageUrl: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=200&q=80" },
-      { id: "q-cf", name: "Chick-fil-A", category: "food", imageUrl: "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?auto=format&fit=crop&w=200&q=80" },
-      { id: "q-tb", name: "Taco Bell", category: "food", imageUrl: "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?auto=format&fit=crop&w=200&q=80" },
-      { id: "q-sub", name: "Subway", category: "food", imageUrl: "https://images.unsplash.com/photo-1509722747041-616f39b57569?auto=format&fit=crop&w=200&q=80" },
-      { id: "q-popeyes", name: "Popeyes", category: "food", imageUrl: "https://images.unsplash.com/photo-1513639776629-7b61b0ac49cb?auto=format&fit=crop&w=200&q=80" },
+      { id: "q-mcd", name: "McDonald's", category: "food" },
+      { id: "q-wnd", name: "Wendy's", category: "food" },
+      { id: "q-cf", name: "Chick-fil-A", category: "food" },
+      { id: "q-tb", name: "Taco Bell", category: "food" },
+      { id: "q-sub", name: "Subway", category: "food" },
+      { id: "q-popeyes", name: "Popeyes", category: "food" },
     ],
   },
   anime: {
     label: "🎌 Shonen Anime",
     items: [
-      { id: "q-aot", name: "Attack on Titan", category: "anime", imageUrl: "https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=200&q=80" },
-      { id: "q-fma", name: "Fullmetal Alchemist", category: "anime", imageUrl: "https://images.unsplash.com/photo-1508739773434-c26b3d09e071?auto=format&fit=crop&w=200&q=80" },
-      { id: "q-ds", name: "Demon Slayer", category: "anime", imageUrl: "https://images.unsplash.com/photo-1516339901601-2e1b62dc0c45?auto=format&fit=crop&w=200&q=80" },
-      { id: "q-jjk", name: "Jujutsu Kaisen", category: "anime", imageUrl: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=200&q=80" },
-      { id: "q-op", name: "One Piece", category: "anime", imageUrl: "https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=200&q=80" },
-      { id: "q-hxh", name: "Hunter x Hunter", category: "anime", imageUrl: "https://images.unsplash.com/photo-1563089145-599997674d42?auto=format&fit=crop&w=200&q=80" },
+      { id: "q-aot", name: "Attack on Titan", category: "anime" },
+      { id: "q-fma", name: "Fullmetal Alchemist", category: "anime" },
+      { id: "q-ds", name: "Demon Slayer", category: "anime" },
+      { id: "q-jjk", name: "Jujutsu Kaisen", category: "anime" },
+      { id: "q-op", name: "One Piece", category: "anime" },
+      { id: "q-hxh", name: "Hunter x Hunter", category: "anime" },
     ],
   },
 };
@@ -115,6 +116,8 @@ export function QuickRankBoard() {
     if (tierId === "S") {
       try {
         confetti({
+          zIndex: 20,
+          disableForReducedMotion: true,
           particleCount: 50,
           spread: 60,
           origin: { y: 0.6 },
@@ -245,8 +248,7 @@ export function QuickRankBoard() {
                         >
                           <div className="w-7 h-7 rounded-lg overflow-hidden bg-zinc-800 flex-shrink-0">
                             {item.imageUrl ? (
-                              // eslint-disable-next-line @next/next/no-img-element
-                              <img
+                              <ItemImage
                                 src={item.imageUrl}
                                 alt={item.name}
                                 className="w-full h-full object-cover"
@@ -331,8 +333,7 @@ export function QuickRankBoard() {
                   >
                     <div className="w-8 h-8 rounded-lg overflow-hidden bg-zinc-800 flex-shrink-0 border border-zinc-700/60">
                       {item.imageUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
+                        <ItemImage
                           src={item.imageUrl}
                           alt={item.name}
                           className="w-full h-full object-cover"

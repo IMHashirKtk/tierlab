@@ -1,5 +1,6 @@
 "use client";
 
+import { ItemImage } from "@/components/ItemImage";
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { ArrowBigUp, RefreshCw, Search, X } from "lucide-react";
@@ -12,6 +13,8 @@ export function TrendingTemplates() {
   const [activeSort, setActiveSort] = useState<"most-ranked" | "newest" | "top-rated">("most-ranked");
   const [searchQuery, setSearchQuery] = useState("");
   const [templates, setTemplates] = useState<Template[]>(SEED_TEMPLATES);
+  const [voteError, setVoteError] = useState("");
+  const [voting, setVoting] = useState(false);
   const [upvotedIds, setUpvotedIds] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
@@ -27,23 +30,16 @@ export function TrendingTemplates() {
   }, [selectedCategory, activeSort, searchQuery]);
 
   const handleUpvote = async (templateId: string) => {
-    const isCurrentlyUpvoted = Boolean(upvotedIds[templateId]);
-    setUpvotedIds((prev) => ({ ...prev, [templateId]: !isCurrentlyUpvoted }));
-
-    // Optimistic count update
-    setTemplates((prev) =>
-      prev.map((t) => {
-        if (t.id === templateId) {
-          return {
-            ...t,
-            upvotes: isCurrentlyUpvoted ? Math.max(0, t.upvotes - 1) : t.upvotes + 1,
-          };
-        }
-        return t;
-      })
-    );
-
-    await toggleUpvote("template", templateId);
+    if (voting) return;
+    setVoting(true);
+    setVoteError("");
+    try {
+      const result = await toggleUpvote("template", templateId);
+      setUpvotedIds((prev) => ({ ...prev, [templateId]: result.isUpvoted }));
+      setTemplates((prev) => prev.map((item) => item.id === templateId ? { ...item, upvotes: result.newCount } : item));
+    } catch {
+      setVoteError("Voting is temporarily unavailable. Please try again later.");
+    } finally { setVoting(false); }
   };
 
   return (
@@ -53,13 +49,13 @@ export function TrendingTemplates() {
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-6 gap-4">
           <div>
             <div className="flex items-center gap-2 text-indigo-400 text-xs font-bold uppercase tracking-wider mb-1">
-              <span>🔥 What&apos;s Hot This Week</span>
+              <span>Find your next ranking</span>
             </div>
             <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-              Trending Community Templates
+              Explore Tier List Templates
             </h2>
             <p className="text-xs sm:text-sm text-zinc-400 mt-1">
-              Templates climbing fast with the most community remixes and votes.
+              Start with a library template or explore rankings created by the community.
             </p>
           </div>
         </div>
@@ -142,6 +138,7 @@ export function TrendingTemplates() {
           ))}
         </div>
 
+        {voteError && <p role="alert" className="mb-4 text-sm text-rose-300">{voteError}</p>}
         {/* Template Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {templates.map((template) => {
@@ -178,8 +175,7 @@ export function TrendingTemplates() {
                               title={it.name}
                             >
                               {it.imageUrl ? (
-                                // eslint-disable-next-line @next/next/no-img-element
-                                <img src={it.imageUrl} alt={it.name} className="w-full h-full object-cover" />
+                                <ItemImage src={it.imageUrl} alt={it.name} className="w-full h-full object-cover" />
                               ) : (
                                 <span className="text-[9px] text-zinc-300 px-1 truncate">{it.name}</span>
                               )}
@@ -199,8 +195,7 @@ export function TrendingTemplates() {
                               title={it.name}
                             >
                               {it.imageUrl ? (
-                                // eslint-disable-next-line @next/next/no-img-element
-                                <img src={it.imageUrl} alt={it.name} className="w-full h-full object-cover" />
+                                <ItemImage src={it.imageUrl} alt={it.name} className="w-full h-full object-cover" />
                               ) : (
                                 <span className="text-[9px] text-zinc-300 px-1 truncate">{it.name}</span>
                               )}
@@ -221,9 +216,9 @@ export function TrendingTemplates() {
                         {template.author.username[0]?.toUpperCase() || "C"}
                       </div>
                       <span className="text-xs text-zinc-400">
-                        by <span className="text-zinc-200 font-semibold">@{template.author.username}</span>
+                        <span className="text-zinc-200 font-semibold">{template.isStarter ? template.author.username : `@${template.author.username}`}</span>
                       </span>
-                      <span className="text-[10px] text-zinc-500">• {template.createdAt}</span>
+                      {!template.isStarter && <span className="text-[10px] text-zinc-500">• {template.createdAt}</span>}
                     </div>
 
                     <h3 className="text-base font-bold text-white group-hover:text-indigo-400 transition-colors">
@@ -239,8 +234,9 @@ export function TrendingTemplates() {
                 <div className="p-5 pt-0">
                   <div className="pt-3 border-t border-zinc-800/80 flex items-center justify-between">
                     <div className="flex items-center gap-3 text-xs text-zinc-400">
-                      <button
+                      {template.isStarter ? <span className="text-xs text-zinc-400">Library template</span> : <><button
                         onClick={() => handleUpvote(template.id)}
+                        disabled={voting}
                         className={`flex items-center gap-1 font-medium transition-colors cursor-pointer min-h-[28px] min-w-[28px] ${
                           isVoted ? "text-emerald-400" : "hover:text-emerald-400 text-zinc-400"
                         }`}
@@ -252,7 +248,7 @@ export function TrendingTemplates() {
                       <span className="flex items-center gap-1">
                         <RefreshCw className="w-3 h-3 text-zinc-500" />
                         <span>{template.remixCount.toLocaleString()} remixes</span>
-                      </span>
+                      </span></>}
                     </div>
 
                     <Link

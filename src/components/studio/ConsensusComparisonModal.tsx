@@ -1,5 +1,6 @@
 "use client";
 
+import { useDialogFocus } from "@/lib/use-dialog-focus";
 import React, { useMemo, useState, useEffect } from "react";
 import { X, BrainCircuit, CheckCircle2, Flame, AlertCircle } from "lucide-react";
 import type { Board } from "@/lib/board";
@@ -55,10 +56,12 @@ export function ConsensusComparisonModal({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
 
+  const dialogRef = useDialogFocus(isOpen);
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div ref={dialogRef} role="dialog" aria-modal="true" aria-label="Community consensus" tabIndex={-1} className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-zinc-900 border border-zinc-800 rounded-2xl max-w-xl w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto space-y-5">
         {/* Header */}
         <div className="flex justify-between items-center border-b border-zinc-800 pb-4">
@@ -77,6 +80,7 @@ export function ConsensusComparisonModal({
           </div>
           <button
             onClick={onClose}
+            aria-label="Close dialog"
             className="text-zinc-400 hover:text-white p-1 rounded-lg hover:bg-zinc-800 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
@@ -223,6 +227,7 @@ export function ConsensusComparisonModal({
         <div className="flex justify-end pt-2">
           <button
             onClick={onClose}
+            aria-label="Close dialog"
             className="px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white cursor-pointer"
           >
             Back to Editing

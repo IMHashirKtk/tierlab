@@ -19,9 +19,6 @@ export function CategoryExplorer() {
               Explore public templates across top fandoms.
             </p>
           </div>
-          <Link href="/categories/gaming" className="text-xs font-semibold text-indigo-400 hover:text-indigo-300">
-            View All Categories &rarr;
-          </Link>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -35,9 +32,7 @@ export function CategoryExplorer() {
                 {cat.icon}
               </div>
               <div className="text-sm font-bold text-white truncate">{cat.name}</div>
-              <div className="text-[11px] text-zinc-500 mt-0.5">
-                {cat.count.toLocaleString()} templates
-              </div>
+              <div className="text-[11px] text-zinc-400 mt-1">Explore templates &rarr;</div>
             </Link>
           ))}
         </div>

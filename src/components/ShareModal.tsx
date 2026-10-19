@@ -1,5 +1,6 @@
 "use client";
 
+import { useDialogFocus } from "@/lib/use-dialog-focus";
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { X, Copy, Check, Share2, Code, ExternalLink, Loader2, Sparkles, AlertCircle, RefreshCw } from "lucide-react";
@@ -44,6 +45,15 @@ export function ShareModal({
   const [publishError, setPublishError] = useState<string | null>(null);
   const [authorName, setAuthorName] = useState("");
   const [pendingShareId, setPendingShareId] = useState<string>("");
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !isPublishing) onClose();
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [isOpen, isPublishing, onClose]);
 
   const isPublishingRef = useRef(false);
   const activeProjectIdRef = useRef<string | undefined>(projectId);
@@ -97,6 +107,10 @@ export function ShareModal({
 
   const executePublish = async (handle: string) => {
     if (!tiers || isPublishingRef.current) return; // Synchronous in-flight guard
+    if (totalRankedCount === 0) {
+      setPublishError("Place at least one item in a tier before publishing.");
+      return;
+    }
     isPublishingRef.current = true;
     setIsPublishing(true);
     setPublishError(null);
@@ -200,6 +214,8 @@ export function ShareModal({
     }
   };
 
+  const dialogRef = useDialogFocus(isOpen);
+
   if (!isOpen) return null;
 
   const origin = typeof window !== "undefined" ? window.location.origin : "https://tierlistmaker.app";
@@ -225,7 +241,7 @@ export function ShareModal({
   );
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div ref={dialogRef} role="dialog" aria-modal="true" aria-label="Share and publish ranking" tabIndex={-1} className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-zinc-900 border border-zinc-800 rounded-2xl max-w-md w-full p-6 shadow-2xl">
         <div className="flex justify-between items-center mb-4">
           <div className="flex items-center gap-2">
@@ -336,7 +352,7 @@ export function ShareModal({
             <div className="space-y-1">
               <h4 className="text-xs font-bold text-white">Publish to Generate Public Link</h4>
               <p className="text-[11px] text-zinc-400 max-w-xs mx-auto">
-                Click Publish to verify your ranking and generate a permanent public link and embed snippet.
+                {totalRankedCount === 0 ? "Place at least one item in a tier before publishing." : "Publish your ranking to generate a public link and embed snippet."}
               </p>
             </div>
             <button

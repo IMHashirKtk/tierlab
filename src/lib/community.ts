@@ -1,5 +1,6 @@
 import { supabase, isSupabaseConfigured, ensureAuthenticatedSession } from "@/lib/supabase";
-import { SEED_TEMPLATES, SEED_RECENT_RANKINGS } from "@/data/seed-templates";
+import { SEED_TEMPLATES } from "@/data/seed-templates";
+import { isDiscoverableRanking, presentTemplate } from "@/lib/catalog";
 import type { Template, PublishedTierList, UserRanking, Item, TierRow, Comment } from "@/types";
 import { createId } from "@/lib/board";
 
@@ -124,7 +125,7 @@ export async function fetchTemplates(options?: {
     if (!templateMap.has(t.id)) templateMap.set(t.id, t);
   });
 
-  let result = Array.from(templateMap.values());
+  let result = Array.from(templateMap.values()).map(presentTemplate);
 
   // Category filter
   if (category !== "all") {
@@ -157,7 +158,7 @@ export async function fetchTemplates(options?: {
  */
 export async function fetchTemplateById(id: string): Promise<Template | null> {
   const local = getLocalUserTemplates().find((t) => t.id === id);
-  if (local) return local;
+  if (local) return presentTemplate(local);
 
   const seed = SEED_TEMPLATES.find((t) => t.id === id);
   if (seed) return seed;
@@ -166,7 +167,7 @@ export async function fetchTemplateById(id: string): Promise<Template | null> {
     try {
       const { data, error } = await supabase.from("templates").select("*").eq("id", id).maybeSingle();
       if (!error && data) {
-        return {
+        return presentTemplate({
           id: data.id,
           slug: data.id,
           title: data.title,
@@ -179,7 +180,7 @@ export async function fetchTemplateById(id: string): Promise<Template | null> {
           createdAt: new Date(data.created_at).toLocaleDateString(),
           items: data.items || [],
           defaultTiers: data.default_tiers || undefined,
-        };
+        });
       }
     } catch (err) {
       console.warn("Supabase template lookup failed", err);
@@ -353,7 +354,7 @@ export async function publishTemplate(payload: {
 
   const sessionUserId = await ensureAuthenticatedSession();
   if (!sessionUserId) {
-    throw new Error("Authentication required: A verified user session is required to publish templates.");
+    throw new Error("Cloud publishing is temporarily unavailable. Keep your draft on this device and try again later.");
   }
 
   const targetId = payload.existingId || payload.id || generateTemplateSlug(payload.title);
@@ -563,13 +564,16 @@ export async function publishTierList(payload: {
   existingId?: string;
   id?: string;
 }): Promise<PublishedTierList> {
+  if (!payload.tiers.some((tier) => tier.items.length > 0)) {
+    throw new Error("Place at least one item in a tier before publishing.");
+  }
   if (!isSupabaseConfigured() || !supabase) {
     throw new Error("Cloud publishing is unavailable because Supabase is not configured.");
   }
 
   const sessionUserId = await ensureAuthenticatedSession();
   if (!sessionUserId) {
-    throw new Error("Authentication required: A verified user session is required to publish tier lists.");
+    throw new Error("Cloud publishing is temporarily unavailable. Your board is still on this device; you can export an image instead.");
   }
 
   const targetId = payload.existingId || payload.id || `share-${createId("tier")}`;
@@ -716,7 +720,8 @@ export async function toggleUpvote(
   let newCount = 0;
 
   if (isSupabaseConfigured() && supabase) {
-    await ensureAuthenticatedSession();
+    const userId = await ensureAuthenticatedSession();
+    if (!userId) throw new Error("Voting is temporarily unavailable.");
     try {
       const { data, error } = await supabase.rpc("set_vote", {
         target_type: itemType,
@@ -726,7 +731,7 @@ export async function toggleUpvote(
 
       if (error) {
         console.warn("Supabase set_vote RPC error:", error.message);
-        return { isUpvoted: currentlyUpvoted, newCount: 0 };
+        throw new Error("Voting is temporarily unavailable.");
       }
 
       if (data && typeof data === "object") {
@@ -736,7 +741,7 @@ export async function toggleUpvote(
       }
     } catch (err) {
       console.warn("Supabase toggle upvote exception:", err);
-      return { isUpvoted: currentlyUpvoted, newCount: 0 };
+      throw new Error("Voting is temporarily unavailable.");
     }
   }
 
@@ -804,10 +809,10 @@ function toUserRanking(p: PublishedTierList, isDemo = false): UserRanking {
 }
 
 /**
- * Fetch live activity feed (real cloud submissions first, then local, then labeled demo seeds)
+ * Fetch genuine published activity, excluding known pre-launch audit fixtures.
  */
 export async function fetchLiveActivity(): Promise<UserRanking[]> {
-  const convertedLocal: UserRanking[] = getLocalPublishedRankings().map((r) => toUserRanking(r, false));
+  const convertedLocal = getLocalPublishedRankings().filter(isDiscoverableRanking).map((r) => toUserRanking(r));
 
   let cloudRankings: UserRanking[] = [];
   if (isSupabaseConfigured() && supabase) {
@@ -818,20 +823,17 @@ export async function fetchLiveActivity(): Promise<UserRanking[]> {
         .order("created_at", { ascending: false })
         .limit(20);
       if (!error && data) {
-        cloudRankings = data.map((d) => toUserRanking(mapTierListRow(d), false));
+        cloudRankings = data.map(mapTierListRow).filter(isDiscoverableRanking).map((r) => toUserRanking(r));
       }
     } catch (err) {
       console.warn("Supabase live activity query failed, using local fallback", err);
     }
   }
 
-  // Label fallback seeds explicitly as demo
-  const labeledSeedRankings = SEED_RECENT_RANKINGS.map((r) => ({ ...r, isDemo: true }));
-
   // Deduplicate by id — real user submissions take precedence
   const seen = new Set<string>();
   const merged: UserRanking[] = [];
-  for (const r of [...convertedLocal, ...cloudRankings, ...labeledSeedRankings]) {
+  for (const r of [...cloudRankings, ...convertedLocal]) {
     if (seen.has(r.id)) continue;
     seen.add(r.id);
     merged.push(r);
@@ -877,7 +879,7 @@ export async function fetchSubmissionsForTemplateWithStatus(templateId: string):
   cloud.forEach((r) => map.set(r.id, r));
   local.forEach((r) => map.set(r.id, r));
 
-  const submissions = Array.from(map.values()).sort((a, b) => b.createdAt - a.createdAt);
+  const submissions = Array.from(map.values()).filter(isDiscoverableRanking).sort((a, b) => b.createdAt - a.createdAt);
   // If we have local submissions, surface them; if we have zero submissions and cloud failed, report fetchError
   return {
     submissions,
@@ -1280,8 +1282,8 @@ export async function fetchUserProfile(username: string): Promise<UserProfileDat
   cloudTierLists.forEach((r) => rMap.set(r.id, r));
   localTierLists.forEach((r) => rMap.set(r.id, r));
 
-  const allTemplates = Array.from(tMap.values());
-  const allTierLists = Array.from(rMap.values());
+  const allTemplates = Array.from(tMap.values()).map(presentTemplate).filter((t) => !t.isStarter);
+  const allTierLists = Array.from(rMap.values()).filter(isDiscoverableRanking);
 
   const totalUpvotes =
     allTemplates.reduce((sum, t) => sum + (t.upvotes || 0), 0) +
@@ -1289,8 +1291,8 @@ export async function fetchUserProfile(username: string): Promise<UserProfileDat
 
   return {
     username,
-    bio: "Passionate Tier List Maker creator & ranker. Analyzing, debating, and ranking topics with the community.",
-    joinedDate: "2026",
+    bio: "Public rankings and templates shared under this creator name.",
+    joinedDate: "",
     totalUpvotes,
     templates: allTemplates,
     tierLists: allTierLists,

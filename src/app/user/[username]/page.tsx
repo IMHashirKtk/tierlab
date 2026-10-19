@@ -3,7 +3,7 @@
 import React, { useEffect, useState, Suspense } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Sparkles, Layers, ArrowBigUp, Award, Calendar, ExternalLink } from "lucide-react";
+import { ArrowLeft, Sparkles, Layers, ArrowBigUp, ExternalLink } from "lucide-react";
 import { fetchUserProfile, type UserProfileData } from "@/lib/community";
 
 function getAvatarGradient(name: string): string {
@@ -105,20 +105,10 @@ function UserProfileContent() {
                 <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
                   @{username}
                 </h2>
-                <span className="px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-xs font-bold flex items-center gap-1">
-                  <Award className="w-3 h-3 text-indigo-400" />
-                  <span>Verified Ranker</span>
-                </span>
               </div>
               <p className="text-xs sm:text-sm text-zinc-300 max-w-lg leading-relaxed">
                 {profile?.bio}
               </p>
-              <div className="flex items-center justify-center sm:justify-start gap-4 text-xs text-zinc-500 pt-1">
-                <span className="flex items-center gap-1">
-                  <Calendar className="w-3.5 h-3.5" />
-                  <span>Joined {profile?.joinedDate}</span>
-                </span>
-              </div>
             </div>
 
             {/* Stats Ribbon */}

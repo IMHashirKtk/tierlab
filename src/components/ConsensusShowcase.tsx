@@ -50,13 +50,13 @@ export function ConsensusShowcase() {
                 Community Consensus: See what the world thinks.
               </h2>
               <p className="text-sm sm:text-base text-zinc-300 leading-relaxed mb-6">
-                When thousands of players rank a template, Tier List Maker calculates the mathematical average tier for every item. Compare your personal tier list directly against the crowd consensus to see how controversial your takes really are.
+                Community consensus combines published rankings of the same template. Once submissions are available, compare your placements with the community average.
               </p>
 
               {/* Template Switcher Pills */}
               <div className="mb-6 space-y-2">
                 <span className="text-xs font-semibold uppercase tracking-wider text-zinc-400 block">
-                  Select Live Consensus Stream:
+                  Choose a template:
                 </span>
                 <div className="flex flex-wrap gap-2">
                   {SEED_TEMPLATES.slice(0, 4).map((t, idx) => (
@@ -115,7 +115,7 @@ export function ConsensusShowcase() {
                   </span>
                 ) : (
                   <span className="text-[11px] px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 font-semibold border border-amber-500/20">
-                    {consensus.status === "error" ? "Fetch Error" : "Demo Preview"}
+                    {consensus.status === "error" ? "Unavailable" : "No rankings yet"}
                   </span>
                 )}
               </div>
@@ -129,7 +129,7 @@ export function ConsensusShowcase() {
               ) : consensus.totalSubmissions === 0 ? (
                 <div className="py-8 px-4 text-center rounded-xl bg-zinc-900/60 border border-zinc-800 space-y-3">
                   <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/20 text-[11px] font-semibold">
-                    <span>Interactive Demo Preview (Sample Data)</span>
+                    <span>Be the first to rank</span>
                   </div>
                   <p className="text-xs text-zinc-400 max-w-sm mx-auto">
                     No community rankings submitted yet — publish the first ranking to establish the consensus!

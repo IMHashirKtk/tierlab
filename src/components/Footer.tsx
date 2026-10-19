@@ -25,7 +25,7 @@ export function Footer() {
             </p>
             <div className="flex items-center gap-2 text-zinc-400 text-[11px]">
               <span className="w-2 h-2 rounded-full bg-emerald-400" />
-              <span>Free community templates &amp; rankings active today</span>
+              <span>Create locally. Publish when you are ready.</span>
             </div>
           </div>
 
@@ -35,8 +35,8 @@ export function Footer() {
               <li><Link href="/create" className="hover:text-zinc-300 py-1 inline-flex items-center min-h-[28px]">Free Tier List Maker</Link></li>
               <li><Link href="/tiermaker-alternative" className="hover:text-zinc-300 py-1 inline-flex items-center min-h-[28px]">TierMaker Alternative</Link></li>
               <li><Link href="/versus" className="hover:text-zinc-300 py-1 inline-flex items-center min-h-[28px]">Versus Arena</Link></li>
-              <li><a href="#trending" className="hover:text-zinc-300 py-1 inline-flex items-center min-h-[28px]">Trending Templates</a></li>
-              <li><a href="#feed" className="hover:text-zinc-300 py-1 inline-flex items-center min-h-[28px]">Live Activity Feed</a></li>
+              <li><Link href="/#trending" className="hover:text-zinc-300 py-1 inline-flex items-center min-h-[28px]">Explore Templates</Link></li>
+              <li><Link href="/#feed" className="hover:text-zinc-300 py-1 inline-flex items-center min-h-[28px]">Community Rankings</Link></li>
             </ul>
           </div>
 

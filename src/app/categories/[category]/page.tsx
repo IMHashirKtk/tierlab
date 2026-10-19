@@ -1,3 +1,4 @@
+import { ItemImage } from "@/components/ItemImage";
 import React, { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -280,8 +281,7 @@ async function CategoryContent({
                                 title={it.name}
                               >
                                 {it.imageUrl ? (
-                                  // eslint-disable-next-line @next/next/no-img-element
-                                  <img
+                                  <ItemImage
                                     src={it.imageUrl}
                                     alt={it.name}
                                     className="w-full h-full object-cover"
@@ -308,7 +308,7 @@ async function CategoryContent({
                           {template.author.username[0]?.toUpperCase() || "C"}
                         </div>
                         <span className="text-xs text-zinc-400">
-                          by <span className="text-zinc-200 font-semibold">@{template.author.username}</span>
+                          <span className="text-zinc-200 font-semibold">{template.isStarter ? template.author.username : `@${template.author.username}`}</span>
                         </span>
                       </div>
 
@@ -325,14 +325,14 @@ async function CategoryContent({
                   <div className="p-5 pt-0">
                     <div className="pt-3 border-t border-zinc-800/80 flex items-center justify-between">
                       <div className="flex items-center gap-3 text-xs text-zinc-400">
-                        <span className="flex items-center gap-1 font-medium text-emerald-400">
+                        {template.isStarter ? <span>Library template</span> : <><span className="flex items-center gap-1 font-medium text-emerald-400">
                           <ArrowBigUp className="w-4 h-4 fill-emerald-400" />
                           <span>{template.upvotes.toLocaleString()}</span>
                         </span>
                         <span className="flex items-center gap-1">
                           <RefreshCw className="w-3 h-3 text-zinc-500" />
                           <span>{template.remixCount.toLocaleString()}</span>
-                        </span>
+                        </span></>}
                       </div>
 
                       <Link

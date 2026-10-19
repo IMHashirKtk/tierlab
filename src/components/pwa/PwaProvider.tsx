@@ -68,8 +68,21 @@ export function PwaProvider({ children }: { children: React.ReactNode }) {
 
     // Register Service Worker
     if ("serviceWorker" in navigator) {
+      if (process.env.NODE_ENV !== "production") {
+        // Next dev reuses chunk URLs. Caching them can mix old client code
+        // with fresh server HTML and break hydration during local work.
+        void navigator.serviceWorker.getRegistrations().then(async (registrations) => {
+          await Promise.all(registrations.filter((reg) =>
+            reg.active?.scriptURL === new URL("/sw.js", location.origin).href
+          ).map((reg) => reg.unregister()));
+          if ("caches" in window) {
+            const keys = await caches.keys();
+            await Promise.all(keys.filter((key) => key.startsWith("tierlistmaker-pwa-")).map((key) => caches.delete(key)));
+          }
+        }).catch(() => {});
+      } else {
       navigator.serviceWorker
-        .register("/sw.js", { scope: "/" })
+        .register("/sw.js", { scope: "/", updateViaCache: "none" })
         .then((reg) => {
           // Listen for updates
           reg.onupdatefound = () => {
@@ -87,6 +100,7 @@ export function PwaProvider({ children }: { children: React.ReactNode }) {
         .catch((err) => {
           console.debug("ServiceWorker registration skipped or failed:", err);
         });
+      }
     }
 
     // Listen for BeforeInstallPrompt

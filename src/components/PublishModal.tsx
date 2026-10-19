@@ -1,5 +1,6 @@
 "use client";
 
+import { useDialogFocus } from "@/lib/use-dialog-focus";
 import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { X, Upload, Check, Loader2, Sparkles, Plus, Image as ImageIcon, Globe, AlertCircle, RefreshCw, Trash2 } from "lucide-react";
@@ -126,6 +127,8 @@ export function PublishModal({ isOpen, onClose, draftId = "default" }: PublishMo
       });
     }
   }, [isOpen, isHydrated, draftId, pendingId, title, category, description, authorName, items, createdTemplateId]);
+
+  const dialogRef = useDialogFocus(isOpen);
 
   if (!isOpen) return null;
 
@@ -296,7 +299,7 @@ export function PublishModal({ isOpen, onClose, draftId = "default" }: PublishMo
   };
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div ref={dialogRef} role="dialog" aria-modal="true" aria-label="Publish Community Template" tabIndex={-1} className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-zinc-900 border border-zinc-800 rounded-2xl max-w-xl w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-4">
           <div className="flex items-center gap-2">
@@ -327,6 +330,7 @@ export function PublishModal({ isOpen, onClose, draftId = "default" }: PublishMo
             <div className="flex justify-center gap-3 pt-2">
               <button
                 onClick={onClose}
+                aria-label="Close dialog"
                 className="px-4 py-2 rounded-xl text-xs font-medium text-zinc-400 bg-zinc-800 hover:bg-zinc-750 cursor-pointer min-h-[32px]"
               >
                 Close
@@ -576,6 +580,7 @@ export function PublishModal({ isOpen, onClose, draftId = "default" }: PublishMo
                 <button
                   type="button"
                   onClick={onClose}
+                  aria-label="Close dialog"
                   className="min-h-[32px] px-4 py-2 rounded-xl text-xs font-medium text-zinc-400 hover:text-white bg-zinc-800 hover:bg-zinc-750 transition-colors cursor-pointer"
                 >
                   Close

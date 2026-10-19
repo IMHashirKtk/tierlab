@@ -2,18 +2,21 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { ArrowBigUp, MessageSquare, ExternalLink, Sparkles } from "lucide-react";
+import { ArrowBigUp, ExternalLink, Sparkles } from "lucide-react";
 import { fetchLiveActivity, toggleUpvote } from "@/lib/community";
 import type { UserRanking } from "@/types";
 
 export function LiveFeed() {
   const [rankings, setRankings] = useState<UserRanking[]>([]);
+  const [voteError, setVoteError] = useState("");
+  const [voting, setVoting] = useState(false);
   const [upvotedIds, setUpvotedIds] = useState<Record<string, boolean>>({});
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let isCancelled = false;
     fetchLiveActivity().then((data) => {
-      if (!isCancelled) setRankings(data);
+      if (!isCancelled) { setRankings(data); setLoading(false); }
     });
     return () => {
       isCancelled = true;
@@ -21,22 +24,16 @@ export function LiveFeed() {
   }, []);
 
   const handleUpvote = async (id: string) => {
-    const isCurrentlyUpvoted = Boolean(upvotedIds[id]);
-    setUpvotedIds((prev) => ({ ...prev, [id]: !isCurrentlyUpvoted }));
-
-    setRankings((prev) =>
-      prev.map((r) => {
-        if (r.id === id) {
-          return {
-            ...r,
-            upvotes: isCurrentlyUpvoted ? Math.max(0, r.upvotes - 1) : r.upvotes + 1,
-          };
-        }
-        return r;
-      })
-    );
-
-    await toggleUpvote("tier_list", id);
+    if (voting) return;
+    setVoting(true);
+    setVoteError("");
+    try {
+      const result = await toggleUpvote("tier_list", id);
+      setUpvotedIds((prev) => ({ ...prev, [id]: result.isUpvoted }));
+      setRankings((prev) => prev.map((item) => item.id === id ? { ...item, upvotes: result.newCount } : item));
+    } catch {
+      setVoteError("Voting is temporarily unavailable. Please try again later.");
+    } finally { setVoting(false); }
   };
 
   return (
@@ -47,13 +44,13 @@ export function LiveFeed() {
           <div>
             <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold uppercase tracking-wider mb-1">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span>Real-Time Community Stream</span>
+              <span>Made by the community</span>
             </div>
             <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-              Live Community Activity Stream
+              Community Rankings
             </h2>
             <p className="text-xs sm:text-sm text-zinc-400 mt-1">
-              Watch how other players rank templates in real time. Upvote or explore their placements.
+              Explore published boards, compare placements, and share your own take.
             </p>
           </div>
 
@@ -63,8 +60,13 @@ export function LiveFeed() {
           </a>
         </div>
 
+        {voteError && <p role="alert" className="mb-4 text-sm text-rose-300">{voteError}</p>}
         {/* Feed Rows */}
         <div className="space-y-3">
+          {rankings.length === 0 && <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-8 text-center">
+            <p className="font-semibold text-zinc-200">{loading ? 'Loading community rankings…' : 'Your ranking could be the first.'}</p>
+            {!loading && <><p className="mt-2 text-sm text-zinc-400">Create a board and publish it to start a conversation.</p><Link href="/create" className="inline-flex mt-5 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white">Create a tier list</Link></>}
+          </div>}
           {rankings.map((rank) => {
             const isUpvoted = Boolean(upvotedIds[rank.id]);
             const isShareable = rank.id.startsWith("share-");
@@ -78,6 +80,7 @@ export function LiveFeed() {
                   {/* Upvote Button with Live Counter */}
                   <button
                     onClick={() => handleUpvote(rank.id)}
+                        disabled={voting}
                     className={`flex flex-col items-center justify-center w-11 h-11 rounded-lg border transition-all flex-shrink-0 cursor-pointer ${
                       isUpvoted
                         ? "bg-indigo-600 border-indigo-500 text-white shadow-md shadow-indigo-600/30 scale-105"

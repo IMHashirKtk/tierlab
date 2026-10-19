@@ -1,5 +1,6 @@
 "use client";
 
+import { ItemImage } from "@/components/ItemImage";
 import React, { useMemo } from "react";
 import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, rectSortingStrategy, useSortable } from "@dnd-kit/sortable";
@@ -37,7 +38,7 @@ export const ItemCard = React.memo(function ItemCard({
       className={`group relative rounded-lg border select-none overflow-hidden transition-all ${
         item.imageUrl
           ? "w-16 h-16 sm:w-20 sm:h-20 bg-zinc-950 flex items-center justify-center"
-          : "px-3 py-2 bg-zinc-800 text-zinc-100 text-xs font-semibold flex items-center gap-2 max-w-[200px]"
+          : "pl-3 pr-8 py-2 min-h-11 bg-zinc-800 text-zinc-100 text-xs font-semibold flex items-center gap-2 max-w-[220px]"
       } ${
         isOverlay
           ? "border-indigo-400 shadow-2xl shadow-indigo-500/40 scale-105 cursor-grabbing z-50 ring-2 ring-indigo-500/40"
@@ -48,15 +49,14 @@ export const ItemCard = React.memo(function ItemCard({
       title={item.name}
     >
       {item.imageUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element -- data URLs / user content, not optimisable by next/image
-        <img
+        <ItemImage
           src={item.imageUrl}
           alt={item.name}
           draggable={false}
           className="w-full h-full object-cover pointer-events-none"
         />
       ) : (
-        <span className="truncate">{item.name}</span>
+        <span className="break-words">{item.name}</span>
       )}
 
       {onRemove && !isOverlay && (
@@ -69,7 +69,7 @@ export const ItemCard = React.memo(function ItemCard({
           }}
           aria-label={`${removeLabel}: ${item.name}`}
           title={removeLabel}
-          className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/70 hover:bg-red-600 text-white text-xs leading-none flex items-center justify-center opacity-0 group-hover:opacity-100 focus:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity cursor-pointer shadow"
+          className="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/70 hover:bg-red-600 text-white text-xs leading-none flex items-center justify-center opacity-0 group-hover:opacity-100 focus:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity cursor-pointer shadow"
         >
           ×
         </button>

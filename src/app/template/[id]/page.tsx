@@ -1,3 +1,4 @@
+import { ItemImage } from "@/components/ItemImage";
 import React, { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -197,8 +198,7 @@ async function TemplateContent({ params }: { params: Promise<{ id: string }> }) 
               >
                 <div className="w-10 h-10 rounded-lg bg-zinc-800 overflow-hidden flex-shrink-0 flex items-center justify-center border border-zinc-700/60">
                   {item.imageUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
+                    <ItemImage
                       src={item.imageUrl}
                       alt={`${item.name} - ${template.title} Tier List`}
                       className="w-full h-full object-cover"

@@ -1,5 +1,7 @@
 "use client";
 
+import { useDialogFocus } from "@/lib/use-dialog-focus";
+import { ItemImage } from "@/components/ItemImage";
 import React, { useState, useEffect } from "react";
 import { X, Dices, Sparkles, CheckCircle2, RotateCcw, ArrowRight } from "lucide-react";
 import confetti from "canvas-confetti";
@@ -54,6 +56,8 @@ export function BlindRankModal({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
 
+  const dialogRef = useDialogFocus(isOpen);
+
   if (!isOpen) return null;
 
   const currentItem = deck[currentIndex];
@@ -92,7 +96,7 @@ export function BlindRankModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto">
+    <div ref={dialogRef} role="dialog" aria-modal="true" aria-label="Blind ranking" tabIndex={-1} className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto">
       <div className="bg-zinc-900 border border-zinc-800 rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl relative space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-zinc-800 pb-4">
@@ -114,6 +118,7 @@ export function BlindRankModal({
           </div>
           <button
             onClick={onClose}
+            aria-label="Close dialog"
             className="text-zinc-400 hover:text-white p-1.5 rounded-lg hover:bg-zinc-800 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
@@ -125,6 +130,7 @@ export function BlindRankModal({
             <p className="text-sm text-zinc-300">No items available in this template to blind rank.</p>
             <button
               onClick={onClose}
+              aria-label="Close dialog"
               className="px-4 py-2 rounded-xl bg-zinc-800 text-xs font-semibold text-white"
             >
               Close
@@ -152,8 +158,7 @@ export function BlindRankModal({
             <div className="rounded-2xl bg-gradient-to-br from-zinc-850 to-zinc-950 border border-zinc-750 p-6 flex flex-col items-center justify-center text-center space-y-4 shadow-xl">
               <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-2xl overflow-hidden bg-zinc-900 border border-zinc-700 shadow-2xl flex items-center justify-center relative">
                 {currentItem.imageUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
+                  <ItemImage
                     src={currentItem.imageUrl}
                     alt={currentItem.name}
                     className="w-full h-full object-cover"
@@ -230,8 +235,7 @@ export function BlindRankModal({
                 >
                   <div className="flex items-center gap-2 truncate">
                     {h.item.imageUrl && (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
+                      <ItemImage
                         src={h.item.imageUrl}
                         alt={h.item.name}
                         className="w-6 h-6 rounded object-cover flex-shrink-0"
@@ -272,6 +276,7 @@ export function BlindRankModal({
 
               <button
                 onClick={onClose}
+                aria-label="Close dialog"
                 className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <span>View Final Board</span>

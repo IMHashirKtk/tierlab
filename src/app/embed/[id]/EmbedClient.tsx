@@ -1,5 +1,6 @@
 "use client";
 
+import { ItemImage } from "@/components/ItemImage";
 import React, { useEffect, useState } from "react";
 import { ArrowBigUp, ExternalLink, Sparkles, Layers, Users } from "lucide-react";
 import { fetchSharedTierList, fetchTemplateById, toggleUpvote } from "@/lib/community";
@@ -227,8 +228,7 @@ export function EmbedClient({ id }: EmbedClientProps) {
                         title={item.name}
                       >
                         {item.imageUrl ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
+                          <ItemImage
                             src={item.imageUrl}
                             alt={item.name}
                             loading="lazy"

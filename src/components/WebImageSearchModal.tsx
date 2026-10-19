@@ -1,5 +1,7 @@
 "use client";
 
+import { useDialogFocus } from "@/lib/use-dialog-focus";
+import { ItemImage } from "@/components/ItemImage";
 import React, { useState, useEffect, useRef } from "react";
 import { Search, X, Check, Plus, Sparkles, Loader2, Globe, Music, Tv, Zap } from "lucide-react";
 import type { Item } from "@/types";
@@ -39,6 +41,10 @@ const PRESET_ASSETS: Record<string, { name: string; url: string }[]> = {
     { name: "Vision Pro", url: "https://images.unsplash.com/photo-1593508512255-86ab42a8e620?w=240&auto=format&fit=crop&q=80" },
   ],
 };
+
+for (const assets of Object.values(PRESET_ASSETS)) {
+  for (const asset of assets) asset.url = "text:" + asset.name;
+}
 
 const ALL_PRESETS = [
   ...PRESET_ASSETS.gaming,
@@ -169,6 +175,8 @@ export function WebImageSearchModal({ isOpen, onClose, onAddItems }: WebImageSea
     };
   }, [query, source, isOpen]);
 
+  const dialogRef = useDialogFocus(isOpen);
+
   if (!isOpen) return null;
 
   // Determine which assets to display
@@ -208,7 +216,7 @@ export function WebImageSearchModal({ isOpen, onClose, onAddItems }: WebImageSea
     const itemsToAdd: Item[] = Object.values(selectedUrls).map((val) => ({
       id: `item-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
       name: val.name,
-      imageUrl: val.url,
+      imageUrl: val.url.startsWith("text:") ? undefined : val.url,
     }));
 
     if (itemsToAdd.length > 0) {
@@ -221,7 +229,7 @@ export function WebImageSearchModal({ isOpen, onClose, onAddItems }: WebImageSea
   const selectedCount = Object.keys(selectedUrls).length;
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div ref={dialogRef} role="dialog" aria-modal="true" aria-label="Search images and starter items" tabIndex={-1} className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-zinc-900 border border-zinc-800 rounded-2xl max-w-2xl w-full p-6 shadow-2xl flex flex-col max-h-[85vh]">
         {/* Header - Keeps 'Web Asset' in text for Playwright test compatibility */}
         <div className="flex justify-between items-center mb-4">
@@ -231,6 +239,7 @@ export function WebImageSearchModal({ isOpen, onClose, onAddItems }: WebImageSea
           </div>
           <button
             onClick={onClose}
+            aria-label="Close dialog"
             className="text-zinc-400 hover:text-white p-1 rounded-lg hover:bg-zinc-800 cursor-pointer min-w-[28px] min-h-[28px] flex items-center justify-center"
           >
             <X className="w-5 h-5" />
@@ -393,9 +402,8 @@ export function WebImageSearchModal({ isOpen, onClose, onAddItems }: WebImageSea
                   }`}
                 >
                   <div className="w-full aspect-square rounded-lg overflow-hidden bg-zinc-950 relative">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={asset.url}
+                    <ItemImage
+                      src={asset.url.startsWith("text:") ? undefined : asset.url}
                       alt={asset.name}
                       loading="lazy"
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"

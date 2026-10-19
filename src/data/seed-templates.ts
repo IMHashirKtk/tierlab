@@ -1,4 +1,5 @@
 import type { Template, UserRanking } from "@/types";
+import { presentTemplate } from "@/lib/catalog";
 
 export const CATEGORIES = [
   { id: "all", name: "All Categories", icon: "🔥", count: 12 },
@@ -11,7 +12,7 @@ export const CATEGORIES = [
   { id: "pop-culture", name: "Pop Culture & Tech", icon: "⚡", count: 2 },
 ];
 
-export const SEED_TEMPLATES: Template[] = [
+const STARTER_TEMPLATES: Template[] = [
   {
     id: "elden-ring-bosses",
     slug: "elden-ring-shadow-erdtree-bosses",
@@ -397,6 +398,8 @@ export const SEED_TEMPLATES: Template[] = [
     ],
   },
 ];
+
+export const SEED_TEMPLATES: Template[] = STARTER_TEMPLATES.map(presentTemplate);
 
 export const SEED_RECENT_RANKINGS: UserRanking[] = [
   {

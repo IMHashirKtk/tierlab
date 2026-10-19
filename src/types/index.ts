@@ -27,6 +27,7 @@ export interface Project {
 }
 
 export interface Template {
+  isStarter?: boolean;
   id: string;
   slug: string;
   title: string;

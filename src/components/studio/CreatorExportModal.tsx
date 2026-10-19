@@ -1,5 +1,7 @@
 "use client";
 
+import { useDialogFocus } from "@/lib/use-dialog-focus";
+import { ItemImage } from "@/components/ItemImage";
 import React, { useState, useRef, useEffect } from "react";
 import { X, Download, Smartphone, Monitor, Square, Sparkles, Check, Image as ImageIcon, ShieldCheck, Film, AlertCircle } from "lucide-react";
 import type { TierRow } from "@/types";
@@ -41,6 +43,8 @@ export function CreatorExportModal({
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
+
+  const dialogRef = useDialogFocus(isOpen);
 
   if (!isOpen) return null;
 
@@ -92,7 +96,7 @@ export function CreatorExportModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div ref={dialogRef} role="dialog" aria-modal="true" aria-label="Export image" tabIndex={-1} className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
       <div className="bg-zinc-900 border border-zinc-800 rounded-2xl max-w-2xl w-full p-5 sm:p-6 shadow-2xl relative space-y-6 my-auto">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-zinc-800 pb-4">
@@ -114,6 +118,7 @@ export function CreatorExportModal({
           </div>
           <button
             onClick={onClose}
+            aria-label="Close dialog"
             className="text-zinc-400 hover:text-white p-1.5 rounded-lg hover:bg-zinc-800 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
@@ -385,8 +390,7 @@ export function CreatorExportModal({
                         }`}
                       >
                         {item.imageUrl ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
+                          <ItemImage
                             src={item.imageUrl}
                             alt={item.name}
                             className="w-full h-full object-cover"

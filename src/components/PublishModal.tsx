@@ -1,5 +1,7 @@
 "use client";
 
+import { WEB_IMAGE_SEARCH_ENABLED } from "@/lib/features";
+
 import { useDialogFocus } from "@/lib/use-dialog-focus";
 import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -457,23 +459,25 @@ export function PublishModal({ isOpen, onClose, draftId = "default" }: PublishMo
                   Template Items ({items.length} items added)
                 </label>
                 <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setIsWebSearchOpen(true)}
-                    className="min-h-[28px] px-2.5 py-1 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-400 hover:text-indigo-300 border border-indigo-500/30 font-semibold cursor-pointer flex items-center gap-1.5 transition-colors"
-                  >
-                    <Globe className="w-3.5 h-3.5" />
-                    <span>Search Web & Icons</span>
-                  </button>
+                  {WEB_IMAGE_SEARCH_ENABLED && (
+                    <button
+                      type="button"
+                      onClick={() => setIsWebSearchOpen(true)}
+                      className="min-h-[28px] px-2.5 py-1 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-400 hover:text-indigo-300 border border-indigo-500/30 font-semibold cursor-pointer flex items-center gap-1.5 transition-colors"
+                    >
+                      <Globe className="w-3.5 h-3.5" />
+                      <span>Search Web & Icons</span>
+                    </button>
+                  )}
                   <span className="text-[11px] text-zinc-500">Min 2 items</span>
                 </div>
               </div>
 
               {/* Upload Dropzone + Search Web Action */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <div className={`grid grid-cols-1 gap-2 ${WEB_IMAGE_SEARCH_ENABLED ? "sm:grid-cols-3" : ""}`}>
                 <div
                   onClick={() => fileInputRef.current?.click()}
-                  className="sm:col-span-2 border-2 border-dashed border-zinc-700 rounded-xl p-4 text-center hover:border-indigo-500 transition-colors cursor-pointer bg-zinc-800/40 flex flex-col items-center justify-center min-h-[90px]"
+                  className={`${WEB_IMAGE_SEARCH_ENABLED ? "sm:col-span-2" : ""} border-2 border-dashed border-zinc-700 rounded-xl p-4 text-center hover:border-indigo-500 transition-colors cursor-pointer bg-zinc-800/40 flex flex-col items-center justify-center min-h-[90px]`}
                 >
                   {isCompressing ? (
                     <div className="flex items-center justify-center gap-2 py-2 text-indigo-400">
@@ -491,14 +495,16 @@ export function PublishModal({ isOpen, onClose, draftId = "default" }: PublishMo
                   )}
                 </div>
 
-                <div
-                  onClick={() => setIsWebSearchOpen(true)}
-                  className="border-2 border-dashed border-indigo-500/40 hover:border-indigo-500 bg-indigo-600/10 hover:bg-indigo-600/20 rounded-xl p-4 text-center transition-colors cursor-pointer flex flex-col items-center justify-center min-h-[90px]"
-                >
-                  <Globe className="w-5 h-5 text-indigo-400 mx-auto mb-1" />
-                  <p className="text-indigo-300 font-semibold">Web Search</p>
-                  <p className="text-[10px] text-zinc-400 mt-0.5">Wikipedia, Anime & Music</p>
-                </div>
+                {WEB_IMAGE_SEARCH_ENABLED && (
+                  <div
+                    onClick={() => setIsWebSearchOpen(true)}
+                    className="border-2 border-dashed border-indigo-500/40 hover:border-indigo-500 bg-indigo-600/10 hover:bg-indigo-600/20 rounded-xl p-4 text-center transition-colors cursor-pointer flex flex-col items-center justify-center min-h-[90px]"
+                  >
+                    <Globe className="w-5 h-5 text-indigo-400 mx-auto mb-1" />
+                    <p className="text-indigo-300 font-semibold">Web Search</p>
+                    <p className="text-[10px] text-zinc-400 mt-0.5">Wikipedia, Anime & Music</p>
+                  </div>
+                )}
               </div>
 
               {/* Quick Text Items Input */}
@@ -604,14 +610,16 @@ export function PublishModal({ isOpen, onClose, draftId = "default" }: PublishMo
           </form>
         )}
 
-        <WebImageSearchModal
-          isOpen={isWebSearchOpen}
-          onClose={() => setIsWebSearchOpen(false)}
-          onAddItems={(newItems) => {
-            hasUserEditedRef.current = true;
-            setItems((prev) => [...prev, ...newItems]);
-          }}
-        />
+        {WEB_IMAGE_SEARCH_ENABLED && (
+          <WebImageSearchModal
+            isOpen={isWebSearchOpen}
+            onClose={() => setIsWebSearchOpen(false)}
+            onAddItems={(newItems) => {
+              hasUserEditedRef.current = true;
+              setItems((prev) => [...prev, ...newItems]);
+            }}
+          />
+        )}
       </div>
     </div>
   );

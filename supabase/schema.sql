@@ -336,7 +336,8 @@ begin
   elsif target_type = 'tier_list' then
     select upvotes into current_count from public.tier_lists where id = target_id and not is_test and not is_hidden for update;
   elsif target_type = 'comment' then
-    select upvotes into current_count from public.comments where id = target_id and not is_test and not is_hidden for update;
+    select upvotes into current_count from public.comments c where c.id = target_id and not c.is_test and not c.is_hidden
+      and exists (select 1 from public.tier_lists r where r.id=c.tier_list_id and not r.is_test and not r.is_hidden) for update;
   end if;
 
   if not found then

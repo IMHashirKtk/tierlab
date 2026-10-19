@@ -37,6 +37,10 @@ do $$ begin
     perform public.set_vote('tier_list','visibility-ranking',true);
     raise exception 'Client voted on hidden ranking';
   exception when no_data_found then null; end;
+  begin
+    perform public.set_vote('comment','visibility-comment',true);
+    raise exception 'Client voted on comment under hidden ranking';
+  exception when no_data_found then null; end;
 end $$;
 reset role;
 rollback;

@@ -150,8 +150,7 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
   const [dropFxEnabled, setDropFxEnabled] = useState(true);
   const [isWebSearchOpen, setIsWebSearchOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
-  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
-  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+  const [exportFormat, setExportFormat] = useState<"image" | "video" | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [isConsensusModalOpen, setIsConsensusModalOpen] = useState(false);
   const [isBlindModalOpen, setIsBlindModalOpen] = useState(false);
@@ -161,7 +160,7 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
   const [unrankedSearch, setUnrankedSearch] = useState("");
 
   const toolsDialogRef = useDialogFocus(isMobileToolsOpen);
-  const isStudioDialogOpen = isWebSearchOpen || isShareModalOpen || isExportModalOpen || isVideoModalOpen || isConsensusModalOpen || isBlindModalOpen || isPresentationModalOpen || isPresetsModalOpen || isMobileToolsOpen;
+  const isStudioDialogOpen = isWebSearchOpen || isShareModalOpen || exportFormat !== null || isConsensusModalOpen || isBlindModalOpen || isPresentationModalOpen || isPresetsModalOpen || isMobileToolsOpen;
 
   // Loaded project metadata preservation
   const [loadedTemplateId, setLoadedTemplateId] = useState<string | undefined>(initialTemplate?.id);
@@ -869,7 +868,7 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
       link.download = `${title.replace(/[^a-z0-9]/gi, "-").toLowerCase()}-tierlist.png`;
       link.href = dataUrl;
       link.click();
-      setIsExportModalOpen(false);
+      setExportFormat(null);
     } catch (err) {
       console.error("Export failed", err);
     } finally {
@@ -976,7 +975,7 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
 
             {/* Export Button */}
             <button
-              onClick={() => setIsExportModalOpen(true)}
+              onClick={() => setExportFormat("image")}
               className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 text-white shadow-sm flex items-center gap-1 transition-all cursor-pointer"
             >
               <Download className="w-3.5 h-3.5" />
@@ -1109,7 +1108,7 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
                 {/* Animated Video Export */}
                 <button
                   onClick={() => {
-                    setIsVideoModalOpen(true);
+                    setExportFormat("video");
                     setIsMobileToolsOpen(false);
                   }}
                   className="flex items-center gap-2 p-3 rounded-xl bg-gradient-to-r from-rose-950/50 to-pink-950/50 hover:bg-rose-900/40 border border-rose-500/30 text-left font-semibold text-zinc-200 transition-colors"
@@ -1520,21 +1519,22 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
 
         {/* Creator Multi-Format Export Modal */}
         <CreatorExportModal
-          isOpen={isExportModalOpen}
-          onClose={() => setIsExportModalOpen(false)}
+          isOpen={exportFormat === "image"}
+          onClose={() => setExportFormat(null)}
           boardTitle={title}
           authorName={
             (typeof window !== "undefined" ? localStorage.getItem("tl_commenter_name") : null) ||
             "Creator"
           }
           tiers={board.tiers}
-          onSwitchToVideo={() => setIsVideoModalOpen(true)}
+          onSwitchToVideo={() => setExportFormat("video")}
         />
 
         {/* Animated Video Export Modal (TikTok / Reels / Shorts) */}
         <VideoExportModal
-          isOpen={isVideoModalOpen}
-          onClose={() => setIsVideoModalOpen(false)}
+          onSwitchToImage={() => setExportFormat("image")}
+          isOpen={exportFormat === "video"}
+          onClose={() => setExportFormat(null)}
           boardTitle={title}
           authorName={
             (typeof window !== "undefined" ? localStorage.getItem("tl_commenter_name") : null) ||
@@ -1566,7 +1566,7 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
             "Creator"
           }
           tiers={board.tiers}
-          onOpenExport={() => setIsExportModalOpen(true)}
+          onOpenExport={() => setExportFormat("image")}
         />
 
         {/* Tier Presets Modal */}

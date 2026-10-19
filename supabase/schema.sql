@@ -216,6 +216,34 @@ grant update (template_id, title, author_name, tiers, unranked) on public.tier_l
 
 revoke update on public.comments from public, anon, authenticated;
 
+-- Publication controls are managed by the operator, not by public clients.
+alter table public.templates add column if not exists is_test boolean not null default false;
+alter table public.templates add column if not exists is_hidden boolean not null default false;
+alter table public.tier_lists add column if not exists is_test boolean not null default false;
+alter table public.tier_lists add column if not exists is_hidden boolean not null default false;
+alter table public.comments add column if not exists is_test boolean not null default false;
+alter table public.comments add column if not exists is_hidden boolean not null default false;
+
+alter policy "Allow public read on templates" on public.templates using (not is_test and not is_hidden);
+alter policy "Allow public read on tier_lists" on public.tier_lists using (not is_test and not is_hidden);
+alter policy "Allow public read on comments" on public.comments using (
+  not is_test and not is_hidden and exists (
+    select 1 from public.tier_lists r where r.id = comments.tier_list_id and not r.is_test and not r.is_hidden
+  )
+);
+alter policy "Allow authenticated insert on templates" on public.templates with check (
+  author_id = (select auth.uid())::text and coalesce(upvotes,0)=0 and coalesce(rank_count,0)=0 and not is_test and not is_hidden
+);
+alter policy "Allow authenticated insert on tier_lists" on public.tier_lists with check (
+  author_id = (select auth.uid())::text and coalesce(upvotes,0)=0 and not is_test and not is_hidden
+);
+alter policy "Allow authenticated insert on comments" on public.comments with check (
+  author_id = (select auth.uid())::text and coalesce(upvotes,0)=0 and not is_test and not is_hidden and exists (
+    select 1 from public.tier_lists r where r.id=comments.tier_list_id and not r.is_test and not r.is_hidden
+  )
+);
+
+
 -- 10. Triggers: Protect Immutable Columns on UPDATE
 create or replace function public.protect_immutable_columns()
 returns trigger as $$
@@ -226,6 +254,8 @@ begin
 
   -- Protect counters from direct client updates (authenticated, anon, public)
   if current_user in ('authenticated', 'anon', 'public') then
+    new.is_test := old.is_test;
+    new.is_hidden := old.is_hidden;
     new.upvotes := old.upvotes;
     if tg_table_name = 'templates' then
       new.rank_count := old.rank_count;
@@ -254,44 +284,30 @@ create trigger trg_protect_immutable_columns_comments
 -- 11. Triggers: Full rank_count Lifecycle Trigger on public.tier_lists
 create or replace function public.sync_template_rank_count()
 returns trigger as $$
+declare old_template text; new_template text;
 begin
-  if tg_op = 'INSERT' then
-    if new.template_id is not null then
-      update public.templates
-      set rank_count = rank_count + 1, updated_at = now()
-      where id = new.template_id;
-    end if;
-    return new;
-  elsif tg_op = 'DELETE' then
-    if old.template_id is not null then
-      update public.templates
-      set rank_count = greatest(0, rank_count - 1), updated_at = now()
-      where id = old.template_id;
-    end if;
-    return old;
-  elsif tg_op = 'UPDATE' then
-    if old.template_id is distinct from new.template_id then
-      if old.template_id is not null then
-        update public.templates
-        set rank_count = greatest(0, rank_count - 1), updated_at = now()
-        where id = old.template_id;
-      end if;
-      if new.template_id is not null then
-        update public.templates
-        set rank_count = rank_count + 1, updated_at = now()
-        where id = new.template_id;
-      end if;
-    end if;
-    return new;
+  if tg_op in ('UPDATE','DELETE') then
+    if not old.is_test and not old.is_hidden then old_template := old.template_id; end if;
   end if;
-  return null;
+  if tg_op in ('UPDATE','INSERT') then
+    if not new.is_test and not new.is_hidden then new_template := new.template_id; end if;
+  end if;
+  if old_template is distinct from new_template then
+    if old_template is not null then
+      update public.templates set rank_count=greatest(0,rank_count-1), updated_at=now() where id=old_template;
+    end if;
+    if new_template is not null then
+      update public.templates set rank_count=rank_count+1, updated_at=now() where id=new_template;
+    end if;
+  end if;
+  if tg_op='DELETE' then return old; end if;
+  return new;
 end;
-$$ language plpgsql security definer set search_path = public;
+$$ language plpgsql security definer set search_path=public;
 
 drop trigger if exists trg_sync_template_rank_count on public.tier_lists;
-create trigger trg_sync_template_rank_count
-  after insert or delete or update of template_id on public.tier_lists
-  for each row execute function public.sync_template_rank_count();
+create trigger trg_sync_template_rank_count after insert or delete or update of template_id,is_test,is_hidden on public.tier_lists
+for each row execute function public.sync_template_rank_count();
 
 -- 12. Atomic & Idempotent Locked Voting RPC Function
 create or replace function public.set_vote(
@@ -316,11 +332,11 @@ begin
 
   -- Lock target row to verify existence and serialize concurrent counter updates
   if target_type = 'template' then
-    select upvotes into current_count from public.templates where id = target_id for update;
+    select upvotes into current_count from public.templates where id = target_id and not is_test and not is_hidden for update;
   elsif target_type = 'tier_list' then
-    select upvotes into current_count from public.tier_lists where id = target_id for update;
+    select upvotes into current_count from public.tier_lists where id = target_id and not is_test and not is_hidden for update;
   elsif target_type = 'comment' then
-    select upvotes into current_count from public.comments where id = target_id for update;
+    select upvotes into current_count from public.comments where id = target_id and not is_test and not is_hidden for update;
   end if;
 
   if not found then
@@ -457,7 +473,7 @@ declare
   c_count int := 0;
 begin
   update public.templates t
-  set rank_count = (select count(*)::int from public.tier_lists r where r.template_id = t.id),
+  set rank_count = (select count(*)::int from public.tier_lists r where r.template_id = t.id and not r.is_test and not r.is_hidden),
       upvotes = (select count(*)::int from public.upvotes u where u.item_type = 'template' and u.item_id = t.id);
   get diagnostics t_count = row_count;
 
@@ -484,6 +500,18 @@ grant execute on function public.reconcile_counters() to service_role;
 -- Trigger functions are invoked through their triggers, not as public RPCs.
 revoke all on function public.protect_immutable_columns() from public, anon, authenticated;
 revoke all on function public.sync_template_rank_count() from public, anon, authenticated;
+
+-- Preserve known pre-launch fixtures, excluding them from all public reads.
+update public.templates set is_test=true where author_name='launch-test' and title='Launch Test — Reusable Template' and created_at < '2026-10-19 12:00:00+00';
+update public.tier_lists set is_test=true where created_at < '2026-10-19 12:00:00+00' and (
+  author_name='launch-test' or
+  (author_name='Anonymous Ranker' and template_id='elden-ring-bosses' and (
+    title='Elden Ring Bosses (Audited)' or (title='Elden Ring: Shadow of the Erdtree Bosses' and not exists (select 1 from jsonb_array_elements(tiers) t where jsonb_array_length(coalesce(t->'items','[]'::jsonb))>0))
+  ))
+);
+update public.comments set is_test=true where tier_list_id='shared_test_audit_101' or exists (
+  select 1 from public.tier_lists r where r.id=comments.tier_list_id and r.is_test
+);
 
 -- Derive counters from saved rankings and votes; preserve content rows.
 select public.reconcile_counters();

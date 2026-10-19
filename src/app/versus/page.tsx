@@ -1,5 +1,6 @@
 "use client";
 
+import { ItemImage } from "@/components/ItemImage";
 import React, { useEffect, useState, useMemo, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -9,14 +10,9 @@ import {
   Flame,
   CheckCircle2,
   Sparkles,
-  Layers,
-  BrainCircuit,
-  Share2,
-  ExternalLink,
 } from "lucide-react";
 import { fetchSharedTierList, fetchTemplateById, fetchSubmissionsForTemplate } from "@/lib/community";
 import { calculateConsensus, compareTwoTierLists, type VersusMatchup } from "@/lib/consensus";
-import { SEED_TEMPLATES } from "@/data/seed-templates";
 import type { PublishedTierList, TierRow } from "@/types";
 
 function VersusContent() {
@@ -27,60 +23,27 @@ function VersusContent() {
   const [listA, setListA] = useState<PublishedTierList | null>(null);
   const [listB, setListB] = useState<PublishedTierList | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
 
   // Load data for side A and side B
   useEffect(() => {
     async function loadData() {
       setLoading(true);
 
-      // Default demo ranking if none provided in query param
-      let targetA = idA ? await fetchSharedTierList(idA) : null;
-      if (!targetA) {
-        // Fallback to Elden Ring template demonstration ranking
-        const seedTpl = SEED_TEMPLATES[0];
-        targetA = {
-          id: "demo-a",
-          templateId: seedTpl.id,
-          title: seedTpl.title,
-          authorName: "GamerOne",
-          tiers: [
-            {
-              id: "t1",
-              label: "S",
-              color: "from-rose-500 to-red-600",
-              items: seedTpl.items.slice(0, 3),
-            },
-            {
-              id: "t2",
-              label: "A",
-              color: "from-amber-500 to-orange-500",
-              items: seedTpl.items.slice(3, 6),
-            },
-            {
-              id: "t3",
-              label: "B",
-              color: "from-emerald-500 to-teal-600",
-              items: seedTpl.items.slice(6, 8),
-            },
-            {
-              id: "t4",
-              label: "C",
-              color: "from-sky-500 to-blue-600",
-              items: seedTpl.items.slice(8, 10),
-            },
-          ],
-          unranked: [],
-          upvotes: 42,
-          createdAt: Date.now(),
-        };
-      }
+      setLoadError("");
+      setListA(null);
+      setListB(null);
+      if (!idA) { setLoading(false); return; }
+      const targetA = await fetchSharedTierList(idA);
+      if (!targetA) { setLoadError("This ranking could not be found. Check the shared link and try again."); setLoading(false); return; }
       setListA(targetA);
 
       if (idB === "consensus" || !idB) {
         // Build consensus tier board from template
-        const tplId = targetA.templateId || SEED_TEMPLATES[0].id;
-        const tpl = (await fetchTemplateById(tplId)) || SEED_TEMPLATES[0];
+        const tpl = targetA.templateId ? await fetchTemplateById(targetA.templateId) : null;
+        if (!tpl) { setLoadError("This ranking has no community template to compare. Open a ranking made from a template."); setLoading(false); return; }
         const submissions = await fetchSubmissionsForTemplate(tpl.id);
+        if (!submissions.length) { setLoadError("There are no community rankings for this template yet. Publish a ranking to start the comparison."); setLoading(false); return; }
         const consensusResult = calculateConsensus(tpl, submissions);
 
         const consensusTiers: TierRow[] = consensusResult.tiers.map((t) => ({
@@ -97,7 +60,7 @@ function VersusContent() {
           authorName: "Global Crowd Consensus",
           tiers: consensusTiers,
           unranked: [],
-          upvotes: 999,
+          upvotes: 0,
           createdAt: Date.now(),
         });
       } else {
@@ -108,7 +71,7 @@ function VersusContent() {
       setLoading(false);
     }
 
-    loadData();
+    loadData().catch(() => { setLoadError("Could not load this comparison. Please try again."); setLoading(false); });
   }, [idA, idB]);
 
   const matchup: VersusMatchup | null = useMemo(() => {
@@ -128,15 +91,15 @@ function VersusContent() {
     return (
       <div className="min-h-screen bg-[#09090b] text-white flex flex-col items-center justify-center p-6 text-center space-y-4">
         <Swords className="w-12 h-12 text-zinc-600" />
-        <h2 className="text-xl font-bold">Matchup Not Found</h2>
+        <h2 className="text-xl font-bold">{idA ? "Comparison unavailable" : "Compare your rankings"}</h2>
         <p className="text-xs text-zinc-400 max-w-sm">
-          Could not load rankings for this head-to-head comparison.
+          {loadError || "Create and publish a ranking, then choose Versus Duel on its shared page to compare it with the community."}
         </p>
         <Link
-          href="/"
+          href="/#trending"
           className="px-4 py-2 rounded-xl bg-indigo-600 text-xs font-semibold text-white"
         >
-          Explore Rankings
+          Browse templates
         </Link>
       </div>
     );
@@ -190,7 +153,7 @@ function VersusContent() {
           {/* Central Duel Gauge */}
           <div className="flex flex-col items-center justify-center text-center p-4 rounded-2xl bg-zinc-950/80 border border-zinc-800 shadow-xl min-w-[200px]">
             <span className="text-3xl sm:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-rose-400 to-indigo-400">
-              {matchup.similarityPct}%
+              {matchup.similarityPct !== null ? `${matchup.similarityPct}%` : "N/A"}
             </span>
             <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 mt-0.5">
               Taste Similarity Score
@@ -234,8 +197,7 @@ function VersusContent() {
                   >
                     <div className="flex items-center gap-2 truncate">
                       {div.item.imageUrl && (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
+                        <ItemImage
                           src={div.item.imageUrl}
                           alt={div.item.name}
                           className="w-6 h-6 rounded object-cover flex-shrink-0"
@@ -326,8 +288,7 @@ function VersusContent() {
                           title={it.name}
                         >
                           {it.imageUrl ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
+                            <ItemImage
                               src={it.imageUrl}
                               alt={it.name}
                               className="w-full h-full object-cover"
@@ -383,8 +344,7 @@ function VersusContent() {
                           title={it.name}
                         >
                           {it.imageUrl ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
+                            <ItemImage
                               src={it.imageUrl}
                               alt={it.name}
                               className="w-full h-full object-cover"

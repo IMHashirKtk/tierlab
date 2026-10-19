@@ -6,14 +6,12 @@ import {
   Sparkles,
   Layers,
   Video,
-  ShieldCheck,
-  CheckCircle2,
-  XCircle,
   ChevronDown,
   HelpCircle,
   Flame,
   ArrowRight,
 } from "lucide-react";
+import { safeJsonLd } from "@/lib/seo";
 
 interface FaqItem {
   question: string;
@@ -29,7 +27,7 @@ const FAQ_ITEMS: FaqItem[] = [
   {
     question: "Is TierListMaker.app 100% free with no watermark?",
     answer:
-      "Yes! Unlike legacy ranking sites that slap low-resolution branding, forced watermarks, or intrusive popups over your finished graphics, TierListMaker.app is completely free and exports pristine, zero-watermark 4K PNG images and animated reveal videos without requiring any account or subscription.",
+      "Yes. Creating and exporting tier lists is free. Watermarks are optional in the export settings, and your drafts save on this device without an account.",
   },
   {
     question: "How do I export a tier list for TikTok, YouTube Shorts, or Reels?",
@@ -39,7 +37,7 @@ const FAQ_ITEMS: FaqItem[] = [
   {
     question: "How is the Global Community Consensus calculated?",
     answer:
-      "We aggregate thousands of public community submissions using an algorithmic Borda-count scoring model. Placements in S Tier are weighted highest down through F Tier, generating a democratic consensus ranking alongside agreement percentages and a 'Most Controversial Item' metric highlighting the items fans debate the most.",
+      "We combine published community submissions using an algorithmic Borda-count scoring model. Placements in S Tier are weighted highest down through F Tier, generating a democratic consensus ranking alongside agreement percentages and a 'Most Controversial Item' metric highlighting the items fans debate the most.",
   },
   {
     question: "Can I make a tier list offline or on mobile?",
@@ -69,7 +67,7 @@ export function SeoGuideSection() {
       {/* FAQPage JSON-LD Structured Data */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(faqJsonLd) }}
       />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-24">
@@ -84,7 +82,7 @@ export function SeoGuideSection() {
               How to Make a Tier List Online for Free
             </h2>
             <p className="text-zinc-400 text-sm sm:text-base mt-3 leading-relaxed">
-              Create, rank, customize, and share professional tier lists in under 60 seconds with zero design experience required.
+              Pick a template or start a blank board, arrange your tiers, and export your ranking.
             </p>
           </div>
 
@@ -97,7 +95,7 @@ export function SeoGuideSection() {
                 </div>
                 <h3 className="text-lg font-bold text-white mb-2">Pick a Template or Upload</h3>
                 <p className="text-zinc-400 text-xs sm:text-sm leading-relaxed mb-4">
-                  Choose from over 45,000 community templates across Gaming, Anime, Movies, Food, and Sports—or upload your own images and photos straight from your device.
+                  Browse starter and community templates across Gaming, Anime, Movies, Food, and Sports—or upload your own images and photos straight from your device.
                 </p>
               </div>
               <div className="text-xs text-indigo-400 font-medium flex items-center gap-1.5 pt-4 border-t border-zinc-800/60">
@@ -139,96 +137,6 @@ export function SeoGuideSection() {
                 <span>Zero watermarks • Instant download</span>
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* Feature Comparison Table */}
-        <div>
-          <div className="text-center max-w-3xl mx-auto mb-12">
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-              Why Creators Choose TierListMaker.app
-            </h2>
-            <p className="text-zinc-400 text-xs sm:text-sm mt-2">
-              Compare TierListMaker.app against legacy ranking tools and see why modern creators switch.
-            </p>
-          </div>
-
-          <div className="overflow-x-auto rounded-2xl border border-zinc-800/80 bg-zinc-900/40">
-            <table className="w-full text-left text-xs sm:text-sm">
-              <thead>
-                <tr className="border-b border-zinc-800 bg-zinc-900/80 text-zinc-400">
-                  <th className="py-4 px-6 font-semibold">Feature & Capability</th>
-                  <th className="py-4 px-6 font-bold text-indigo-400">TierListMaker.app</th>
-                  <th className="py-4 px-6 font-semibold text-zinc-500">Legacy Tier Makers</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-zinc-800/60 text-zinc-300">
-                <tr>
-                  <td className="py-4 px-6 font-medium text-white">Watermark-Free Exports</td>
-                  <td className="py-4 px-6 text-emerald-400 font-semibold flex items-center gap-1.5">
-                    <CheckCircle2 className="w-4 h-4" />
-                    <span>100% Clean (Zero Watermarks)</span>
-                  </td>
-                  <td className="py-4 px-6 text-zinc-500 flex items-center gap-1.5">
-                    <XCircle className="w-4 h-4 text-rose-500/80" />
-                    <span>Forced corner logos & low-res</span>
-                  </td>
-                </tr>
-                <tr>
-                  <td className="py-4 px-6 font-medium text-white">No Signup or Login Required</td>
-                  <td className="py-4 px-6 text-emerald-400 font-semibold flex items-center gap-1.5">
-                    <CheckCircle2 className="w-4 h-4" />
-                    <span>Instant creation, 0 login walls</span>
-                  </td>
-                  <td className="py-4 px-6 text-zinc-500 flex items-center gap-1.5">
-                    <XCircle className="w-4 h-4 text-rose-500/80" />
-                    <span>Requires social logins or accounts</span>
-                  </td>
-                </tr>
-                <tr>
-                  <td className="py-4 px-6 font-medium text-white">Animated 9:16 TikTok / Shorts Video Export</td>
-                  <td className="py-4 px-6 text-emerald-400 font-semibold flex items-center gap-1.5">
-                    <CheckCircle2 className="w-4 h-4" />
-                    <span>Built-in MP4/WebM video generator</span>
-                  </td>
-                  <td className="py-4 px-6 text-zinc-500 flex items-center gap-1.5">
-                    <XCircle className="w-4 h-4 text-rose-500/80" />
-                    <span>Static PNG only</span>
-                  </td>
-                </tr>
-                <tr>
-                  <td className="py-4 px-6 font-medium text-white">Mathematical Crowd Consensus</td>
-                  <td className="py-4 px-6 text-emerald-400 font-semibold flex items-center gap-1.5">
-                    <CheckCircle2 className="w-4 h-4" />
-                    <span>Algorithmic Borda-count aggregation</span>
-                  </td>
-                  <td className="py-4 px-6 text-zinc-500 flex items-center gap-1.5">
-                    <XCircle className="w-4 h-4 text-rose-500/80" />
-                    <span>None or basic unweighted averages</span>
-                  </td>
-                </tr>
-                <tr>
-                  <td className="py-4 px-6 font-medium text-white">100% Local-First Device Privacy</td>
-                  <td className="py-4 px-6 text-emerald-400 font-semibold flex items-center gap-1.5">
-                    <CheckCircle2 className="w-4 h-4" />
-                    <span>Private IndexedDB storage & backup</span>
-                  </td>
-                  <td className="py-4 px-6 text-zinc-500 flex items-center gap-1.5">
-                    <XCircle className="w-4 h-4 text-rose-500/80" />
-                    <span>Uploads all media to remote servers</span>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <div className="mt-4 text-center">
-            <Link
-              href="/tiermaker-alternative"
-              className="inline-flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300 font-semibold transition-colors py-1 min-h-[28px]"
-            >
-              <span>See our in-depth 10-point TierMaker Alternative breakdown &rarr;</span>
-            </Link>
           </div>
         </div>
 

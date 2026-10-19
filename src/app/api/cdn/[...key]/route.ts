@@ -29,12 +29,13 @@ export async function GET(
     headers.set("CDN-Cache-Control", "public, max-age=31536000, immutable");
     if (s3Object.ETag) headers.set("ETag", s3Object.ETag);
 
-    return new NextResponse(stream as any, {
+    return new NextResponse(stream as unknown as BodyInit, {
       status: 200,
       headers,
     });
-  } catch (err: any) {
-    if (err.name === "NoSuchKey" || err.$metadata?.httpStatusCode === 404) {
+  } catch (err: unknown) {
+    const errorObj = err as { name?: string; $metadata?: { httpStatusCode?: number } } | null;
+    if (errorObj?.name === "NoSuchKey" || errorObj?.$metadata?.httpStatusCode === 404) {
       return new NextResponse("Item not found", { status: 404 });
     }
     console.error("CDN Proxy Error:", err);

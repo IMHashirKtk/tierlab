@@ -1,5 +1,6 @@
 "use client";
 
+import { useDialogFocus } from "@/lib/use-dialog-focus";
 import React, { useState, useEffect, useRef } from "react";
 import {
   X,
@@ -67,6 +68,8 @@ export function VideoExportModal({
     };
   }, [renderedVideoUrl]);
 
+  const dialogRef = useDialogFocus(isOpen);
+
   if (!isOpen) return null;
 
   const totalPlacedItems = tiers.reduce((sum, t) => sum + t.items.length, 0);
@@ -101,9 +104,10 @@ export function VideoExportModal({
       setRenderedBlob(result.blob);
       setRenderedMime(result.mimeType);
       setIsRendering(false);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Video render failed:", err);
-      setError(err?.message || "Failed to render video. Please try again.");
+      const msg = err instanceof Error ? err.message : String(err);
+      setError(msg || "Failed to render video. Please try again.");
       setIsRendering(false);
     }
   };
@@ -131,7 +135,7 @@ export function VideoExportModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md overflow-y-auto">
+    <div ref={dialogRef} role="dialog" aria-modal="true" aria-label="Export video" tabIndex={-1} className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md overflow-y-auto">
       <div className="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden my-auto relative animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
         <div className="px-5 py-4 border-b border-zinc-800 flex items-center justify-between">

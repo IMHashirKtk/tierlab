@@ -2,7 +2,8 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { Search, Plus, Layers, User, Sparkles, Swords, ShieldCheck } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Search, Plus, Layers, User, Swords, ShieldCheck, Menu, X } from "lucide-react";
 import { fetchTemplates } from "@/lib/community";
 import { usePwa } from "@/components/pwa/PwaProvider";
 import type { Template } from "@/types";
@@ -12,7 +13,11 @@ interface NavbarProps {
 }
 
 export function Navbar({ onOpenPublish }: NavbarProps) {
+  const router = useRouter();
   const { openPrivacyModal } = usePwa();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
@@ -21,19 +26,18 @@ export function Navbar({ onOpenPublish }: NavbarProps) {
   const [creatorHandle, setCreatorHandle] = useState("Creator");
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("tl_commenter_name");
-      if (saved && saved.trim()) {
-        setCreatorHandle(saved.trim());
+    queueMicrotask(() => {
+      if (typeof window !== "undefined") {
+        const saved = localStorage.getItem("tl_commenter_name");
+        if (saved && saved.trim()) {
+          setCreatorHandle(saved.trim());
+        }
       }
-    }
+    });
   }, []);
 
   useEffect(() => {
-    if (!searchQuery.trim()) {
-      setMatchingTemplates([]);
-      return;
-    }
+    if (!searchQuery.trim()) return;
     let isCancelled = false;
     fetchTemplates({ search: searchQuery }).then((res) => {
       if (!isCancelled) {
@@ -47,6 +51,7 @@ export function Navbar({ onOpenPublish }: NavbarProps) {
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
+      if (headerRef.current && !headerRef.current.contains(e.target as Node)) setMenuOpen(false);
       if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
         setIsSearchFocused(false);
       }
@@ -57,6 +62,11 @@ export function Navbar({ onOpenPublish }: NavbarProps) {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setMenuOpen(false);
+        setIsSearchFocused(false);
+        menuButtonRef.current?.focus();
+      }
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
         inputRef.current?.focus();
@@ -66,27 +76,24 @@ export function Navbar({ onOpenPublish }: NavbarProps) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
   return (
-    <header className="sticky top-0 z-50 glass-panel border-b border-zinc-800/80">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+    <header ref={headerRef} className="sticky top-0 z-50 glass-panel border-b border-zinc-800/80">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2 sm:gap-4">
         {/* Brand Logo */}
-        <Link href="/" className="flex items-center gap-3 flex-shrink-0 group">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-cyan-400 p-[1.5px] shadow-lg shadow-indigo-500/20 group-hover:shadow-indigo-500/40 transition-all">
+        <Link href="/" aria-label="Tier List Maker home" className="flex min-w-0 items-center gap-2 shrink-0 group">
+          <div className="w-8 h-8 sm:w-9 sm:h-9 shrink-0 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-cyan-400 p-[1.5px] shadow-lg shadow-indigo-500/20 group-hover:shadow-indigo-500/40 transition-all">
             <div className="w-full h-full bg-zinc-950 rounded-[10px] flex items-center justify-center">
               <Layers className="w-5 h-5 text-indigo-400 group-hover:text-cyan-300 transition-colors" />
             </div>
           </div>
           <div className="flex items-baseline gap-1.5">
-            <span className="text-xl font-bold tracking-tight text-white">
+            <span className="text-base sm:text-lg font-bold tracking-tight text-white whitespace-nowrap">
               Tier List <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">Maker</span>
-            </span>
-            <span className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-              Community
             </span>
           </div>
         </Link>
 
         {/* Search Bar with Live Results */}
-        <div className="hidden md:flex flex-1 max-w-md mx-4 relative" ref={searchRef}>
+        <div className="hidden lg:flex min-w-0 flex-1 max-w-xs relative" ref={searchRef}>
           <div className="relative w-full">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
             <input
@@ -95,7 +102,8 @@ export function Navbar({ onOpenPublish }: NavbarProps) {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onFocus={() => setIsSearchFocused(true)}
-              placeholder="Search 45,000+ templates, fandoms, games..."
+              placeholder="Search templates, fandoms, games..."
+              aria-label="Search community templates"
               className="w-full bg-zinc-900/90 border border-zinc-800 rounded-xl pl-10 pr-12 py-2 text-xs sm:text-sm text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-indigo-500 transition-colors"
             />
             <kbd className="absolute right-3 top-1/2 -translate-y-1/2 bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded font-mono text-[10px]">
@@ -140,50 +148,43 @@ export function Navbar({ onOpenPublish }: NavbarProps) {
         </div>
 
         {/* Action Controls */}
-        <div className="flex items-center gap-2.5">
-          <nav className="hidden lg:flex items-center gap-1 text-sm font-medium text-zinc-400 mr-2">
-            <a href="#trending" className="px-3 py-1.5 rounded-lg hover:text-white hover:bg-zinc-800/60 transition-colors">
-              Trending
-            </a>
-            <a href="#feed" className="px-3 py-1.5 rounded-lg hover:text-white hover:bg-zinc-800/60 transition-colors">
-              Live Feed
-            </a>
-            <a href="#categories" className="px-3 py-1.5 rounded-lg hover:text-white hover:bg-zinc-800/60 transition-colors">
+        <div className="flex shrink-0 items-center gap-2">
+          <nav aria-label="Main navigation" className="hidden xl:flex items-center whitespace-nowrap text-sm font-medium text-zinc-400">
+            <Link href="/#trending" className="px-2.5 py-2 rounded-lg hover:text-white hover:bg-zinc-800/60 transition-colors">
+              Templates
+            </Link>
+            <Link href="/#categories" className="px-2.5 py-2 rounded-lg hover:text-white hover:bg-zinc-800/60 transition-colors">
               Categories
-            </a>
-            <Link href="/my-projects" className="px-3 py-1.5 rounded-lg hover:text-white hover:bg-zinc-800/60 transition-colors">
+            </Link>
+            <Link href="/my-projects" className="px-2.5 py-2 rounded-lg hover:text-white hover:bg-zinc-800/60 transition-colors">
               My Projects
             </Link>
             <Link
               href="/versus"
-              className="px-3 py-1.5 rounded-lg text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition-colors flex items-center gap-1 font-semibold"
+              className="px-2.5 py-2 rounded-lg hover:text-white hover:bg-zinc-800/60 transition-colors flex items-center gap-1"
             >
               <Swords className="w-3.5 h-3.5" />
               <span>Versus</span>
             </Link>
-            <a href="#dropfx" className="px-3 py-1.5 rounded-lg text-amber-400 hover:text-amber-300 hover:bg-amber-500/10 transition-colors flex items-center gap-1">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Drop FX</span>
-            </a>
           </nav>
 
           {/* Privacy & Device Storage Hub */}
           <button
             onClick={openPrivacyModal}
-            className="hidden md:flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold text-zinc-300 bg-zinc-900 hover:bg-zinc-800 border border-zinc-750 hover:border-zinc-600 transition-all cursor-pointer"
+            aria-label="Privacy and device storage"
+            className="hidden xl:flex items-center justify-center w-10 h-10 rounded-xl text-zinc-400 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 transition-colors cursor-pointer"
             title="Privacy & Device Storage Hub"
           >
             <ShieldCheck className="w-4 h-4 text-emerald-400" />
-            <span className="hidden xl:inline">Local-First</span>
           </button>
 
           {/* Secondary CTA: Publish Template */}
           <button
             onClick={() => {
               if (onOpenPublish) onOpenPublish();
-              else window.location.href = "/create";
+              else router.push("/create");
             }}
-            className="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold text-zinc-300 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700/80 hover:border-zinc-600 flex items-center gap-2 transition-all cursor-pointer"
+            className="hidden xl:flex px-3 py-2 rounded-xl text-sm font-semibold text-zinc-300 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 flex items-center gap-2 whitespace-nowrap transition-colors cursor-pointer"
           >
             <Plus className="w-4 h-4 text-indigo-400" />
             <span className="hidden sm:inline">New Template</span>
@@ -192,7 +193,7 @@ export function Navbar({ onOpenPublish }: NavbarProps) {
           {/* Primary CTA: Start Ranking */}
           <Link
             href="/create"
-            className="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-500 shadow-md shadow-indigo-600/30 transition-all flex items-center gap-1.5"
+            className="px-3 sm:px-4 min-h-10 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap text-white bg-indigo-600 hover:bg-indigo-500 transition-colors flex items-center"
           >
             <span>Rank Now</span>
           </Link>
@@ -200,13 +201,27 @@ export function Navbar({ onOpenPublish }: NavbarProps) {
           {/* Profile Button */}
           <Link
             href={`/user/${encodeURIComponent(creatorHandle)}`}
-            className="w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white hover:border-zinc-700 transition-colors flex-shrink-0"
+            className="hidden xl:flex w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-800 items-center justify-center text-zinc-400 hover:text-white hover:border-zinc-700 transition-colors shrink-0"
             title={`Creator Profile (${creatorHandle})`}
           >
             <User className="w-4 h-4" />
           </Link>
+          <button ref={menuButtonRef} type="button" aria-label={menuOpen ? "Close navigation" : "Open navigation"} aria-expanded={menuOpen} aria-controls="site-navigation" onClick={() => setMenuOpen(!menuOpen)} className="xl:hidden w-10 h-10 flex items-center justify-center rounded-xl border border-zinc-800 text-zinc-200 hover:bg-zinc-800 focus-visible:ring-2 focus-visible:ring-indigo-400">
+            {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
         </div>
       </div>
+      {menuOpen && (
+        <nav id="site-navigation" aria-label="Mobile navigation" className="xl:hidden absolute inset-x-0 top-full max-h-[calc(100dvh-4rem)] overflow-y-auto bg-zinc-950 border-b border-zinc-800 p-4 shadow-xl">
+          <div className="max-w-7xl mx-auto grid gap-1">
+            {[
+              ["Browse templates", "/#trending"], ["Categories", "/#categories"], ["Community rankings", "/#feed"], ["My Projects", "/my-projects"], ["Versus", "/versus"], ["Creator features", "/#dropfx"], ["My Profile", `/user/${encodeURIComponent(creatorHandle)}`],
+            ].map(([label, href]) => <Link key={href} href={href} onClick={() => setMenuOpen(false)} className="px-3 py-3 rounded-lg text-sm text-zinc-200 hover:bg-zinc-800 focus-visible:ring-2 focus-visible:ring-indigo-400">{label}</Link>)}
+            <button onClick={() => { setMenuOpen(false); if (onOpenPublish) onOpenPublish(); else router.push('/create'); }} className="px-3 py-3 text-left rounded-lg text-sm text-zinc-200 hover:bg-zinc-800">New Template</button>
+            <button onClick={() => { setMenuOpen(false); openPrivacyModal(); }} className="px-3 py-3 text-left rounded-lg text-sm text-zinc-400 hover:bg-zinc-800">Privacy & Device Storage</button>
+          </div>
+        </nav>
+      )}
     </header>
   );
 }

@@ -321,12 +321,14 @@ export async function GET(request: NextRequest) {
         height: 630,
       }
     );
-  } catch (e: any) {
-    if (e?.digest?.startsWith?.("NEXT_") || e?.message?.includes?.("NEXT_PRERENDER_INTERRUPTED")) {
+  } catch (e: unknown) {
+    const err = e as { digest?: string; message?: string } | null;
+    if (err?.digest?.startsWith?.("NEXT_") || err?.message?.includes?.("NEXT_PRERENDER_INTERRUPTED")) {
       throw e;
     }
     console.error("OG Image generation failed", e);
-    return new Response(`Failed to generate the image: ${e.message}`, {
+    const msg = err?.message || String(e);
+    return new Response(`Failed to generate the image: ${msg}`, {
       status: 500,
     });
   }

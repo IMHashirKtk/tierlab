@@ -1,9 +1,16 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { MessageSquare, ThumbsUp, Send, Sparkles, Flame, Clock, Award } from "lucide-react";
+import { MessageSquare, ThumbsUp, Send, Sparkles, Flame, Clock, Award, AlertCircle, RefreshCw } from "lucide-react";
 import { fetchComments, postComment, toggleCommentUpvote, hasUpvotedComment } from "@/lib/community";
+import { supabase, ensureAuthenticatedSession } from "@/lib/supabase";
+import { createId } from "@/lib/board";
+import {
+  loadPendingCommentDraft,
+  savePendingCommentDraft,
+  clearPendingCommentDraft,
+} from "@/lib/draft-storage";
 import type { Comment } from "@/types";
 
 interface CommentsSectionProps {
@@ -55,57 +62,286 @@ function getAvatarGradient(name: string): string {
 export function CommentsSection({ tierListId, creatorName }: CommentsSectionProps) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [isHydrated, setIsHydrated] = useState<boolean>(false);
   const [authorName, setAuthorName] = useState("");
   const [content, setContent] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [commentError, setCommentError] = useState<string | null>(null);
+  const [pendingCommentId, setPendingCommentId] = useState<string>("");
   const [sortBy, setSortBy] = useState<"newest" | "top">("newest");
   const [upvotedMap, setUpvotedMap] = useState<Record<string, boolean>>({});
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const savedName = localStorage.getItem(COMMENTER_NAME_KEY);
-      if (savedName) setAuthorName(savedName);
-    }
-  }, []);
+  const isSubmittingRef = useRef(false);
+  const sessionIdRef = useRef<string | null>(null);
+  const hydrationSeqRef = useRef<number>(0);
+  const hasUserEditedInSessionRef = useRef<boolean>(false);
 
+  // Restore pending attempt and session identity after mount/reload, and listen for auth changes
   useEffect(() => {
-    if (!tierListId) return;
-    setLoading(true);
-    fetchComments(tierListId).then((data) => {
-      setComments(data);
-      // Populate upvoted status
-      const statusMap: Record<string, boolean> = {};
-      data.forEach((c) => {
-        statusMap[c.id] = hasUpvotedComment(c.id);
-      });
-      setUpvotedMap(statusMap);
-      setLoading(false);
+    let isMounted = true;
+    queueMicrotask(() => {
+      setIsHydrated(false);
     });
+    hasUserEditedInSessionRef.current = false;
+
+    const hydrateSessionDraft = async (
+      nextUserId: string | null,
+      seq: number,
+      isAuthSwitch = false
+    ) => {
+      if (!isMounted || hydrationSeqRef.current !== seq) return;
+
+      if (typeof window !== "undefined" && !isAuthSwitch) {
+        try {
+          const savedName = localStorage.getItem(COMMENTER_NAME_KEY);
+          if (savedName && !hasUserEditedInSessionRef.current) {
+            setAuthorName(savedName);
+          }
+        } catch {}
+      }
+
+      if (!nextUserId) {
+        sessionIdRef.current = null;
+        setSessionId(null);
+        if (!hasUserEditedInSessionRef.current) {
+          setPendingCommentId((prev) => prev || `cmt-${createId("c")}`);
+        }
+        setIsHydrated(true);
+        return;
+      }
+
+      const previousUserId = sessionIdRef.current;
+      const switchedIdentity = Boolean(previousUserId && previousUserId !== nextUserId);
+
+      sessionIdRef.current = nextUserId;
+      setSessionId(nextUserId);
+
+      const savedDraft = loadPendingCommentDraft(tierListId, nextUserId);
+
+      if (switchedIdentity) {
+        // Preserve User A's draft in localStorage under User A's key;
+        // do not carry User A's pending text or ID into User B's composer.
+        hasUserEditedInSessionRef.current = false;
+        setCommentError(null);
+        if (savedDraft) {
+          setContent(savedDraft.content || "");
+          if (savedDraft.authorName) setAuthorName(savedDraft.authorName);
+          setPendingCommentId(savedDraft.pendingId || `cmt-${createId("c")}`);
+        } else {
+          setContent("");
+          setPendingCommentId(`cmt-${createId("c")}`);
+        }
+      } else if (!hasUserEditedInSessionRef.current) {
+        if (savedDraft) {
+          if (savedDraft.content) setContent(savedDraft.content);
+          if (savedDraft.authorName) setAuthorName(savedDraft.authorName);
+          setPendingCommentId(savedDraft.pendingId || `cmt-${createId("c")}`);
+        } else {
+          setPendingCommentId((prev) => prev || `cmt-${createId("c")}`);
+        }
+      } else if (savedDraft?.pendingId) {
+        // User typed while hydration was delayed; preserve user's newer text and adopt stored pendingId if unset
+        setPendingCommentId((prev) => prev || savedDraft.pendingId);
+      }
+
+      setIsHydrated(true);
+    };
+
+    const initialSeq = ++hydrationSeqRef.current;
+    ensureAuthenticatedSession()
+      .then((userId) => hydrateSessionDraft(userId, initialSeq, false))
+      .catch(() => hydrateSessionDraft(null, initialSeq, false));
+
+    const authListener = supabase?.auth?.onAuthStateChange?.((_event: string, session: { user?: { id?: string | null } } | null) => {
+      if (!isMounted) return;
+      const newUserId = session?.user?.id || null;
+      if (newUserId && newUserId !== sessionIdRef.current) {
+        const switchSeq = ++hydrationSeqRef.current;
+        hydrateSessionDraft(newUserId, switchSeq, true);
+      }
+    });
+
+    const handleCustomAuthChange = async (e: Event) => {
+      if (!isMounted) return;
+      const detailId = (e as CustomEvent)?.detail?.userId;
+      const resolvedId = detailId !== undefined ? detailId : await ensureAuthenticatedSession();
+      if (resolvedId && resolvedId !== sessionIdRef.current) {
+        const switchSeq = ++hydrationSeqRef.current;
+        hydrateSessionDraft(resolvedId, switchSeq, true);
+      }
+    };
+
+    if (typeof window !== "undefined") {
+      window.addEventListener("tl-auth-state-change", handleCustomAuthChange);
+    }
+
+    return () => {
+      isMounted = false;
+      authListener?.data?.subscription?.unsubscribe?.();
+      if (typeof window !== "undefined") {
+        window.removeEventListener("tl-auth-state-change", handleCustomAuthChange);
+      }
+    };
   }, [tierListId]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Persist pending draft scoped to target tier list and authenticated identity AFTER hydration completes
+  useEffect(() => {
+    if (!isHydrated || !content.trim() || !sessionId) return;
+    const activePendingId = pendingCommentId || `cmt-${createId("c")}`;
+    if (!pendingCommentId) {
+      queueMicrotask(() => {
+        setPendingCommentId((prev) => prev || activePendingId);
+      });
+    }
+    try {
+      savePendingCommentDraft({
+        pendingId: activePendingId,
+        tierListId,
+        authorName: authorName.trim() || "Anonymous Ranker",
+        content,
+        sessionUserId: sessionId,
+        updatedAt: Date.now(),
+      });
+    } catch (err) {
+      // Storage errors are strictly enforced and displayed when submitting
+      console.warn("Pending comment autosave warning:", err);
+    }
+  }, [isHydrated, content, authorName, pendingCommentId, tierListId, sessionId]);
+
+  // Fetch comments for this tier list
+  useEffect(() => {
+    if (!tierListId) return;
+    let isCancelled = false;
+    fetchComments(tierListId).then((data) => {
+      if (!isCancelled) {
+        setComments(data);
+        const statusMap: Record<string, boolean> = {};
+        data.forEach((c) => {
+          statusMap[c.id] = hasUpvotedComment(c.id);
+        });
+        setUpvotedMap(statusMap);
+        setLoading(false);
+      }
+    });
+    return () => {
+      isCancelled = true;
+    };
+  }, [tierListId]);
+
+  const handleSubmit = async (e?: React.FormEvent) => {
+    e?.preventDefault();
     const trimmedContent = content.trim();
-    if (!trimmedContent) return;
+    if (!isHydrated || !trimmedContent || isSubmittingRef.current) return; // Synchronous in-flight & hydration guard
+
+    isSubmittingRef.current = true;
+    setIsSubmitting(true);
+    setCommentError(null);
+
+    // 1. Resolve the active authenticated identity BEFORE saving or submitting
+    let activeUserId: string | null = null;
+    try {
+      activeUserId = await ensureAuthenticatedSession();
+    } catch {}
+
+    if (!activeUserId) {
+      setCommentError("Authentication required: A verified user session is required to post comments.");
+      isSubmittingRef.current = false;
+      setIsSubmitting(false);
+      return;
+    }
+
+    // If the active authenticated session changed from User A to User B before submission,
+    // never automatically submit User A's pending attempt as User B!
+    if (sessionIdRef.current && sessionIdRef.current !== activeUserId) {
+      sessionIdRef.current = activeUserId;
+      setSessionId(activeUserId);
+      hasUserEditedInSessionRef.current = false;
+      const userBDraft = loadPendingCommentDraft(tierListId, activeUserId);
+      if (userBDraft) {
+        setContent(userBDraft.content || "");
+        if (userBDraft.authorName) setAuthorName(userBDraft.authorName);
+        setPendingCommentId(userBDraft.pendingId || `cmt-${createId("c")}`);
+      } else {
+        setContent("");
+        setPendingCommentId(`cmt-${createId("c")}`);
+      }
+      setCommentError(
+        "Your active session changed before submission. Loaded the current session's draft instead of submitting the previous user's pending comment."
+      );
+      isSubmittingRef.current = false;
+      setIsSubmitting(false);
+      return;
+    }
+
+    sessionIdRef.current = activeUserId;
+    setSessionId(activeUserId);
 
     const trimmedAuthor = authorName.trim() || "Anonymous Ranker";
     if (typeof window !== "undefined") {
-      localStorage.setItem(COMMENTER_NAME_KEY, trimmedAuthor);
+      try {
+        localStorage.setItem(COMMENTER_NAME_KEY, trimmedAuthor);
+      } catch {}
     }
 
-    setIsSubmitting(true);
+    const targetCommentId = pendingCommentId || `cmt-${createId("c")}`;
+    if (!pendingCommentId) setPendingCommentId(targetCommentId);
+
+    // 2. Save pending comment attempt before sending request; abort if persistence fails
+    try {
+      savePendingCommentDraft({
+        pendingId: targetCommentId,
+        tierListId,
+        authorName: trimmedAuthor,
+        content: trimmedContent,
+        sessionUserId: activeUserId,
+        updatedAt: Date.now(),
+      });
+    } catch (storageErr: unknown) {
+      const msg = storageErr instanceof Error ? storageErr.message : String(storageErr);
+      setCommentError(
+        `Pending comment storage failed: ${msg || "Storage error"}. Submission aborted so your comment is not lost.`
+      );
+      isSubmittingRef.current = false;
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       const newComment = await postComment({
         tierListId,
         authorName: trimmedAuthor,
         content: trimmedContent,
+        existingId: targetCommentId,
       });
 
-      setComments((prev) => [newComment, ...prev]);
+      // Deduplicate displayed comments by ID after retry recovery
+      setComments((prev) => {
+        const exists = prev.some((c) => c.id === newComment.id);
+        if (exists) {
+          return prev.map((c) => (c.id === newComment.id ? newComment : c));
+        }
+        return [newComment, ...prev];
+      });
+
+      // Clear pending attempt only after confirmed success
+      try {
+        clearPendingCommentDraft(tierListId, activeUserId);
+      } catch (cleanupErr: unknown) {
+        console.warn("Failed to clear pending comment draft:", cleanupErr);
+      }
+
+      hasUserEditedInSessionRef.current = false;
       setContent("");
-    } catch (err) {
+      // Fresh ID strictly for the NEXT new comment
+      setPendingCommentId(`cmt-${createId("c")}`);
+    } catch (err: unknown) {
       console.error("Failed to post comment", err);
+      // Keep user's text and pendingCommentId intact on error/conflict
+      const msg = err instanceof Error ? err.message : String(err);
+      setCommentError(msg || "Failed to post comment. Please try again.");
     } finally {
+      isSubmittingRef.current = false;
       setIsSubmitting(false);
     }
   };
@@ -129,6 +365,7 @@ export function CommentsSection({ tierListId, creatorName }: CommentsSectionProp
   };
 
   const handleInsertQuickTake = (chip: string) => {
+    hasUserEditedInSessionRef.current = true;
     setContent((prev) => (prev ? `${prev} ${chip}` : chip));
   };
 
@@ -192,7 +429,10 @@ export function CommentsSection({ tierListId, creatorName }: CommentsSectionProp
           <input
             type="text"
             value={authorName}
-            onChange={(e) => setAuthorName(e.target.value)}
+            onChange={(e) => {
+              hasUserEditedInSessionRef.current = true;
+              setAuthorName(e.target.value);
+            }}
             placeholder="Your name or handle (e.g. PixelHero)"
             maxLength={40}
             className="sm:w-64 px-3.5 py-2 rounded-xl bg-zinc-950 border border-zinc-800 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/30"
@@ -218,7 +458,10 @@ export function CommentsSection({ tierListId, creatorName }: CommentsSectionProp
         <div className="relative">
           <textarea
             value={content}
-            onChange={(e) => setContent(e.target.value)}
+            onChange={(e) => {
+              hasUserEditedInSessionRef.current = true;
+              setContent(e.target.value);
+            }}
             placeholder={`What do you think of @${creatorName}'s tier choices? Drop your take...`}
             rows={3}
             maxLength={500}
@@ -230,6 +473,24 @@ export function CommentsSection({ tierListId, creatorName }: CommentsSectionProp
           </span>
         </div>
 
+        {commentError && (
+          <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center justify-between gap-3 animate-in fade-in">
+            <div className="flex items-center gap-2 min-w-0">
+              <AlertCircle className="w-4 h-4 flex-shrink-0 text-rose-400" />
+              <span className="break-words">{commentError}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => handleSubmit()}
+              disabled={!isHydrated || isSubmitting}
+              className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-semibold text-[11px] flex-shrink-0 cursor-pointer disabled:opacity-50 flex items-center gap-1 shadow-sm"
+            >
+              <RefreshCw className="w-3 h-3" />
+              <span>Retry</span>
+            </button>
+          </div>
+        )}
+
         <div className="flex items-center justify-between pt-1">
           <div className="flex items-center gap-1.5 text-[11px] text-zinc-500">
             <Flame className="w-3.5 h-3.5 text-orange-400" />
@@ -238,7 +499,7 @@ export function CommentsSection({ tierListId, creatorName }: CommentsSectionProp
 
           <button
             type="submit"
-            disabled={isSubmitting || !content.trim()}
+            disabled={!isHydrated || isSubmitting || !content.trim()}
             className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-semibold shadow-md shadow-indigo-600/30 flex items-center gap-1.5 transition-all cursor-pointer"
           >
             <Send className="w-3.5 h-3.5" />

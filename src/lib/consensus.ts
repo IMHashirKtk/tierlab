@@ -1,6 +1,5 @@
 import type { Item, TierRow, Template, PublishedTierList } from "@/types";
-import type { Board } from "@/lib/board";
-import { SEED_TEMPLATES } from "@/data/seed-templates";
+import { DEFAULT_TIERS, normalizeDefaultTiers, type Board } from "@/lib/board";
 
 export interface ConsensusItemRank {
   item: Item;
@@ -22,15 +21,16 @@ export interface ConsensusResult {
   totalSubmissions: number;
   overallAgreementPct: number;
   tiers: ConsensusTier[];
+  status?: "ready" | "empty" | "error";
   mostControversial: {
     item: Item;
     note: string;
     varianceScore: number;
-  };
+  } | null;
 }
 
 export interface AlignmentComparison {
-  alignmentPct: number;
+  alignmentPct: number | null;
   archetype: {
     title: string;
     description: string;
@@ -48,336 +48,154 @@ export interface AlignmentComparison {
   }[];
 }
 
-const TIER_WEIGHTS: Record<string, number> = {
-  S: 5.0,
-  "S+": 5.2,
-  A: 4.0,
-  B: 3.0,
-  C: 2.0,
-  D: 1.0,
-  F: 0.5,
-};
-
-const DEFAULT_TIER_COLORS: Record<string, string> = {
-  S: "from-rose-500 to-red-600",
-  A: "from-amber-500 to-orange-500",
-  B: "from-emerald-500 to-teal-600",
-  C: "from-sky-500 to-blue-600",
-  D: "from-purple-500 to-indigo-600",
-};
-
 /**
- * Pre-calibrated baseline item scores for seed templates
+ * Computes tier weight exclusively from row position index (0 = top tier 5.0, last = bottom tier 1.0).
+ * Fully decoupled from arbitrary label strings, preserving custom presets ("GOAT" vs "Trash").
  */
-const SEED_ITEM_BASELINES: Record<string, { score: number; variance: number }> = {
-  // Elden Ring
-  "er-1": { score: 4.88, variance: 0.12 }, // Malenia
-  "er-2": { score: 4.82, variance: 0.35 }, // Radahn
-  "er-3": { score: 4.65, variance: 0.20 }, // Messmer
-  "er-4": { score: 4.40, variance: 0.45 }, // Bayle
-  "er-5": { score: 4.15, variance: 0.25 }, // Mohg
-  "er-6": { score: 4.05, variance: 0.30 }, // Godfrey
-  "er-7": { score: 3.85, variance: 0.32 }, // Maliketh
-  "er-8": { score: 3.70, variance: 0.40 }, // Starscourge
-  "er-9": { score: 3.35, variance: 0.28 }, // Midra
-  "er-10": { score: 3.10, variance: 0.22 }, // Rellana
-
-  // MCU Movies
-  "mcu-1": { score: 4.90, variance: 0.10 }, // Infinity War
-  "mcu-2": { score: 4.85, variance: 0.15 }, // Endgame
-  "mcu-3": { score: 4.60, variance: 0.22 }, // Winter Soldier
-  "mcu-4": { score: 4.30, variance: 0.28 }, // Civil War
-  "mcu-5": { score: 4.25, variance: 0.30 }, // Guardians 1
-  "mcu-6": { score: 4.15, variance: 0.38 }, // Deadpool & Wolverine
-  "mcu-7": { score: 3.90, variance: 0.35 }, // No Way Home
-  "mcu-8": { score: 3.85, variance: 0.20 }, // Iron Man
-  "mcu-9": { score: 3.75, variance: 0.30 }, // Ragnarok
-  "mcu-10": { score: 3.40, variance: 0.42 }, // Black Panther
-
-  // Anime
-  "an-1": { score: 4.92, variance: 0.08 }, // Frieren
-  "an-2": { score: 4.75, variance: 0.25 }, // JJK
-  "an-3": { score: 4.45, variance: 0.32 }, // Chainsaw Man
-  "an-4": { score: 4.35, variance: 0.38 }, // Demon Slayer
-  "an-5": { score: 4.20, variance: 0.26 }, // Bleach TYBW
-  "an-6": { score: 3.95, variance: 0.42 }, // Solo Leveling
-  "an-7": { score: 3.85, variance: 0.35 }, // Dandadan
-  "an-8": { score: 3.45, variance: 0.30 }, // Kaiju No. 8
-  "an-9": { score: 3.30, variance: 0.28 }, // Hell's Paradise
-  "an-10": { score: 3.20, variance: 0.45 }, // Oshi no Ko
-
-  // Fast Food Fries
-  "ff-1": { score: 4.80, variance: 0.20 }, // McDonald's
-  "ff-2": { score: 4.72, variance: 0.30 }, // Five Guys Cajun
-  "ff-3": { score: 4.40, variance: 0.25 }, // Popeyes
-  "ff-4": { score: 4.30, variance: 0.32 }, // Arby's
-  "ff-5": { score: 3.70, variance: 0.38 }, // Wendy's
-  "ff-6": { score: 3.60, variance: 0.40 }, // Chick-fil-A
-  "ff-7": { score: 3.20, variance: 0.45 }, // Burger King
-  "ff-8": { score: 3.15, variance: 0.35 }, // Shake Shack
-  "ff-9": { score: 2.90, variance: 0.55 }, // In-N-Out
-  "ff-10": { score: 2.80, variance: 0.48 }, // Taco Bell
-
-  // Roblox Games
-  "rb-1": { score: 4.85, variance: 0.15 }, // Blox Fruits
-  "rb-2": { score: 4.70, variance: 0.28 }, // Dress to Impress
-  "rb-3": { score: 4.45, variance: 0.22 }, // Anime Defenders
-  "rb-4": { score: 4.35, variance: 0.30 }, // Blade Ball
-  "rb-5": { score: 4.10, variance: 0.45 }, // Brookhaven RP
-  "rb-6": { score: 4.05, variance: 0.25 }, // Doors
-  "rb-7": { score: 3.75, variance: 0.40 }, // Pet Simulator 99
-  "rb-8": { score: 3.65, variance: 0.35 }, // Murder Mystery 2
-  "rb-9": { score: 3.50, variance: 0.32 }, // Fisch
-  "rb-10": { score: 3.25, variance: 0.42 }, // Arsenal
-
-  // Hip-Hop 2020s
-  "hh-1": { score: 4.88, variance: 0.15 }, // Mr. Morale & The Big Steppers
-  "hh-2": { score: 4.75, variance: 0.22 }, // Call Me If You Get Lost
-  "hh-3": { score: 4.55, variance: 0.32 }, // Utopia
-  "hh-4": { score: 4.40, variance: 0.25 }, // Heroes & Villains
-  "hh-5": { score: 4.20, variance: 0.28 }, // The Melodic Blue
-  "hh-6": { score: 4.05, variance: 0.35 }, // We Don't Trust You
-  "hh-7": { score: 3.85, variance: 0.26 }, // The Off-Season
-  "hh-8": { score: 3.65, variance: 0.42 }, // Her Loss
-  "hh-9": { score: 3.55, variance: 0.38 }, // Chromakopia
-  "hh-10": { score: 3.40, variance: 0.50 }, // Donda
-
-  // NBA All-Time GOAT Legends
-  "nba-1": { score: 4.95, variance: 0.08 }, // Michael Jordan
-  "nba-2": { score: 4.92, variance: 0.12 }, // LeBron James
-  "nba-3": { score: 4.72, variance: 0.20 }, // Kareem Abdul-Jabbar
-  "nba-4": { score: 4.60, variance: 0.25 }, // Magic Johnson
-  "nba-5": { score: 4.55, variance: 0.30 }, // Stephen Curry
-  "nba-6": { score: 4.50, variance: 0.35 }, // Kobe Bryant
-  "nba-7": { score: 4.35, variance: 0.28 }, // Larry Bird
-  "nba-8": { score: 4.30, variance: 0.32 }, // Shaquille O'Neal
-  "nba-9": { score: 4.25, variance: 0.22 }, // Tim Duncan
-  "nba-10": { score: 3.90, variance: 0.40 }, // Nikola Jokić
-
-  // World Football GOATs
-  "wf-1": { score: 4.96, variance: 0.06 }, // Lionel Messi
-  "wf-2": { score: 4.94, variance: 0.10 }, // Cristiano Ronaldo
-  "wf-3": { score: 4.75, variance: 0.18 }, // Zinedine Zidane
-  "wf-4": { score: 4.68, variance: 0.24 }, // Ronaldinho
-  "wf-5": { score: 4.45, variance: 0.35 }, // Kylian Mbappé
-  "wf-6": { score: 4.40, variance: 0.22 }, // Luka Modrić
-  "wf-7": { score: 4.38, variance: 0.20 }, // Andrés Iniesta
-  "wf-8": { score: 4.25, variance: 0.28 }, // Thierry Henry
-  "wf-9": { score: 3.95, variance: 0.45 }, // Neymar Jr
-  "wf-10": { score: 3.85, variance: 0.38 }, // Erling Haaland
-
-  // AI Models & Tools 2026
-  "ai-1": { score: 4.92, variance: 0.10 }, // Claude
-  "ai-2": { score: 4.78, variance: 0.22 }, // Gemini
-  "ai-3": { score: 4.75, variance: 0.20 }, // ChatGPT
-  "ai-4": { score: 4.70, variance: 0.18 }, // Cursor / Antigravity
-  "ai-5": { score: 4.45, variance: 0.25 }, // Midjourney
-  "ai-6": { score: 4.40, variance: 0.20 }, // Perplexity
-  "ai-7": { score: 4.10, variance: 0.32 }, // Suno AI
-  "ai-8": { score: 4.05, variance: 0.28 }, // ElevenLabs
-  "ai-9": { score: 3.95, variance: 0.35 }, // v0
-  "ai-10": { score: 3.80, variance: 0.30 }, // NotebookLM
-
-  // Programming Languages Meta 2026
-  "pl-1": { score: 4.90, variance: 0.12 }, // TypeScript
-  "pl-2": { score: 4.82, variance: 0.18 }, // Python
-  "pl-3": { score: 4.76, variance: 0.24 }, // Rust
-  "pl-4": { score: 4.45, variance: 0.20 }, // Go
-  "pl-5": { score: 4.20, variance: 0.35 }, // C++
-  "pl-6": { score: 3.85, variance: 0.42 }, // Java
-  "pl-7": { score: 3.80, variance: 0.28 }, // C#
-  "pl-8": { score: 3.70, variance: 0.30 }, // Swift
-  "pl-9": { score: 3.65, variance: 0.32 }, // Kotlin
-  "pl-10": { score: 2.75, variance: 0.55 }, // PHP
-
-  // GTA Franchise Games
-  "gta-1": { score: 4.95, variance: 0.08 }, // GTA: San Andreas
-  "gta-2": { score: 4.88, variance: 0.14 }, // GTA V
-  "gta-3": { score: 4.76, variance: 0.22 }, // GTA IV
-  "gta-4": { score: 4.65, variance: 0.20 }, // GTA: Vice City
-  "gta-5": { score: 4.15, variance: 0.30 }, // GTA III
-  "gta-6": { score: 3.75, variance: 0.28 }, // GTA: Liberty City Stories
-  "gta-7": { score: 3.70, variance: 0.26 }, // GTA: Vice City Stories
-  "gta-8": { score: 3.55, variance: 0.34 }, // GTA: Chinatown Wars
-  "gta-9": { score: 3.50, variance: 0.52 }, // GTA Online
-  "gta-10": { score: 4.25, variance: 0.25 }, // GTA: The Ballad of Gay Tony
-
-  // Energy Drinks Showdown
-  "ed-1": { score: 4.85, variance: 0.16 }, // Monster Ultra White
-  "ed-2": { score: 4.78, variance: 0.22 }, // Red Bull Original
-  "ed-3": { score: 4.60, variance: 0.28 }, // Celsius Peach Vibe
-  "ed-4": { score: 4.52, variance: 0.25 }, // Ghost Sour Patch
-  "ed-5": { score: 4.15, variance: 0.32 }, // Reign Orange Dreamsicle
-  "ed-6": { score: 4.10, variance: 0.30 }, // C4 Frozen Bombsicle
-  "ed-7": { score: 3.85, variance: 0.38 }, // Alani Nu Cosmic Stardust
-  "ed-8": { score: 3.45, variance: 0.40 }, // Rockstar Punched
-  "ed-9": { score: 3.20, variance: 0.50 }, // Bang Blue Razz
-  "ed-10": { score: 3.10, variance: 0.48 }, // G Fuel PewDiePie
-};
-
-/** Resolve a tier label (e.g. "S", "s tier", "A+") to a numeric weight; unknown labels → 3.0 (B). */
-function resolveTierWeight(label: string | undefined): number {
-  const clean = (label || "").trim().toUpperCase();
-  if (TIER_WEIGHTS[clean] !== undefined) return TIER_WEIGHTS[clean];
-  const first = clean.charAt(0);
-  if (TIER_WEIGHTS[first] !== undefined) return TIER_WEIGHTS[first];
-  return 3.0;
+export function getPositionalTierWeight(rowIndex: number, totalRows: number): number {
+  if (totalRows <= 1) return 5.0;
+  return Number((5.0 - (rowIndex / (totalRows - 1)) * 4.0).toFixed(4));
 }
 
-/**
- * Deterministic pseudo-score in [2.2, 4.7] for items with no baseline and no placements yet.
- * Stable across renders and SSR/CSR (no Math.random), so hydration never mismatches.
- */
-function deterministicBaselineScore(item: Item, index: number): number {
-  const seed = `${item.id}|${item.name || ""}`;
-  let hash = 2166136261; // FNV-1a
-  for (let i = 0; i < seed.length; i++) {
-    hash ^= seed.charCodeAt(i);
-    hash = Math.imul(hash, 16777619);
-  }
-  // Blend hash with index so adjacent items spread out even with similar ids
-  const fraction = (((hash >>> 0) % 1000) / 1000 + ((index * 0.618034) % 1)) % 1;
-  return Number((2.2 + fraction * 2.5).toFixed(2));
-}
-
-/** Map standard deviation of tier weights (0 … ~2.35) into the 0–1 variance scale used by the UI. */
+/** Map standard deviation of placement weights (0 … ~2.0) into the 0–1 variance scale. */
 function normalizeVariance(values: number[]): number {
-  if (values.length < 2) return 0.25;
+  if (values.length < 2) return 0.2;
   const mean = values.reduce((a, b) => a + b, 0) / values.length;
   const sqDiff = values.reduce((acc, v) => acc + (v - mean) ** 2, 0) / values.length;
   return Math.min(1, Math.sqrt(sqDiff) / 2);
 }
 
-const SEED_TEMPLATE_IDS = new Set(SEED_TEMPLATES.map((t) => t.id));
-
 /**
- * Calculates consensus tiers for a template
+ * Calculates genuine mathematical consensus tiers from verified user submissions.
+ * Never fabricates synthetic baselines when submissions are empty.
  */
 export function calculateConsensus(
   template: Template,
-  userSubmissions: PublishedTierList[] = []
+  userSubmissions: PublishedTierList[] = [],
+  options?: { fetchError?: boolean }
 ): ConsensusResult {
-  const itemScores: Record<string, { sum: number; count: number; variance: number }> = {};
-  const placements: Record<string, number[]> = {};
-  const hasSubmissions = userSubmissions.length > 0;
-  const items = Array.isArray(template.items) ? template.items : [];
+  if (options?.fetchError) {
+    return {
+      templateId: template.id,
+      templateTitle: template.title,
+      totalSubmissions: 0,
+      overallAgreementPct: 0,
+      tiers: [],
+      status: "error",
+      mostControversial: null,
+    };
+  }
 
-  // 1. Initialise baselines
-  items.forEach((item, index) => {
-    const baseline = SEED_ITEM_BASELINES[item.id];
-    placements[item.id] = [];
+  if (!userSubmissions || userSubmissions.length === 0) {
+    return {
+      templateId: template.id,
+      templateTitle: template.title,
+      totalSubmissions: 0,
+      overallAgreementPct: 0,
+      tiers: [],
+      status: "empty",
+      mostControversial: null,
+    };
+  }
 
-    if (baseline) {
-      // Curated seed item: weighted as 50 historical submissions
-      itemScores[item.id] = { sum: baseline.score * 50, count: 50, variance: baseline.variance };
-    } else if (hasSubmissions) {
-      // Custom item: let real user placements drive the score
-      itemScores[item.id] = { sum: 0, count: 0, variance: 0.25 };
-    } else {
-      // Custom item with no data yet: realistic deterministic spread instead of everything in B
-      itemScores[item.id] = {
-        sum: deterministicBaselineScore(item, index),
-        count: 1,
-        variance: 0.25,
-      };
-    }
-  });
+  const itemPlacements: Record<string, number[]> = {};
+  const itemMap = new Map<string, Item>();
 
-  // 2. Incorporate real user submissions
+  (template.items || []).forEach((it) => itemMap.set(it.id, it));
+
   userSubmissions.forEach((submission) => {
-    (submission.tiers || []).forEach((tier) => {
-      const tierWeight = resolveTierWeight(tier.label);
+    const totalRows = (submission.tiers || []).length;
+    (submission.tiers || []).forEach((tier, rowIndex) => {
+      const weight = getPositionalTierWeight(rowIndex, totalRows);
       (tier.items || []).forEach((item) => {
-        const entry = itemScores[item.id];
-        if (!entry) return;
-        entry.sum += tierWeight;
-        entry.count += 1;
-        placements[item.id].push(tierWeight);
+        if (!itemPlacements[item.id]) {
+          itemPlacements[item.id] = [];
+        }
+        itemPlacements[item.id].push(weight);
+        if (!itemMap.has(item.id)) {
+          itemMap.set(item.id, item);
+        }
       });
     });
   });
 
-  // 3. Finalise custom items: real variance, or deterministic fallback for never-placed items
-  items.forEach((item, index) => {
-    if (SEED_ITEM_BASELINES[item.id]) return;
-    const entry = itemScores[item.id];
-    if (entry.count === 0) {
-      entry.sum = deterministicBaselineScore(item, index);
-      entry.count = 1;
-      entry.variance = 0.25;
-    } else {
-      entry.variance = normalizeVariance(placements[item.id]);
-    }
-  });
+  const rankedItems: { item: Item; avgScore: number; variance: number }[] = [];
 
-  // Compute final scores and bucket into tiers
-  const rankedItems: ConsensusItemRank[] = items.map((item) => {
-    const data = itemScores[item.id];
-    const avgScore = Number((data.sum / data.count).toFixed(2));
-    const agreementPct = Math.max(50, Math.min(99, Math.round(75 + (1 - data.variance) * 22)));
+  for (const [itemId, weights] of Object.entries(itemPlacements)) {
+    const item = itemMap.get(itemId);
+    if (!item) continue;
+    const avgScore = Number((weights.reduce((a, b) => a + b, 0) / weights.length).toFixed(2));
+    const variance = normalizeVariance(weights);
+    rankedItems.push({ item, avgScore, variance });
+  }
 
-    let tierLabel = "C";
-    if (avgScore >= 4.5) tierLabel = "S";
-    else if (avgScore >= 3.6) tierLabel = "A";
-    else if (avgScore >= 2.6) tierLabel = "B";
-    else if (avgScore >= 1.6) tierLabel = "C";
-    else tierLabel = "D";
-
-    return {
-      item,
-      avgScore,
-      agreementPct,
-      tierLabel,
-    };
-  });
-
-  // Sort items within each tier by exact avgScore descending
   rankedItems.sort((a, b) => b.avgScore - a.avgScore);
 
-  const tiers: ConsensusTier[] = ["S", "A", "B", "C", "D"].map((label) => ({
-    id: `tier-${label.toLowerCase()}`,
-    label,
-    color: DEFAULT_TIER_COLORS[label] || "from-zinc-600 to-zinc-800",
-    items: rankedItems.filter((i) => i.tierLabel === label),
+  // Map into target template tiers (or standard 5-tier S-D structure)
+  const templateTiers = normalizeDefaultTiers(template.defaultTiers) ?? DEFAULT_TIERS;
+
+  const totalTiers = templateTiers.length;
+  const tiersResult: ConsensusTier[] = templateTiers.map((t, idx) => ({
+    id: `consensus-tier-${idx}`,
+    label: t.label,
+    color: t.color,
+    items: [],
   }));
 
-  // Find most controversial item (highest variance)
-  let mostControversialItem = items[0];
-  let maxVariance = 0;
-  items.forEach((it) => {
-    const v = itemScores[it.id]?.variance || 0;
-    if (v > maxVariance) {
-      maxVariance = v;
-      mostControversialItem = it;
+  // Distribute items into tiers based on positional weight thresholds
+  rankedItems.forEach((ri) => {
+    let closestTierIdx = 0;
+    let minDiff = Infinity;
+    for (let i = 0; i < totalTiers; i++) {
+      const tierTargetWeight = getPositionalTierWeight(i, totalTiers);
+      const diff = Math.abs(ri.avgScore - tierTargetWeight);
+      if (diff < minDiff) {
+        minDiff = diff;
+        closestTierIdx = i;
+      }
     }
+
+    const agreementPct = Math.max(50, Math.round((1 - ri.variance) * 100));
+    tiersResult[closestTierIdx].items.push({
+      item: ri.item,
+      avgScore: ri.avgScore,
+      agreementPct,
+      tierLabel: tiersResult[closestTierIdx].label,
+    });
   });
 
-  const overallAgreement =
-    rankedItems.length > 0
-      ? Math.round(rankedItems.reduce((acc, it) => acc + it.agreementPct, 0) / rankedItems.length)
-      : 0;
+  // Calculate most controversial item
+  let mostControversial: ConsensusResult["mostControversial"] = null;
+  if (rankedItems.length > 0) {
+    const sortedByVariance = [...rankedItems].sort((a, b) => b.variance - a.variance);
+    const topControversial = sortedByVariance[0];
+    mostControversial = {
+      item: topControversial.item,
+      varianceScore: Number(topControversial.variance.toFixed(2)),
+      note: "Highest placement standard deviation across community submissions",
+    };
+  }
 
-  // Real submission count; legacy 12,450 fallback only for the curated seed templates
-  const realCount = Math.max(template.remixCount || 0, userSubmissions.length);
-  const totalSubmissions =
-    realCount > 0 ? realCount : SEED_TEMPLATE_IDS.has(template.id) ? 12450 : 0;
+  const allAgreements = tiersResult.flatMap((t) => t.items.map((i) => i.agreementPct));
+  const overallAgreementPct =
+    allAgreements.length > 0
+      ? Math.round(allAgreements.reduce((a, b) => a + b, 0) / allAgreements.length)
+      : 80;
 
   return {
     templateId: template.id,
     templateTitle: template.title,
-    totalSubmissions,
-    overallAgreementPct: overallAgreement,
-    tiers,
-    mostControversial: {
-      item: mostControversialItem,
-      note: `Split opinions across community with highest placement variance.`,
-      varianceScore: Number(maxVariance.toFixed(2)),
-    },
+    totalSubmissions: userSubmissions.length,
+    overallAgreementPct,
+    tiers: tiersResult,
+    status: "ready",
+    mostControversial,
   };
 }
 
 /**
- * Compares a user's personal board against the consensus ranking
+ * Compares a user's personal board against consensus using purely positional weights.
+ * Returns alignmentPct: null ("No Ranked Items") when 0 items are placed.
  */
 export function compareUserBoardWithConsensus(
   userBoard: Board,
@@ -394,43 +212,57 @@ export function compareUserBoardWithConsensus(
   let totalScore = 0;
   let evaluatedCount = 0;
 
-  // Build a lookup map for consensus item tiers
-  const consensusItemMap = new Map<string, string>();
-  consensus.tiers.forEach((ct) => {
+  // Build a lookup map for consensus item positional weights
+  const consensusItemMap = new Map<string, { tier: string; weight: number }>();
+  const totalConsensusRows = consensus.tiers.length;
+  consensus.tiers.forEach((ct, rowIndex) => {
+    const weight = getPositionalTierWeight(rowIndex, totalConsensusRows);
     ct.items.forEach((ci) => {
-      consensusItemMap.set(ci.item.id, ct.label.toUpperCase());
+      consensusItemMap.set(ci.item.id, { tier: ct.label, weight });
     });
   });
 
-  userBoard.tiers.forEach((userTier) => {
-    const uLabel = userTier.label.trim().toUpperCase();
-    const uWeight = TIER_WEIGHTS[uLabel] || 3.0;
+  const totalUserRows = userBoard.tiers.length;
+  userBoard.tiers.forEach((userTier, uRowIndex) => {
+    const uWeight = getPositionalTierWeight(uRowIndex, totalUserRows);
 
     userTier.items.forEach((item) => {
-      const cLabel = consensusItemMap.get(item.id);
-      if (!cLabel) return;
+      const cInfo = consensusItemMap.get(item.id);
+      if (!cInfo) return;
 
-      const cWeight = TIER_WEIGHTS[cLabel] || 3.0;
-      const diff = Math.abs(uWeight - cWeight);
-
+      const diff = Math.abs(uWeight - cInfo.weight);
       evaluatedCount++;
+
+      const itemScore = Math.max(0, Math.round((1.0 - diff / 4.0) * 100));
+      totalScore += itemScore;
+
       if (diff < 0.4) {
-        totalScore += 100;
-        agreements.push({ item, tier: uLabel });
+        agreements.push({ item, tier: userTier.label });
       } else {
-        const itemScore = Math.max(10, 100 - Math.round(diff * 35));
-        totalScore += itemScore;
         hotTakes.push({
           item,
-          userTier: uLabel,
-          consensusTier: cLabel,
+          userTier: userTier.label,
+          consensusTier: cInfo.tier,
           difference: Number(diff.toFixed(1)),
         });
       }
     });
   });
 
-  const alignmentPct = evaluatedCount > 0 ? Math.round(totalScore / evaluatedCount) : 80;
+  if (evaluatedCount === 0) {
+    return {
+      alignmentPct: null,
+      archetype: {
+        title: "No Ranked Items",
+        description: "Place items into tiers on your board to compare your taste against the community consensus.",
+        badgeColor: "bg-zinc-800 text-zinc-400 border-zinc-700",
+      },
+      agreements: [],
+      hotTakes: [],
+    };
+  }
+
+  const alignmentPct = Math.round(totalScore / evaluatedCount);
 
   let archetype = {
     title: "Mainstream with Spice",
@@ -444,21 +276,20 @@ export function compareUserBoardWithConsensus(
       description: "Your taste mirrors the community almost perfectly. Your placements represent the undisputed voice of the crowd.",
       badgeColor: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
     };
-  } else if (alignmentPct < 65) {
+  } else if (alignmentPct < 60) {
     archetype = {
       title: "Total Chaos Rebel",
-      description: "You fiercely reject the mainstream opinion! Your placements will trigger arguments in any comment section.",
+      description: "You fiercely reject the mainstream opinion! Your placements will trigger debates across the community.",
       badgeColor: "bg-rose-500/20 text-rose-300 border-rose-500/30",
     };
   } else if (alignmentPct < 78) {
     archetype = {
       title: "Controversial Visionary",
-      description: "You agree with the crowd on the obvious classics, but completely diverge on the mid-tier and underrated gems.",
+      description: "You agree with the crowd on the obvious classics, but completely diverge on mid-tier and underrated gems.",
       badgeColor: "bg-amber-500/20 text-amber-300 border-amber-500/30",
     };
   }
 
-  // Sort hot takes by biggest difference first
   hotTakes.sort((a, b) => b.difference - a.difference);
 
   return {
@@ -470,7 +301,7 @@ export function compareUserBoardWithConsensus(
 }
 
 export interface VersusMatchup {
-  similarityPct: number;
+  similarityPct: number | null;
   verdict: {
     title: string;
     description: string;
@@ -490,23 +321,28 @@ export interface VersusMatchup {
 }
 
 /**
- * Compare two separate user tier lists head-to-head
+ * Compare two separate user tier lists head-to-head using purely positional weights.
+ * Returns similarityPct: null ("No Overlapping Picks") when 0 items overlap.
  */
 export function compareTwoTierLists(
   listA: { title: string; authorName: string; tiers: TierRow[] },
   listB: { title: string; authorName: string; tiers: TierRow[] }
 ): VersusMatchup {
-  const itemTierA = new Map<string, { tier: string; item: Item }>();
-  listA.tiers.forEach((t) => {
+  const itemTierA = new Map<string, { tier: string; weight: number; item: Item }>();
+  const totalRowsA = listA.tiers.length;
+  listA.tiers.forEach((t, rowIndex) => {
+    const weight = getPositionalTierWeight(rowIndex, totalRowsA);
     t.items.forEach((it) => {
-      itemTierA.set(it.id, { tier: t.label.trim().toUpperCase(), item: it });
+      itemTierA.set(it.id, { tier: t.label, weight, item: it });
     });
   });
 
-  const itemTierB = new Map<string, { tier: string; item: Item }>();
-  listB.tiers.forEach((t) => {
+  const itemTierB = new Map<string, { tier: string; weight: number; item: Item }>();
+  const totalRowsB = listB.tiers.length;
+  listB.tiers.forEach((t, rowIndex) => {
+    const weight = getPositionalTierWeight(rowIndex, totalRowsB);
     t.items.forEach((it) => {
-      itemTierB.set(it.id, { tier: t.label.trim().toUpperCase(), item: it });
+      itemTierB.set(it.id, { tier: t.label, weight, item: it });
     });
   });
 
@@ -520,16 +356,13 @@ export function compareTwoTierLists(
     if (!valB) return;
 
     totalCompared++;
-    const weightA = TIER_WEIGHTS[valA.tier] || 3.0;
-    const weightB = TIER_WEIGHTS[valB.tier] || 3.0;
-    const diff = Math.abs(weightA - weightB);
+    const diff = Math.abs(valA.weight - valB.weight);
+    const itemScore = Math.max(0, Math.round((1.0 - diff / 4.0) * 100));
+    totalScore += itemScore;
 
     if (diff < 0.4) {
-      totalScore += 100;
       agreements.push({ item: valA.item, tier: valA.tier });
     } else {
-      const itemScore = Math.max(10, 100 - Math.round(diff * 35));
-      totalScore += itemScore;
       divergences.push({
         item: valA.item,
         tierA: valA.tier,
@@ -539,7 +372,21 @@ export function compareTwoTierLists(
     }
   });
 
-  const similarityPct = totalCompared > 0 ? Math.round(totalScore / totalCompared) : 75;
+  if (totalCompared === 0) {
+    return {
+      similarityPct: null,
+      verdict: {
+        title: "No Overlapping Picks",
+        description: "Neither tier list shares ranked items in common yet.",
+        badgeColor: "bg-zinc-800 text-zinc-400 border-zinc-700",
+      },
+      totalCompared: 0,
+      agreements: [],
+      divergences: [],
+    };
+  }
+
+  const similarityPct = Math.round(totalScore / totalCompared);
 
   let verdict = {
     title: "Kindred Spirits",

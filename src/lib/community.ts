@@ -1,5 +1,6 @@
-import { supabase, isSupabaseConfigured } from "@/lib/supabase";
-import { SEED_TEMPLATES, SEED_RECENT_RANKINGS } from "@/data/seed-templates";
+import { supabase, isSupabaseConfigured, ensureAuthenticatedSession } from "@/lib/supabase";
+import { SEED_TEMPLATES } from "@/data/seed-templates";
+import { isDiscoverableRanking, presentTemplate } from "@/lib/catalog";
 import type { Template, PublishedTierList, UserRanking, Item, TierRow, Comment } from "@/types";
 import { createId } from "@/lib/board";
 
@@ -20,7 +21,7 @@ export function getVoterId(): string {
   return vid;
 }
 
-function getLocalUserTemplates(): Template[] {
+export function getLocalUserTemplates(): Template[] {
   if (typeof window === "undefined") return [];
   try {
     const raw = localStorage.getItem(USER_TEMPLATES_KEY);
@@ -30,7 +31,7 @@ function getLocalUserTemplates(): Template[] {
   }
 }
 
-function saveLocalUserTemplate(template: Template) {
+export function saveLocalUserTemplate(template: Template) {
   if (typeof window === "undefined") return;
   try {
     const existing = getLocalUserTemplates();
@@ -41,7 +42,7 @@ function saveLocalUserTemplate(template: Template) {
   }
 }
 
-function getLocalPublishedRankings(): PublishedTierList[] {
+export function getLocalPublishedRankings(): PublishedTierList[] {
   if (typeof window === "undefined") return [];
   try {
     const raw = localStorage.getItem(PUBLISHED_RANKINGS_KEY);
@@ -51,7 +52,7 @@ function getLocalPublishedRankings(): PublishedTierList[] {
   }
 }
 
-function saveLocalPublishedRanking(ranking: PublishedTierList) {
+export function saveLocalPublishedRanking(ranking: PublishedTierList) {
   if (typeof window === "undefined") return;
   try {
     const existing = getLocalPublishedRankings();
@@ -82,6 +83,9 @@ export async function fetchTemplates(options?: {
       if (category !== "all") {
         query = query.eq("category", category);
       }
+      if (search) {
+        query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%,category.ilike.%${search}%`);
+      }
       if (sortBy === "most-ranked") {
         query = query.order("rank_count", { ascending: false });
       } else if (sortBy === "top-rated") {
@@ -97,7 +101,7 @@ export async function fetchTemplates(options?: {
           slug: d.id,
           title: d.title,
           description: d.description || "",
-          category: d.category as any,
+          category: (d.category || "gaming") as Template["category"],
           author: { username: d.author_name || "Community" },
           itemCount: Array.isArray(d.items) ? d.items.length : 0,
           remixCount: d.rank_count || 0,
@@ -121,14 +125,14 @@ export async function fetchTemplates(options?: {
     if (!templateMap.has(t.id)) templateMap.set(t.id, t);
   });
 
-  let result = Array.from(templateMap.values());
+  let result = Array.from(templateMap.values()).map(presentTemplate);
 
   // Category filter
   if (category !== "all") {
     result = result.filter((t) => t.category.toLowerCase() === category.toLowerCase());
   }
 
-  // Search filter
+  // Client-side search filter safety net
   if (search) {
     result = result.filter(
       (t) =>
@@ -153,9 +157,8 @@ export async function fetchTemplates(options?: {
  * Fetch a single template by ID
  */
 export async function fetchTemplateById(id: string): Promise<Template | null> {
-  // Check local cache/user templates first
   const local = getLocalUserTemplates().find((t) => t.id === id);
-  if (local) return local;
+  if (local) return presentTemplate(local);
 
   const seed = SEED_TEMPLATES.find((t) => t.id === id);
   if (seed) return seed;
@@ -164,12 +167,12 @@ export async function fetchTemplateById(id: string): Promise<Template | null> {
     try {
       const { data, error } = await supabase.from("templates").select("*").eq("id", id).maybeSingle();
       if (!error && data) {
-        return {
+        return presentTemplate({
           id: data.id,
           slug: data.id,
           title: data.title,
           description: data.description || "",
-          category: data.category as any,
+          category: (data.category || "gaming") as Template["category"],
           author: { username: data.author_name || "Community" },
           itemCount: Array.isArray(data.items) ? data.items.length : 0,
           remixCount: data.rank_count || 0,
@@ -177,7 +180,7 @@ export async function fetchTemplateById(id: string): Promise<Template | null> {
           createdAt: new Date(data.created_at).toLocaleDateString(),
           items: data.items || [],
           defaultTiers: data.default_tiers || undefined,
-        };
+        });
       }
     } catch (err) {
       console.warn("Supabase template lookup failed", err);
@@ -200,8 +203,140 @@ export function generateTemplateSlug(title: string): string {
   return base ? `${base}-${suffix}` : `tpl-${createId("ugc")}`;
 }
 
+export function areSemanticJsonEqual(a: unknown, b: unknown): boolean {
+  if (a === b) return true;
+  if (a === null || b === null || a === undefined || b === undefined) return a === b;
+  if (typeof a !== typeof b) return false;
+  if (typeof a !== "object") return a === b;
+
+  if (Array.isArray(a) !== Array.isArray(b)) return false;
+
+  if (Array.isArray(a) && Array.isArray(b)) {
+    if (a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) {
+      if (!areSemanticJsonEqual(a[i], b[i])) return false;
+    }
+    return true;
+  }
+
+  const objA = a as Record<string, unknown>;
+  const objB = b as Record<string, unknown>;
+  const keysA = Object.keys(objA).filter((k) => objA[k] !== undefined);
+  const keysB = Object.keys(objB).filter((k) => objB[k] !== undefined);
+  if (keysA.length !== keysB.length) return false;
+
+  for (const key of keysA) {
+    if (!Object.prototype.hasOwnProperty.call(objB, key)) return false;
+    if (!areSemanticJsonEqual(objA[key], objB[key])) return false;
+  }
+  return true;
+}
+
+async function handleExistingTemplate(
+  existing: Record<string, unknown>,
+  targetId: string,
+  sessionUserId: string,
+  payload: {
+    title: string;
+    description: string;
+    category: string;
+    authorName: string;
+    items: Item[];
+    defaultTiers: unknown[];
+  }
+): Promise<Template> {
+  if (!supabase) {
+    throw new Error("Cloud database client is unavailable.");
+  }
+
+  // 1. Verify expected ID
+  if (existing.id !== targetId) {
+    throw new Error(`Lookup error: Returned template ID "${String(existing.id)}" did not match target "${targetId}".`);
+  }
+
+  // 2. Strict ownership check: accept only when existing.author_id === sessionUserId
+  if (!existing.author_id || existing.author_id !== sessionUserId) {
+    throw new Error(`Conflict: Template "${targetId}" already exists and is not owned by the current session.`);
+  }
+
+  // 3. Check if content changed (semantic JSON comparison for items and tiers)
+  const existingAuthorName = typeof existing.author_name === "string" ? existing.author_name : "";
+  const contentMatches =
+    existing.title === payload.title &&
+    (existing.description || "") === payload.description &&
+    existing.category === payload.category &&
+    existingAuthorName.trim() === payload.authorName &&
+    areSemanticJsonEqual(existing.items || [], payload.items) &&
+    areSemanticJsonEqual(existing.default_tiers || [], payload.defaultTiers);
+
+  if (contentMatches) {
+    // Idempotent retry: earlier attempt already succeeded and content is identical
+    const confirmedTemplate: Template = {
+      id: String(existing.id),
+      slug: String(existing.id),
+      title: String(existing.title || payload.title),
+      description: typeof existing.description === "string" ? existing.description : "",
+      category: (existing.category || payload.category) as Template["category"],
+      author: { username: existingAuthorName || payload.authorName },
+      itemCount: Array.isArray(existing.items) ? existing.items.length : 0,
+      remixCount: Number(existing.rank_count) || 0,
+      upvotes: Number(existing.upvotes) || 0,
+      createdAt: typeof existing.created_at === "string" ? new Date(existing.created_at).toLocaleDateString() : "Just now",
+      items: (existing.items as Item[]) || [],
+      defaultTiers: (existing.default_tiers as { label: string; color: string }[]) || undefined,
+    };
+    saveLocalUserTemplate(confirmedTemplate);
+    return confirmedTemplate;
+  }
+
+  // Content differs: perform authorized UPDATE of owned record
+  const { data: updateData, error: updateError } = await supabase
+    .from("templates")
+    .update({
+      title: payload.title,
+      description: payload.description,
+      category: payload.category,
+      items: payload.items,
+      default_tiers: payload.defaultTiers,
+      author_name: payload.authorName,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", targetId)
+    .eq("author_id", sessionUserId)
+    .select();
+
+  if (updateError) {
+    throw new Error(`Cloud template update failed: ${updateError.message}`);
+  }
+  if (!updateData || updateData.length === 0) {
+    throw new Error(`Cloud template update failed: No rows were updated for template "${targetId}". Check ownership permissions.`);
+  }
+
+  const row = updateData[0];
+  if (row.id !== targetId) {
+    throw new Error(`Cloud template update failed: Returned ID "${row.id}" did not match target ID "${targetId}".`);
+  }
+
+  const confirmedTemplate: Template = {
+    id: row.id,
+    slug: row.id,
+    title: row.title,
+    description: row.description || "",
+    category: (row.category || payload.category) as Template["category"],
+    author: { username: row.author_name || payload.authorName },
+    itemCount: Array.isArray(row.items) ? row.items.length : 0,
+    remixCount: row.rank_count || 0,
+    upvotes: row.upvotes || 0,
+    createdAt: row.created_at ? new Date(row.created_at).toLocaleDateString() : "Just now",
+    items: row.items || [],
+    defaultTiers: row.default_tiers || undefined,
+  };
+  saveLocalUserTemplate(confirmedTemplate);
+  return confirmedTemplate;
+}
+
 /**
- * Publish a new template created by the user
+ * Publish a new template created by the user with real cloud persistence
  */
 export async function publishTemplate(payload: {
   title: string;
@@ -210,100 +345,331 @@ export async function publishTemplate(payload: {
   items: Item[];
   defaultTiers?: { label: string; color: string }[];
   authorName?: string;
+  existingId?: string;
+  id?: string;
 }): Promise<Template> {
-  const id = generateTemplateSlug(payload.title);
-  const now = new Date();
-
-  const newTemplate: Template = {
-    id,
-    slug: id,
-    title: payload.title.trim(),
-    description: payload.description?.trim() || `User-created template featuring ${payload.items.length} items.`,
-    category: (payload.category as any) || "gaming",
-    author: {
-      username: payload.authorName?.trim() || "Creator",
-      verified: true,
-    },
-    itemCount: payload.items.length,
-    remixCount: 0,
-    upvotes: 1,
-    createdAt: "Just now",
-    items: payload.items,
-    defaultTiers: payload.defaultTiers,
-  };
-
-  saveLocalUserTemplate(newTemplate);
-
-  if (isSupabaseConfigured() && supabase) {
-    try {
-      await supabase.from("templates").insert({
-        id,
-        title: newTemplate.title,
-        description: newTemplate.description,
-        category: newTemplate.category,
-        items: newTemplate.items,
-        default_tiers: newTemplate.defaultTiers || [],
-        author_name: newTemplate.author.username,
-        rank_count: 0,
-        upvotes: 1,
-      });
-    } catch (err) {
-      console.error("Failed to insert template into Supabase", err);
-    }
+  if (!isSupabaseConfigured() || !supabase) {
+    throw new Error("Cloud publishing is unavailable because Supabase is not configured.");
   }
 
-  return newTemplate;
+  const sessionUserId = await ensureAuthenticatedSession();
+  if (!sessionUserId) {
+    throw new Error("Cloud publishing is temporarily unavailable. Keep your draft on this device and try again later.");
+  }
+
+  const targetId = payload.existingId || payload.id || generateTemplateSlug(payload.title);
+  const cleanTitle = payload.title.trim();
+  const cleanDescription = payload.description?.trim() || `User-created template featuring ${payload.items.length} items.`;
+  const cleanCategory = (payload.category as Template["category"]) || "gaming";
+  const cleanAuthorName = payload.authorName?.trim() || "Creator";
+  const defaultTiers = payload.defaultTiers || [];
+
+  const templatePayload = {
+    title: cleanTitle,
+    description: cleanDescription,
+    category: cleanCategory,
+    authorName: cleanAuthorName,
+    items: payload.items,
+    defaultTiers,
+  };
+
+  try {
+    // 1. Check if record already exists (retry of lost response, or edit)
+    const { data: existing, error: fetchError } = await supabase
+      .from("templates")
+      .select("id, author_id, title, description, category, items, default_tiers, author_name, upvotes, rank_count, created_at")
+      .eq("id", targetId)
+      .maybeSingle();
+
+    if (fetchError) {
+      throw new Error(`Failed to check existing template: ${fetchError.message}`);
+    }
+
+    if (existing) {
+      return await handleExistingTemplate(existing, targetId, sessionUserId, templatePayload);
+    }
+
+    // 2. Insert new record
+    const insertPayload: Record<string, unknown> = {
+      id: targetId,
+      title: cleanTitle,
+      description: cleanDescription,
+      category: cleanCategory,
+      items: payload.items,
+      default_tiers: defaultTiers,
+      author_name: cleanAuthorName,
+      author_id: sessionUserId,
+      rank_count: 0,
+      upvotes: 0,
+    };
+
+    const { data: insertData, error: insertError } = await supabase
+      .from("templates")
+      .insert(insertPayload)
+      .select();
+
+    if (insertError) {
+      if (
+        insertError.code === "23505" ||
+        insertError.message?.includes("duplicate key") ||
+        insertError.message?.includes("unique constraint")
+      ) {
+        const { data: retryExisting, error: retryFetchError } = await supabase
+          .from("templates")
+          .select("id, author_id, title, description, category, items, default_tiers, author_name, upvotes, rank_count, created_at")
+          .eq("id", targetId)
+          .maybeSingle();
+
+        if (retryFetchError) {
+          throw new Error(`Failed to lookup duplicate template: ${retryFetchError.message}`);
+        }
+        if (retryExisting) {
+          return await handleExistingTemplate(retryExisting, targetId, sessionUserId, templatePayload);
+        }
+      }
+      throw new Error(`Cloud template publication failed: ${insertError.message}`);
+    }
+
+    if (!insertData || insertData.length === 0) {
+      throw new Error(`Cloud template publication failed: Database did not return confirmed record for "${targetId}".`);
+    }
+
+    const row = insertData[0];
+    if (row.id !== targetId) {
+      throw new Error(`Cloud template publication failed: Returned ID "${row.id}" did not match target ID "${targetId}".`);
+    }
+
+    const confirmedTemplate: Template = {
+      id: row.id,
+      slug: row.id,
+      title: row.title,
+      description: row.description || "",
+      category: (row.category as Template["category"]) || "gaming",
+      author: { username: row.author_name || cleanAuthorName },
+      itemCount: Array.isArray(row.items) ? row.items.length : 0,
+      remixCount: row.rank_count || 0,
+      upvotes: row.upvotes || 0,
+      createdAt: row.created_at ? new Date(row.created_at).toLocaleDateString() : "Just now",
+      items: row.items || [],
+      defaultTiers: row.default_tiers || undefined,
+    };
+    saveLocalUserTemplate(confirmedTemplate);
+    return confirmedTemplate;
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    throw new Error(message || "Cloud template publication encountered an unexpected error.");
+  }
+}
+
+async function handleExistingTierList(
+  existing: Record<string, unknown>,
+  targetId: string,
+  sessionUserId: string,
+  payload: {
+    templateId: string | null;
+    title: string;
+    authorName: string;
+    tiers: TierRow[];
+    unranked: Item[];
+  }
+): Promise<PublishedTierList> {
+  if (!supabase) {
+    throw new Error("Cloud database client is unavailable.");
+  }
+
+  // 1. Verify expected ID
+  if (existing.id !== targetId) {
+    throw new Error(`Lookup error: Returned tier list ID "${String(existing.id)}" did not match target "${targetId}".`);
+  }
+
+  // 2. Strict ownership check: accept only when existing.author_id === sessionUserId
+  if (!existing.author_id || existing.author_id !== sessionUserId) {
+    throw new Error(`Conflict: Published ranking "${targetId}" already exists and is not owned by the current session.`);
+  }
+
+  // 3. Check if content changed (semantic JSON comparison for tiers and unranked)
+  const existingAuthorName = typeof existing.author_name === "string" ? existing.author_name : "";
+  const contentMatches =
+    existing.title === payload.title &&
+    existingAuthorName.trim() === payload.authorName &&
+    (existing.template_id || null) === payload.templateId &&
+    areSemanticJsonEqual((existing.tiers as TierRow[]) || [], payload.tiers) &&
+    areSemanticJsonEqual((existing.unranked as Item[]) || [], payload.unranked);
+
+  if (contentMatches) {
+    // Idempotent retry: earlier attempt already succeeded and content is identical
+    const confirmedTierList: PublishedTierList = {
+      id: String(existing.id),
+      templateId: typeof existing.template_id === "string" ? existing.template_id : undefined,
+      title: String(existing.title || payload.title),
+      authorName: existingAuthorName || payload.authorName,
+      tiers: Array.isArray(existing.tiers) ? (existing.tiers as TierRow[]) : [],
+      unranked: Array.isArray(existing.unranked) ? (existing.unranked as Item[]) : [],
+      upvotes: Number(existing.upvotes) || 0,
+      createdAt: existing.created_at ? new Date(String(existing.created_at)).getTime() : Date.now(),
+    };
+    saveLocalPublishedRanking(confirmedTierList);
+    return confirmedTierList;
+  }
+
+  // Content differs: perform authorized UPDATE of owned record
+  const { data: updateData, error: updateError } = await supabase
+    .from("tier_lists")
+    .update({
+      template_id: payload.templateId,
+      title: payload.title,
+      author_name: payload.authorName,
+      tiers: payload.tiers,
+      unranked: payload.unranked,
+    })
+    .eq("id", targetId)
+    .eq("author_id", sessionUserId)
+    .select();
+
+  if (updateError) {
+    throw new Error(`Cloud tier list update failed: ${updateError.message}`);
+  }
+  if (!updateData || updateData.length === 0) {
+    throw new Error(`Cloud tier list update failed: No rows were updated for tier list "${targetId}". Check ownership permissions.`);
+  }
+
+  const row = updateData[0];
+  if (row.id !== targetId) {
+    throw new Error(`Cloud tier list update failed: Returned ID "${row.id}" did not match target ID "${targetId}".`);
+  }
+
+  const confirmedTierList: PublishedTierList = {
+    id: row.id,
+    templateId: row.template_id || undefined,
+    title: row.title,
+    authorName: row.author_name || payload.authorName,
+    tiers: row.tiers || [],
+    unranked: row.unranked || [],
+    upvotes: row.upvotes || 0,
+    createdAt: row.created_at ? new Date(row.created_at).getTime() : Date.now(),
+  };
+  saveLocalPublishedRanking(confirmedTierList);
+  return confirmedTierList;
 }
 
 /**
- * Publish a completed Tier List for public sharing & live feed
+ * Publish a completed user ranking/tier list with cloud confirmation
  */
 export async function publishTierList(payload: {
   templateId?: string;
   title: string;
-  authorName?: string;
+  authorName: string;
   tiers: TierRow[];
-  unranked: Item[];
+  unranked?: Item[];
+  existingId?: string;
+  id?: string;
 }): Promise<PublishedTierList> {
-  const id = `share-${createId("tier")}`;
-  const authorName = payload.authorName?.trim() || "Ranker";
-  const now = Date.now();
-
-  const published: PublishedTierList = {
-    id,
-    templateId: payload.templateId,
-    title: payload.title.trim(),
-    authorName,
-    tiers: payload.tiers,
-    unranked: payload.unranked,
-    upvotes: 1,
-    createdAt: now,
-  };
-
-  saveLocalPublishedRanking(published);
-
-  if (isSupabaseConfigured() && supabase) {
-    try {
-      await supabase.from("tier_lists").insert({
-        id,
-        template_id: payload.templateId || null,
-        title: published.title,
-        author_name: authorName,
-        tiers: published.tiers,
-        unranked: published.unranked,
-        upvotes: 1,
-      });
-
-      if (payload.templateId) {
-        // Increment template's rank count atomically
-        await supabase.rpc("increment_template_rank", { t_id: payload.templateId });
-      }
-    } catch (err) {
-      console.error("Failed to publish tier list to Supabase", err);
-    }
+  if (!payload.tiers.some((tier) => tier.items.length > 0)) {
+    throw new Error("Place at least one item in a tier before publishing.");
+  }
+  if (!isSupabaseConfigured() || !supabase) {
+    throw new Error("Cloud publishing is unavailable because Supabase is not configured.");
   }
 
-  return published;
+  const sessionUserId = await ensureAuthenticatedSession();
+  if (!sessionUserId) {
+    throw new Error("Cloud publishing is temporarily unavailable. Your board is still on this device; you can export an image instead.");
+  }
+
+  const targetId = payload.existingId || payload.id || `share-${createId("tier")}`;
+  const cleanTitle = payload.title.trim();
+  const cleanAuthorName = payload.authorName?.trim() || "Ranker";
+  const templateId = payload.templateId || null;
+  const unranked = payload.unranked || [];
+
+  const tierListPayload = {
+    templateId,
+    title: cleanTitle,
+    authorName: cleanAuthorName,
+    tiers: payload.tiers,
+    unranked,
+  };
+
+  try {
+    // 1. Check if record already exists (retry of lost response, or edit)
+    const { data: existing, error: fetchError } = await supabase
+      .from("tier_lists")
+      .select("id, author_id, template_id, title, author_name, tiers, unranked, upvotes, created_at")
+      .eq("id", targetId)
+      .maybeSingle();
+
+    if (fetchError) {
+      throw new Error(`Failed to check existing tier list: ${fetchError.message}`);
+    }
+
+    if (existing) {
+      return await handleExistingTierList(existing, targetId, sessionUserId, tierListPayload);
+    }
+
+    // 2. Insert new record
+    const insertPayload: Record<string, unknown> = {
+      id: targetId,
+      template_id: templateId,
+      title: cleanTitle,
+      author_name: cleanAuthorName,
+      tiers: payload.tiers,
+      unranked,
+      author_id: sessionUserId,
+      upvotes: 0,
+    };
+
+    const { data: insertData, error: insertError } = await supabase
+      .from("tier_lists")
+      .insert(insertPayload)
+      .select();
+
+    if (insertError) {
+      if (
+        insertError.code === "23505" ||
+        insertError.message?.includes("duplicate key") ||
+        insertError.message?.includes("unique constraint")
+      ) {
+        const { data: retryExisting, error: retryFetchError } = await supabase
+          .from("tier_lists")
+          .select("id, author_id, template_id, title, author_name, tiers, unranked, upvotes, created_at")
+          .eq("id", targetId)
+          .maybeSingle();
+
+        if (retryFetchError) {
+          throw new Error(`Failed to lookup duplicate tier list: ${retryFetchError.message}`);
+        }
+        if (retryExisting) {
+          return await handleExistingTierList(retryExisting, targetId, sessionUserId, tierListPayload);
+        }
+      }
+      throw new Error(`Cloud tier list publication failed: ${insertError.message}`);
+    }
+
+    if (!insertData || insertData.length === 0) {
+      throw new Error(`Cloud tier list publication failed: Database did not return confirmed record for "${targetId}".`);
+    }
+
+    const row = insertData[0];
+    if (row.id !== targetId) {
+      throw new Error(`Cloud tier list publication failed: Returned ID "${row.id}" did not match target ID "${targetId}".`);
+    }
+
+    const confirmedTierList: PublishedTierList = {
+      id: row.id,
+      templateId: row.template_id || undefined,
+      title: row.title,
+      authorName: row.author_name || cleanAuthorName,
+      tiers: row.tiers || [],
+      unranked: row.unranked || [],
+      upvotes: row.upvotes || 0,
+      createdAt: row.created_at ? new Date(row.created_at).getTime() : Date.now(),
+    };
+    saveLocalPublishedRanking(confirmedTierList);
+    return confirmedTierList;
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    throw new Error(message || "Cloud tier list publication encountered an unexpected error.");
+  }
 }
 
 /**
@@ -337,43 +703,54 @@ export async function fetchSharedTierList(id: string): Promise<PublishedTierList
 }
 
 /**
- * Toggle upvote for a template or tier list
+ * Toggle upvote for a template or tier list via locked, idempotent set_vote RPC
  */
 export async function toggleUpvote(
   itemType: "template" | "tier_list",
   itemId: string
 ): Promise<{ isUpvoted: boolean; newCount: number }> {
-  const voterId = getVoterId();
-
-  // Handle local state tracking
   let localUpvotes: Record<string, boolean> = {};
   try {
     localUpvotes = JSON.parse(localStorage.getItem(USER_UPVOTES_KEY) || "{}");
   } catch {}
 
   const currentlyUpvoted = Boolean(localUpvotes[itemId]);
-  const newUpvoted = !currentlyUpvoted;
-  localUpvotes[itemId] = newUpvoted;
+  const desiredVote = !currentlyUpvoted;
+  let isUpvotedResult = desiredVote;
+  let newCount = 0;
+
+  if (isSupabaseConfigured() && supabase) {
+    const userId = await ensureAuthenticatedSession();
+    if (!userId) throw new Error("Voting is temporarily unavailable.");
+    try {
+      const { data, error } = await supabase.rpc("set_vote", {
+        target_type: itemType,
+        target_id: itemId,
+        desired_vote: desiredVote,
+      });
+
+      if (error) {
+        console.warn("Supabase set_vote RPC error:", error.message);
+        throw new Error("Voting is temporarily unavailable.");
+      }
+
+      if (data && typeof data === "object") {
+        const voteData = data as { isUpvoted?: boolean; newCount?: number };
+        isUpvotedResult = Boolean(voteData.isUpvoted);
+        newCount = Number(voteData.newCount) || 0;
+      }
+    } catch (err) {
+      console.warn("Supabase toggle upvote exception:", err);
+      throw new Error("Voting is temporarily unavailable.");
+    }
+  }
+
+  localUpvotes[itemId] = isUpvotedResult;
   try {
     localStorage.setItem(USER_UPVOTES_KEY, JSON.stringify(localUpvotes));
   } catch {}
 
-  let newCount = 0;
-
-  if (isSupabaseConfigured() && supabase) {
-    try {
-      const { data } = await supabase.rpc("toggle_upvote", {
-        target_type: itemType,
-        target_id: itemId,
-        voter: voterId,
-      });
-      // Cloud handled the counter
-    } catch (err) {
-      console.warn("Supabase toggle_upvote RPC failed", err);
-    }
-  }
-
-  return { isUpvoted: newUpvoted, newCount };
+  return { isUpvoted: isUpvotedResult, newCount };
 }
 
 /** Format a timestamp (ms) into a compact relative label like "5m ago" / "2h ago". */
@@ -391,21 +768,21 @@ function formatRelativeTimestamp(ms: number): string {
 }
 
 /** Map a raw Supabase `tier_lists` row into a PublishedTierList. */
-function mapTierListRow(d: any): PublishedTierList {
+function mapTierListRow(d: Record<string, unknown>): PublishedTierList {
   return {
-    id: d.id,
-    templateId: d.template_id || undefined,
-    title: d.title,
-    authorName: d.author_name || "Community",
-    tiers: Array.isArray(d.tiers) ? d.tiers : [],
-    unranked: Array.isArray(d.unranked) ? d.unranked : [],
-    upvotes: d.upvotes || 0,
-    createdAt: new Date(d.created_at).getTime(),
+    id: String(d.id),
+    templateId: typeof d.template_id === "string" ? d.template_id : undefined,
+    title: typeof d.title === "string" ? d.title : "",
+    authorName: typeof d.author_name === "string" ? d.author_name : "Community",
+    tiers: Array.isArray(d.tiers) ? (d.tiers as TierRow[]) : [],
+    unranked: Array.isArray(d.unranked) ? (d.unranked as Item[]) : [],
+    upvotes: Number(d.upvotes) || 0,
+    createdAt: d.created_at ? new Date(String(d.created_at)).getTime() : Date.now(),
   };
 }
 
 /** Convert a PublishedTierList into a compact UserRanking card for the live feed. */
-function toUserRanking(p: PublishedTierList): UserRanking {
+function toUserRanking(p: PublishedTierList, isDemo = false): UserRanking {
   const tiers = Array.isArray(p.tiers) ? p.tiers : [];
   const sTier = tiers.find((t) => t.label?.toUpperCase().startsWith("S")) || tiers[0];
   const totalItems = tiers.reduce((sum, t) => sum + (t.items?.length || 0), 0);
@@ -427,14 +804,15 @@ function toUserRanking(p: PublishedTierList): UserRanking {
     ],
     totalItems,
     totalTiers: tiers.length,
+    isDemo,
   };
 }
 
 /**
- * Fetch live activity feed (real cloud submissions first, then local, then seeds)
+ * Fetch genuine published activity, excluding known pre-launch audit fixtures.
  */
 export async function fetchLiveActivity(): Promise<UserRanking[]> {
-  const convertedLocal: UserRanking[] = getLocalPublishedRankings().map(toUserRanking);
+  const convertedLocal = getLocalPublishedRankings().filter(isDiscoverableRanking).map((r) => toUserRanking(r));
 
   let cloudRankings: UserRanking[] = [];
   if (isSupabaseConfigured() && supabase) {
@@ -445,17 +823,17 @@ export async function fetchLiveActivity(): Promise<UserRanking[]> {
         .order("created_at", { ascending: false })
         .limit(20);
       if (!error && data) {
-        cloudRankings = data.map((d) => toUserRanking(mapTierListRow(d)));
+        cloudRankings = data.map(mapTierListRow).filter(isDiscoverableRanking).map((r) => toUserRanking(r));
       }
     } catch (err) {
       console.warn("Supabase live activity query failed, using local fallback", err);
     }
   }
 
-  // Deduplicate by id — first occurrence wins (local > cloud > seed ordering)
+  // Deduplicate by id — real user submissions take precedence
   const seen = new Set<string>();
   const merged: UserRanking[] = [];
-  for (const r of [...convertedLocal, ...cloudRankings, ...SEED_RECENT_RANKINGS]) {
+  for (const r of [...cloudRankings, ...convertedLocal]) {
     if (seen.has(r.id)) continue;
     seen.add(r.id);
     merged.push(r);
@@ -464,15 +842,20 @@ export async function fetchLiveActivity(): Promise<UserRanking[]> {
 }
 
 /**
- * Fetch all real published rankings for a given template (local + Supabase), newest first.
- * Used to drive the Community Consensus calculation with genuine user placements.
+ * Fetch all real published rankings for a given template (local + Supabase), newest first,
+ * returning explicit error state so callers can distinguish empty data from fetch errors.
  */
-export async function fetchSubmissionsForTemplate(templateId: string): Promise<PublishedTierList[]> {
-  if (!templateId) return [];
+export async function fetchSubmissionsForTemplateWithStatus(templateId: string): Promise<{
+  submissions: PublishedTierList[];
+  fetchError: string | null;
+}> {
+  if (!templateId) return { submissions: [], fetchError: null };
 
   const local = getLocalPublishedRankings().filter((r) => r.templateId === templateId);
 
   let cloud: PublishedTierList[] = [];
+  let fetchError: string | null = null;
+
   if (isSupabaseConfigured() && supabase) {
     try {
       const { data, error } = await supabase
@@ -481,11 +864,14 @@ export async function fetchSubmissionsForTemplate(templateId: string): Promise<P
         .eq("template_id", templateId)
         .order("created_at", { ascending: false })
         .limit(100);
-      if (!error && data) {
+      if (error) {
+        fetchError = error.message || "Failed to fetch community submissions.";
+      } else if (data) {
         cloud = data.map(mapTierListRow);
       }
-    } catch (err) {
-      console.warn("Supabase submissions query failed, using local fallback", err);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      fetchError = message || "Failed to fetch community submissions.";
     }
   }
 
@@ -493,13 +879,27 @@ export async function fetchSubmissionsForTemplate(templateId: string): Promise<P
   cloud.forEach((r) => map.set(r.id, r));
   local.forEach((r) => map.set(r.id, r));
 
-  return Array.from(map.values()).sort((a, b) => b.createdAt - a.createdAt);
+  const submissions = Array.from(map.values()).filter(isDiscoverableRanking).sort((a, b) => b.createdAt - a.createdAt);
+  // If we have local submissions, surface them; if we have zero submissions and cloud failed, report fetchError
+  return {
+    submissions,
+    fetchError: submissions.length === 0 ? fetchError : null,
+  };
+}
+
+/**
+ * Fetch all real published rankings for a given template (local + Supabase), newest first.
+ * Used to drive the Community Consensus calculation with genuine user placements.
+ */
+export async function fetchSubmissionsForTemplate(templateId: string): Promise<PublishedTierList[]> {
+  const { submissions } = await fetchSubmissionsForTemplateWithStatus(templateId);
+  return submissions;
 }
 
 /**
  * Comments Storage & API
  */
-function getLocalCommentsAll(): Record<string, Comment[]> {
+export function getLocalCommentsAll(): Record<string, Comment[]> {
   if (typeof window === "undefined") return {};
   try {
     const raw = localStorage.getItem(COMMENTS_KEY);
@@ -509,7 +909,7 @@ function getLocalCommentsAll(): Record<string, Comment[]> {
   }
 }
 
-function saveLocalComment(comment: Comment) {
+export function saveLocalComment(comment: Comment) {
   if (typeof window === "undefined") return;
   try {
     const all = getLocalCommentsAll();
@@ -534,7 +934,7 @@ export function hasUpvotedComment(commentId: string): boolean {
 }
 
 /**
- * Fetch comments for a specific tier list
+ * Fetch comments for a specific tier list — never injects fake/fabricated comments.
  */
 export async function fetchComments(tierListId: string): Promise<Comment[]> {
   let cloudComments: Comment[] = [];
@@ -570,78 +970,171 @@ export async function fetchComments(tierListId: string): Promise<Comment[]> {
   cloudComments.forEach((c) => map.set(c.id, c));
   localList.forEach((c) => map.set(c.id, c));
 
-  let results = Array.from(map.values());
-
-  // If no comments exist yet, supply default conversational comments for lively UGC feel
-  if (results.length === 0) {
-    const seedTime = Date.now();
-    results = [
-      {
-        id: `seed-c1-${tierListId}`,
-        tierListId,
-        authorName: "TierEnthusiast",
-        content: "Honestly solid S-tier placements! That top pick has been carrying the category all year. 🔥",
-        upvotes: 4,
-        createdAt: seedTime - 1000 * 60 * 45, // 45m ago
-      },
-      {
-        id: `seed-c2-${tierListId}`,
-        tierListId,
-        authorName: "VortexGamer",
-        content: "B-tier has a few hot takes, but overall I respect the courage not to just follow the hype. W list! 👏",
-        upvotes: 2,
-        createdAt: seedTime - 1000 * 60 * 180, // 3h ago
-      },
-    ];
-  }
-
+  const results = Array.from(map.values());
   // Sort newest first
   results.sort((a, b) => b.createdAt - a.createdAt);
   return results;
 }
 
+function handleExistingComment(
+  existing: Record<string, unknown>,
+  targetId: string,
+  sessionUserId: string,
+  payload: {
+    tierListId: string;
+    authorName: string;
+    content: string;
+  }
+): Comment {
+  // 1. Verify expected ID
+  if (existing.id !== targetId) {
+    throw new Error(`Lookup error: Returned comment ID "${String(existing.id)}" did not match target "${targetId}".`);
+  }
+
+  // 2. Strict ownership check: accept only when existing.author_id === sessionUserId
+  if (!existing.author_id || existing.author_id !== sessionUserId) {
+    throw new Error(`Conflict: Comment "${targetId}" already exists and is not owned by the current session.`);
+  }
+
+  // 3. Verify matching target tier list, author name, and content
+  const existingAuthorName = typeof existing.author_name === "string" ? existing.author_name : "";
+  const existingContent = typeof existing.content === "string" ? existing.content : "";
+  const matches =
+    existing.tier_list_id === payload.tierListId &&
+    existingAuthorName.trim() === payload.authorName.trim() &&
+    existingContent.trim() === payload.content.trim();
+
+  if (!matches) {
+    throw new Error(
+      `Conflict: Existing comment "${targetId}" differs in content, author, or target tier list. Preserving current comment draft.`
+    );
+  }
+
+  const confirmedComment: Comment = {
+    id: String(existing.id),
+    tierListId: String(existing.tier_list_id || payload.tierListId),
+    authorName: existingAuthorName || payload.authorName,
+    content: existingContent || payload.content,
+    upvotes: Number(existing.upvotes) || 0,
+    createdAt: existing.created_at ? new Date(String(existing.created_at)).getTime() : Date.now(),
+  };
+  saveLocalComment(confirmedComment);
+  return confirmedComment;
+}
+
 /**
- * Post a new comment
+ * Post a new comment with true cloud verification and idempotent retries
  */
 export async function postComment(payload: {
   tierListId: string;
   authorName: string;
   content: string;
+  existingId?: string;
+  id?: string;
 }): Promise<Comment> {
-  const id = `cmt-${createId("c")}`;
-  const authorName = payload.authorName.trim() || "Anonymous Ranker";
-  const now = Date.now();
-
-  const newComment: Comment = {
-    id,
-    tierListId: payload.tierListId,
-    authorName,
-    content: payload.content.trim(),
-    upvotes: 1,
-    createdAt: now,
-  };
-
-  saveLocalComment(newComment);
-
-  if (isSupabaseConfigured() && supabase) {
-    try {
-      await supabase.from("comments").insert({
-        id,
-        tier_list_id: payload.tierListId,
-        author_name: authorName,
-        content: newComment.content,
-        upvotes: 1,
-      });
-    } catch (err) {
-      console.warn("Failed to persist comment to Supabase", err);
-    }
+  if (!isSupabaseConfigured() || !supabase) {
+    throw new Error("Cloud comments are unavailable because Supabase is not configured.");
   }
 
-  return newComment;
+  const sessionUserId = await ensureAuthenticatedSession();
+  if (!sessionUserId) {
+    throw new Error("Authentication required: A verified user session is required to post comments.");
+  }
+
+  const targetId = payload.existingId || payload.id || `cmt-${createId("c")}`;
+  const cleanAuthorName = payload.authorName.trim() || "Anonymous Ranker";
+  const cleanContent = payload.content.trim();
+
+  if (!cleanContent) {
+    throw new Error("Comment content cannot be empty.");
+  }
+
+  const commentPayload = {
+    tierListId: payload.tierListId,
+    authorName: cleanAuthorName,
+    content: cleanContent,
+  };
+
+  try {
+    // 1. Check if comment already exists (retry of lost response)
+    const { data: existing, error: fetchError } = await supabase
+      .from("comments")
+      .select("id, tier_list_id, author_id, author_name, content, upvotes, created_at")
+      .eq("id", targetId)
+      .maybeSingle();
+
+    if (fetchError) {
+      throw new Error(`Failed to check existing comment: ${fetchError.message}`);
+    }
+
+    if (existing) {
+      return handleExistingComment(existing, targetId, sessionUserId, commentPayload);
+    }
+
+    // 2. Insert comment
+    const insertPayload: Record<string, unknown> = {
+      id: targetId,
+      tier_list_id: payload.tierListId,
+      author_name: cleanAuthorName,
+      content: cleanContent,
+      author_id: sessionUserId,
+      upvotes: 0,
+    };
+
+    const { data: insertData, error: insertError } = await supabase
+      .from("comments")
+      .insert(insertPayload)
+      .select();
+
+    if (insertError) {
+      if (
+        insertError.code === "23505" ||
+        insertError.message?.includes("duplicate key") ||
+        insertError.message?.includes("unique constraint")
+      ) {
+        const { data: retryExisting, error: retryFetchError } = await supabase
+          .from("comments")
+          .select("id, tier_list_id, author_id, author_name, content, upvotes, created_at")
+          .eq("id", targetId)
+          .maybeSingle();
+
+        if (retryFetchError) {
+          throw new Error(`Failed to lookup duplicate comment: ${retryFetchError.message}`);
+        }
+        if (retryExisting) {
+          return handleExistingComment(retryExisting, targetId, sessionUserId, commentPayload);
+        }
+      }
+      throw new Error(`Comment publication failed: ${insertError.message}`);
+    }
+
+    if (!insertData || insertData.length === 0) {
+      throw new Error(`Comment publication failed: Database did not return confirmed record for "${targetId}".`);
+    }
+
+    const row = insertData[0];
+    if (row.id !== targetId) {
+      throw new Error(`Comment publication failed: Returned ID "${row.id}" did not match target ID "${targetId}".`);
+    }
+
+    const confirmedComment: Comment = {
+      id: row.id,
+      tierListId: row.tier_list_id,
+      authorName: row.author_name || cleanAuthorName,
+      content: row.content,
+      upvotes: row.upvotes || 0,
+      createdAt: row.created_at ? new Date(row.created_at).getTime() : Date.now(),
+    };
+    saveLocalComment(confirmedComment);
+    return confirmedComment;
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    throw new Error(message || "Comment publication encountered an unexpected error.");
+  }
 }
 
 /**
- * Toggle comment upvote
+ * Toggle comment upvote via set_vote RPC
  */
 export async function toggleCommentUpvote(
   commentId: string
@@ -653,44 +1146,59 @@ export async function toggleCommentUpvote(
     votes = JSON.parse(localStorage.getItem(COMMENT_UPVOTES_KEY) || "{}");
   } catch {}
 
-  const currentStatus = Boolean(votes[commentId]);
-  const newStatus = !currentStatus;
-  votes[commentId] = newStatus;
+  const currentlyUpvoted = Boolean(votes[commentId]);
+  const desiredVote = !currentlyUpvoted;
+  let isUpvotedResult = desiredVote;
+  let newCount = 0;
 
+  if (isSupabaseConfigured() && supabase) {
+    await ensureAuthenticatedSession();
+    try {
+      const { data, error } = await supabase.rpc("set_vote", {
+        target_type: "comment",
+        target_id: commentId,
+        desired_vote: desiredVote,
+      });
+
+      if (error) {
+        console.warn("Supabase set_vote for comment failed:", error.message);
+        return { isUpvoted: currentlyUpvoted, newCount: 0 };
+      }
+
+      if (data && typeof data === "object") {
+        const voteData = data as { isUpvoted?: boolean; newCount?: number };
+        isUpvotedResult = Boolean(voteData.isUpvoted);
+        newCount = Number(voteData.newCount) || 0;
+      }
+    } catch (err) {
+      console.warn("Supabase toggle comment upvote exception:", err);
+      return { isUpvoted: currentlyUpvoted, newCount: 0 };
+    }
+  }
+
+  votes[commentId] = isUpvotedResult;
   try {
     localStorage.setItem(COMMENT_UPVOTES_KEY, JSON.stringify(votes));
   } catch {}
 
   // Update in local comments if present
-  let newCount = 1;
   const all = getLocalCommentsAll();
   for (const tid of Object.keys(all)) {
     const list = all[tid];
     const match = list.find((c) => c.id === commentId);
     if (match) {
-      match.upvotes = Math.max(0, match.upvotes + (newStatus ? 1 : -1));
-      newCount = match.upvotes;
+      if (newCount > 0) {
+        match.upvotes = newCount;
+      } else {
+        match.upvotes = Math.max(0, match.upvotes + (isUpvotedResult ? 1 : -1));
+        newCount = match.upvotes;
+      }
       localStorage.setItem(COMMENTS_KEY, JSON.stringify(all));
       break;
     }
   }
 
-  if (isSupabaseConfigured() && supabase) {
-    try {
-      const { data } = await supabase.rpc("increment_comment_upvote", {
-        c_id: commentId,
-        delta: newStatus ? 1 : -1,
-      });
-      // Seed placeholder comments don't exist in Postgres (RPC returns 0) — keep local count for those.
-      if (typeof data === "number" && !commentId.startsWith("seed-")) {
-        newCount = data;
-      }
-    } catch (err) {
-      console.warn("Supabase increment_comment_upvote RPC failed", err);
-    }
-  }
-
-  return { isUpvoted: newStatus, newCount };
+  return { isUpvoted: isUpvotedResult, newCount };
 }
 
 export interface UserProfileData {
@@ -724,7 +1232,7 @@ export async function fetchUserProfile(username: string): Promise<UserProfileDat
           slug: d.id,
           title: d.title,
           description: d.description || "",
-          category: d.category as any,
+          category: (d.category as Template["category"]) || "gaming",
           author: { username: d.author_name || "Community" },
           itemCount: Array.isArray(d.items) ? d.items.length : 0,
           remixCount: d.rank_count || 0,
@@ -774,8 +1282,8 @@ export async function fetchUserProfile(username: string): Promise<UserProfileDat
   cloudTierLists.forEach((r) => rMap.set(r.id, r));
   localTierLists.forEach((r) => rMap.set(r.id, r));
 
-  const allTemplates = Array.from(tMap.values());
-  const allTierLists = Array.from(rMap.values());
+  const allTemplates = Array.from(tMap.values()).map(presentTemplate).filter((t) => !t.isStarter);
+  const allTierLists = Array.from(rMap.values()).filter(isDiscoverableRanking);
 
   const totalUpvotes =
     allTemplates.reduce((sum, t) => sum + (t.upvotes || 0), 0) +
@@ -783,9 +1291,9 @@ export async function fetchUserProfile(username: string): Promise<UserProfileDat
 
   return {
     username,
-    bio: "Passionate Tier List Maker creator & ranker. Analyzing, debating, and ranking topics with the community.",
-    joinedDate: "2026",
-    totalUpvotes: Math.max(totalUpvotes, 1),
+    bio: "Public rankings and templates shared under this creator name.",
+    joinedDate: "",
+    totalUpvotes,
     templates: allTemplates,
     tierLists: allTierLists,
   };

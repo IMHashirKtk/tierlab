@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import confetti from "canvas-confetti";
-import { Sparkles, Video, Volume2 } from "lucide-react";
+import { Sparkles, Video } from "lucide-react";
 
 export function DropFxTeaser() {
   const [fxState, setFxState] = useState(false);
@@ -11,6 +11,8 @@ export function DropFxTeaser() {
     setFxState(true);
     // Fire confetti particles
     confetti({
+      zIndex: 20,
+      disableForReducedMotion: true,
       particleCount: 80,
       spread: 70,
       origin: { y: 0.6 },
@@ -31,7 +33,7 @@ export function DropFxTeaser() {
             Drop FX: Engineered for YouTube & TikTok Clips
           </h2>
           <p className="text-zinc-400 text-sm sm:text-base mt-2">
-            Turn static ranking into high-energy viral video moments. Every item dropped into S-Tier triggers screen shake, particle bursts, and anime impact frames.
+            Add a confetti burst and a brief board shake when a card lands in the top tier. Turn effects off in the studio when you want a quieter workspace.
           </p>
 
           <div className="mt-6">
@@ -52,23 +54,23 @@ export function DropFxTeaser() {
             <div className="text-3xl mb-3">💥</div>
             <h3 className="text-base font-bold text-white mb-2">Game Impact Mode</h3>
             <p className="text-xs text-zinc-400 leading-relaxed">
-              Gold particle explosions and magnetic bass thump when placing items into S-Tier.
+              A confetti burst celebrates cards placed in the top tier.
             </p>
           </div>
 
           <div className="rounded-2xl bg-zinc-900/50 border border-amber-500/30 bg-amber-500/5 p-6 transition-all">
             <div className="text-3xl mb-3">⚡</div>
-            <h3 className="text-base font-bold text-amber-300 mb-2">Boss Fight / Transcendent</h3>
+            <h3 className="text-base font-bold text-amber-300 mb-2">Your choice of pacing</h3>
             <p className="text-xs text-zinc-400 leading-relaxed">
-              Screen inverts with manga speedlines and a resounding gong sound. The exact moments Twitch chat clips.
+              Choose a fast, classic, or dramatic reveal when exporting an animated video.
             </p>
           </div>
 
           <div className="rounded-2xl bg-zinc-900/50 border border-zinc-800 p-6 hover:border-zinc-700 transition-all">
             <div className="text-3xl mb-3">🎥</div>
-            <h3 className="text-base font-bold text-white mb-2">OBS Overlay & Streamer View</h3>
+            <h3 className="text-base font-bold text-white mb-2">Presentation mode</h3>
             <p className="text-xs text-zinc-400 leading-relaxed">
-              Clean broadcast UI with no browser chrome, transparent web-source layer, and keyboard shortcuts.
+              Open presentation mode for a focused board view with keyboard shortcuts.
             </p>
           </div>
         </div>

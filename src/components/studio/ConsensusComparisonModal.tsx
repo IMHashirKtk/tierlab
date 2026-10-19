@@ -1,11 +1,12 @@
 "use client";
 
+import { useDialogFocus } from "@/lib/use-dialog-focus";
 import React, { useMemo, useState, useEffect } from "react";
-import { X, BrainCircuit, CheckCircle2, Zap, Flame, Sparkles } from "lucide-react";
+import { X, BrainCircuit, CheckCircle2, Flame, AlertCircle } from "lucide-react";
 import type { Board } from "@/lib/board";
 import type { Template, PublishedTierList } from "@/types";
 import { calculateConsensus, compareUserBoardWithConsensus } from "@/lib/consensus";
-import { fetchSubmissionsForTemplate } from "@/lib/community";
+import { fetchSubmissionsForTemplateWithStatus } from "@/lib/community";
 
 interface ConsensusComparisonModalProps {
   isOpen: boolean;
@@ -21,12 +22,16 @@ export function ConsensusComparisonModal({
   template,
 }: ConsensusComparisonModalProps) {
   const [submissions, setSubmissions] = useState<PublishedTierList[]>([]);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isOpen || !template?.id) return;
     let cancelled = false;
-    fetchSubmissionsForTemplate(template.id).then((data) => {
-      if (!cancelled) setSubmissions(data);
+    fetchSubmissionsForTemplateWithStatus(template.id).then(({ submissions: data, fetchError: err }) => {
+      if (!cancelled) {
+        setSubmissions(data);
+        setFetchError(err);
+      }
     });
     return () => {
       cancelled = true;
@@ -34,8 +39,8 @@ export function ConsensusComparisonModal({
   }, [isOpen, template?.id]);
 
   const consensus = useMemo(
-    () => calculateConsensus(template, submissions),
-    [template, submissions]
+    () => calculateConsensus(template, submissions, { fetchError: Boolean(fetchError) }),
+    [template, submissions, fetchError]
   );
   const comparison = useMemo(
     () => compareUserBoardWithConsensus(board, consensus),
@@ -51,10 +56,12 @@ export function ConsensusComparisonModal({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
 
+  const dialogRef = useDialogFocus(isOpen);
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div ref={dialogRef} role="dialog" aria-modal="true" aria-label="Community consensus" tabIndex={-1} className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-zinc-900 border border-zinc-800 rounded-2xl max-w-xl w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto space-y-5">
         {/* Header */}
         <div className="flex justify-between items-center border-b border-zinc-800 pb-4">
@@ -63,17 +70,29 @@ export function ConsensusComparisonModal({
             <div>
               <h3 className="text-base font-bold text-white">Community Consensus Analysis</h3>
               <span className="text-[11px] text-zinc-400">
-                Based on {consensus.totalSubmissions.toLocaleString()} community rankings
+                {consensus.status === "error"
+                  ? "Error loading community submissions"
+                  : consensus.totalSubmissions > 0
+                  ? `Based on ${consensus.totalSubmissions.toLocaleString()} community rankings`
+                  : "Awaiting first community submission"}
               </span>
             </div>
           </div>
           <button
             onClick={onClose}
+            aria-label="Close dialog"
             className="text-zinc-400 hover:text-white p-1 rounded-lg hover:bg-zinc-800 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
+
+        {fetchError && (
+          <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0" />
+            <span>Failed to load community rankings: {fetchError}</span>
+          </div>
+        )}
 
         {/* Alignment Gauge Banner */}
         <div className="rounded-xl bg-gradient-to-r from-indigo-950/60 via-zinc-900 to-zinc-950 border border-indigo-500/30 p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -91,7 +110,7 @@ export function ConsensusComparisonModal({
 
           <div className="flex flex-col items-center justify-center w-20 h-20 rounded-2xl bg-zinc-900 border border-zinc-700/80 shadow-inner flex-shrink-0">
             <span className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">
-              {comparison.alignmentPct}%
+              {comparison.alignmentPct !== null ? `${comparison.alignmentPct}%` : "N/A"}
             </span>
             <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">
               Aligned
@@ -208,6 +227,7 @@ export function ConsensusComparisonModal({
         <div className="flex justify-end pt-2">
           <button
             onClick={onClose}
+            aria-label="Close dialog"
             className="px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white cursor-pointer"
           >
             Back to Editing

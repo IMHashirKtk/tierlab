@@ -1,5 +1,6 @@
 "use client";
 
+import { useDialogFocus } from "@/lib/use-dialog-focus";
 import React from "react";
 import { X, Wand2, Gamepad2, ShoppingBag, Utensils, Tv, Trophy, Check } from "lucide-react";
 
@@ -108,10 +109,12 @@ export function TierPresetsModal({ isOpen, onClose, onApplyPreset }: TierPresets
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
 
+  const dialogRef = useDialogFocus(isOpen);
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div ref={dialogRef} role="dialog" aria-modal="true" aria-label="Tier presets" tabIndex={-1} className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
       <div className="bg-zinc-900 border border-zinc-800 rounded-3xl max-w-xl w-full p-4 sm:p-7 shadow-2xl relative space-y-5 my-auto">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-zinc-800 pb-4 gap-2">
@@ -133,6 +136,7 @@ export function TierPresetsModal({ isOpen, onClose, onApplyPreset }: TierPresets
           </div>
           <button
             onClick={onClose}
+            aria-label="Close dialog"
             className="text-zinc-400 hover:text-white p-1.5 rounded-lg hover:bg-zinc-800 transition-colors cursor-pointer flex-shrink-0"
           >
             <X className="w-5 h-5" />

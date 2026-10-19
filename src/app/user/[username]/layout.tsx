@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
+import { connection } from "next/server";
 
 interface Props {
   params: Promise<{ username: string }>;
@@ -15,6 +17,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title,
     description,
+    alternates: { canonical: `/user/${encodeURIComponent(decoded)}` },
     openGraph: {
       title: `${title} | Tier List Maker`,
       description,
@@ -37,6 +40,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function UserProfileLayout({ children }: Props) {
+async function ProfileRequestBoundary({ children }: { children: React.ReactNode }) {
+  await connection();
   return <>{children}</>;
+}
+
+export default function UserProfileLayout({ children }: Props) {
+  return <Suspense fallback={<div className="min-h-screen grid place-items-center text-sm text-zinc-400">Loading creator profile…</div>}><ProfileRequestBoundary>{children}</ProfileRequestBoundary></Suspense>;
 }

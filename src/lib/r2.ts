@@ -2,7 +2,6 @@ import {
   S3Client,
   PutObjectCommand,
   GetObjectCommand,
-  HeadObjectCommand,
 } from "@aws-sdk/client-s3";
 import crypto from "crypto";
 
@@ -12,10 +11,32 @@ const secretAccessKey = process.env.CLOUDFLARE_R2_SECRET_ACCESS_KEY || "";
 const bucketName = process.env.CLOUDFLARE_R2_BUCKET_NAME || "tierlistmaker-items";
 const publicUrl = process.env.CLOUDFLARE_R2_PUBLIC_URL || "";
 
+export type MockR2UploaderFn = (params: {
+  buffer: Buffer;
+  contentType: string;
+  key?: string;
+}) => Promise<{ key: string; url: string; size: number }>;
+
+let mockR2Uploader: MockR2UploaderFn | undefined = undefined;
+
+/**
+ * Test helper to inject a controlled R2 upload mock during testing.
+ */
+export function setMockR2Uploader(uploader: MockR2UploaderFn) {
+  mockR2Uploader = uploader;
+}
+
+export function resetMockR2Uploader() {
+  mockR2Uploader = undefined;
+}
+
 /**
  * Check if Cloudflare R2 credentials are fully configured
  */
 export function isR2Configured(): boolean {
+  if (mockR2Uploader !== undefined) {
+    return Boolean(mockR2Uploader);
+  }
   return Boolean(accountId && accessKeyId && secretAccessKey && bucketName);
 }
 
@@ -65,6 +86,10 @@ export async function uploadBufferToR2({
   contentType: string;
   key?: string;
 }): Promise<{ key: string; url: string; size: number }> {
+  if (mockR2Uploader !== undefined) {
+    return mockR2Uploader({ buffer, contentType, key });
+  }
+
   const client = getR2Client();
 
   // If key is not provided, generate a deterministic SHA-256 hash for deduplication

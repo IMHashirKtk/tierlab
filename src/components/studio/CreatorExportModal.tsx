@@ -1,7 +1,9 @@
 "use client";
 
+import { useDialogFocus } from "@/lib/use-dialog-focus";
+import { ItemImage } from "@/components/ItemImage";
 import React, { useState, useRef, useEffect } from "react";
-import { X, Download, Smartphone, Monitor, Square, Sparkles, Check, Image as ImageIcon, ShieldCheck, Film } from "lucide-react";
+import { X, Download, Smartphone, Monitor, Square, Sparkles, Check, Image as ImageIcon, ShieldCheck, Film, AlertCircle } from "lucide-react";
 import type { TierRow } from "@/types";
 
 interface CreatorExportModalProps {
@@ -29,6 +31,7 @@ export function CreatorExportModal({
   const [showWatermark, setShowWatermark] = useState(false);
   const [showTitleHeader, setShowTitleHeader] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
 
   const captureRef = useRef<HTMLDivElement>(null);
 
@@ -41,41 +44,51 @@ export function CreatorExportModal({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
 
+  const dialogRef = useDialogFocus(isOpen);
+
   if (!isOpen) return null;
 
   const handleDownload = async () => {
     if (!captureRef.current) return;
     setIsExporting(true);
+    setExportError(null);
 
     try {
       const { toPng } = await import("html-to-image");
-      const pixelRatio = resolution === "4k" ? 2.5 : 1.5;
+      const pixelRatio = resolution === "4k" ? 2 : 1;
+      const targetWidth = ratio === "16:9" ? 1920 : 1080;
+      const targetHeight = ratio === "9:16" ? 1920 : 1080;
       const dataUrl = await toPng(captureRef.current, {
         quality: 0.98,
         pixelRatio,
+        width: targetWidth,
+        height: Math.max(targetHeight, captureRef.current.scrollHeight || targetHeight),
         cacheBust: true,
       });
 
-      const filename = `${boardTitle.replace(/[^a-z0-9]/gi, "-").toLowerCase()}-${ratio.replace(":", "x")}-${resolution}.png`;
+      const filename = `${boardTitle.replace(/[^a-z0-9]/gi, "-").toLowerCase()}-${ratio.replace(":", "x")}-${resolution === "4k" ? "4k" : "1080p"}.png`;
       const link = document.createElement("a");
       link.download = filename;
       link.href = dataUrl;
       link.click();
       onClose();
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("Failed to render export image", err);
+      setExportError(
+        "Export failed: Some external images blocked cross-origin rendering (CORS). Try re-uploading or removing external images."
+      );
     } finally {
       setIsExporting(false);
     }
   };
 
-  // Dynamic dimensions for hidden high-res capture container
+  // Dynamic dimensions for hidden high-res capture container (1x = 1080p, 2x = 4K UHD)
   const getContainerDimensions = () => {
     switch (ratio) {
       case "9:16":
         return "w-[1080px] min-h-[1920px] p-12";
       case "1:1":
-        return "w-[1200px] min-h-[1200px] p-10";
+        return "w-[1080px] min-h-[1080px] p-10";
       case "16:9":
       default:
         return "w-[1920px] min-h-[1080px] p-12";
@@ -83,7 +96,7 @@ export function CreatorExportModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div ref={dialogRef} role="dialog" aria-modal="true" aria-label="Export image" tabIndex={-1} className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
       <div className="bg-zinc-900 border border-zinc-800 rounded-2xl max-w-2xl w-full p-5 sm:p-6 shadow-2xl relative space-y-6 my-auto">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-zinc-800 pb-4">
@@ -105,11 +118,29 @@ export function CreatorExportModal({
           </div>
           <button
             onClick={onClose}
+            aria-label="Close dialog"
             className="text-zinc-400 hover:text-white p-1.5 rounded-lg hover:bg-zinc-800 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
+
+        {/* Error Alert */}
+        {exportError && (
+          <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-start gap-2.5 text-xs text-rose-300">
+            <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="font-semibold">{exportError}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setExportError(null)}
+              className="text-rose-400 hover:text-rose-200 cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
 
         {/* Export Mode Switcher (Static 4K Image vs Animated Video) */}
         <div className="flex p-1 rounded-xl bg-zinc-950 border border-zinc-800 text-xs">
@@ -294,7 +325,7 @@ export function CreatorExportModal({
               className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white text-xs font-semibold shadow-lg shadow-indigo-600/30 flex items-center gap-2 transition-all cursor-pointer disabled:opacity-50"
             >
               <Download className="w-4 h-4" />
-              <span>{isExporting ? "Rendering PNG..." : `Download ${resolution.toUpperCase()} PNG`}</span>
+              <span>{isExporting ? "Rendering PNG..." : `Download ${resolution === "4k" ? "4K" : "1080P"} PNG`}</span>
             </button>
           </div>
         </div>
@@ -323,7 +354,7 @@ export function CreatorExportModal({
               </div>
               <div className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-zinc-900 border border-zinc-800">
                 <Sparkles className="w-5 h-5 text-indigo-400" />
-                <span className="font-bold text-sm text-zinc-200">Tier List Maker Verified</span>
+                <span className="font-bold text-sm text-zinc-200">Tier List Maker</span>
               </div>
             </div>
           )}
@@ -359,12 +390,17 @@ export function CreatorExportModal({
                         }`}
                       >
                         {item.imageUrl ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
+                          <ItemImage
                             src={item.imageUrl}
                             alt={item.name}
                             className="w-full h-full object-cover"
                             crossOrigin="anonymous"
+                            onError={(e) => {
+                              e.currentTarget.style.display = "none";
+                              if (e.currentTarget.parentElement) {
+                                e.currentTarget.parentElement.innerText = item.name;
+                              }
+                            }}
                           />
                         ) : (
                           <span>{item.name}</span>

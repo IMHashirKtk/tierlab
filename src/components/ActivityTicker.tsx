@@ -6,7 +6,7 @@ import { Flame, Sparkles } from "lucide-react";
 export function ActivityTicker() {
   const tickerItems = [
     { type: "rank", user: "@alex_tv", text: 'ranked "Elden Ring Bosses" (36 items)' },
-    { type: "trending", text: '🔥 Trending: "MCU Movie Phases" reached 22,000 remixes' },
+    { type: "trending", text: '🔥 Trending: "MCU Movie Phases" • Top Community Ranking' },
     { type: "new", user: "@BloxRanker", text: 'published new template "Roblox Top Games 2026"' },
     { type: "rank", user: "@sultan_a", text: 'ranked "Fast Food French Fries Showdown"' },
     { type: "upvote", user: "@danica2005", text: 'upvoted "Hip-Hop Albums of 2020s"' },

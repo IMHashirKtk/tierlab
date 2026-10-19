@@ -27,8 +27,29 @@ export function createId(prefix: string): string {
   return `${prefix}-${Date.now().toString(36)}-${random}`;
 }
 
-function emptyTiers(): TierRow[] {
+export function emptyTiers(): TierRow[] {
   return DEFAULT_TIERS.map((tier) => ({ ...tier, items: [] }));
+}
+
+/**
+ * Validates and normalizes raw tier configurations, filtering out malformed entries
+ * and returning undefined when empty so callers safely fall back to standard S-D tiers.
+ */
+export function normalizeDefaultTiers(raw: unknown): { label: string; color: string }[] | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  const filtered = raw.filter(
+    (entry): entry is { label: string; color: string } => {
+      if (!entry || typeof entry !== "object" || Array.isArray(entry)) return false;
+      const rec = entry as Record<string, unknown>;
+      return (
+        typeof rec.label === "string" &&
+        rec.label.trim().length > 0 &&
+        typeof rec.color === "string" &&
+        rec.color.trim().length > 0
+      );
+    }
+  );
+  return filtered.length > 0 ? filtered : undefined;
 }
 
 export function newBlankProject(id: string): Project {
@@ -46,8 +67,9 @@ export function newBlankProject(id: string): Project {
 /** Starts a fresh board from a template: every item begins in the unranked tray. */
 export function projectFromTemplate(template: Template, id: string): Project {
   const now = Date.now();
-  const tiers: TierRow[] = template.defaultTiers
-    ? template.defaultTiers.map((tier, index) => ({
+  const validTiers = normalizeDefaultTiers(template.defaultTiers);
+  const tiers: TierRow[] = validTiers
+    ? validTiers.map((tier, index) => ({
         id: `tier-${index}`,
         label: tier.label,
         color: tier.color,
@@ -59,7 +81,7 @@ export function projectFromTemplate(template: Template, id: string): Project {
     id,
     title: template.title,
     tiers,
-    unranked: template.items.map((item) => ({ ...item })),
+    unranked: template.items ? template.items.map((item) => ({ ...item })) : [],
     templateId: template.id,
     createdAt: now,
     updatedAt: now,

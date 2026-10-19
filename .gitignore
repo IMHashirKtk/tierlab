@@ -12,9 +12,12 @@
 
 # testing
 /coverage
+tests/.tmp*
+
 
 # next.js
 /.next/
+/.next-test-audit/
 /out/
 
 # production
@@ -23,6 +26,7 @@
 # misc
 .DS_Store
 *.pem
+*.zip
 
 # debug
 npm-debug.log*

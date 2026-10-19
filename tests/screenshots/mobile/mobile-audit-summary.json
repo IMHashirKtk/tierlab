@@ -6,7 +6,7 @@
     },
     {
       "testName": "Touch Target Ergonomics [Homepage (iPhone)]",
-      "details": "Checked 108 targets, touch-ergonomic"
+      "details": "Checked 109 targets, touch-ergonomic"
     },
     {
       "testName": "Mobile Category Bar",
@@ -26,7 +26,7 @@
     },
     {
       "testName": "Mobile Studio Tier Rows",
-      "details": "Found 44 rendered tier rows"
+      "details": "Found 38 rendered tier rows"
     },
     {
       "testName": "Mobile Studio Screenshot",

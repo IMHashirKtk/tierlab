@@ -20,11 +20,14 @@ export interface Project {
   unranked: Item[];
   /** Set when the board was started from a community template. */
   templateId?: string;
+  /** Persisted identifier when this project has been published to cloud. */
+  publishedShareId?: string;
   createdAt: number;
   updatedAt: number;
 }
 
 export interface Template {
+  isStarter?: boolean;
   id: string;
   slug: string;
   title: string;
@@ -63,6 +66,7 @@ export interface UserRanking {
   }[];
   totalItems: number;
   totalTiers: number;
+  isDemo?: boolean;
 }
 
 export interface PublishedTierList {
@@ -84,4 +88,3 @@ export interface Comment {
   upvotes: number;
   createdAt: number;
 }
-

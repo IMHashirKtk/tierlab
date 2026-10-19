@@ -1,5 +1,6 @@
 "use client";
 
+import { ItemImage } from "@/components/ItemImage";
 import React, { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import {
@@ -39,17 +40,24 @@ export function SharedTierListClient({ id }: SharedTierListClientProps) {
     fetchSharedTierList(id).then((data) => {
       if (data) {
         setRanking(data);
-        setUpvotes(data.upvotes || 1);
+        setUpvotes(data.upvotes ?? 0);
       }
       setLoading(false);
     });
   }, [id]);
 
+  const [voteError, setVoteError] = useState("");
+  const [voting, setVoting] = useState(false);
   const handleUpvote = async () => {
-    if (!ranking) return;
-    const res = await toggleUpvote("tier_list", ranking.id);
-    setIsUpvoted(res.isUpvoted);
-    setUpvotes((prev) => (res.isUpvoted ? prev + 1 : Math.max(0, prev - 1)));
+    if (!ranking || voting) return;
+    setVoting(true);
+    setVoteError("");
+    try {
+      const result = await toggleUpvote("tier_list", ranking.id);
+      setIsUpvoted(result.isUpvoted);
+      setUpvotes(result.newCount);
+    } catch { setVoteError("Voting is temporarily unavailable. Please try again later."); }
+    finally { setVoting(false); }
   };
 
   const handleCopyLink = () => {
@@ -154,6 +162,7 @@ export function SharedTierListClient({ id }: SharedTierListClientProps) {
           {/* Upvote Button */}
           <button
             onClick={handleUpvote}
+              disabled={voting}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer border ${
               isUpvoted
                 ? "bg-indigo-600 text-white border-indigo-500 shadow-md shadow-indigo-600/30"
@@ -236,6 +245,7 @@ export function SharedTierListClient({ id }: SharedTierListClientProps) {
 
       {/* Main Tier Board Display */}
       <main className="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-6 space-y-6">
+        {voteError && <p role="alert" className="text-sm text-rose-300">{voteError}</p>}
         {/* Template Lineage & Remix Attribution Banner */}
         {ranking.templateId && (
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 px-4 py-3 rounded-2xl bg-zinc-900/60 border border-zinc-800 text-xs text-zinc-400 shadow-sm">
@@ -294,8 +304,7 @@ export function SharedTierListClient({ id }: SharedTierListClientProps) {
                       title={item.name}
                     >
                       {item.imageUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
+                        <ItemImage
                           src={item.imageUrl}
                           alt={item.name}
                           className="w-full h-full object-cover"

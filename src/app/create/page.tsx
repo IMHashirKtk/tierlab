@@ -34,7 +34,7 @@ function CreatePageContent() {
     );
   }
 
-  return <Studio initialProjectId={projectId} initialTemplate={template} />;
+  return <Studio key={projectId || templateId || "blank"} initialProjectId={projectId} initialTemplate={template} />;
 }
 
 export default function CreateTierListPage() {

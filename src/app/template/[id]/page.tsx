@@ -1,15 +1,15 @@
+import { ItemImage } from "@/components/ItemImage";
 import React, { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SEED_TEMPLATES } from "@/data/seed-templates";
-import { fetchTemplateById } from "@/lib/community";
-import { calculateConsensus } from "@/lib/consensus";
+import { fetchTemplateById, fetchSubmissionsForTemplateWithStatus } from "@/lib/community";
+import { safeJsonLd } from "@/lib/seo";
 import { TemplateClientLoader } from "./TemplateClientLoader";
+import { TemplateConsensusSection } from "./TemplateConsensusSection";
 import {
   ChevronRight,
   Layers,
-  BarChart3,
-  Flame,
   ArrowRight,
   Sparkles,
 } from "lucide-react";
@@ -80,7 +80,7 @@ async function TemplateContent({ params }: { params: Promise<{ id: string }> }) 
     return <TemplateClientLoader templateId={id} serverTemplate={null} />;
   }
 
-  const consensus = calculateConsensus(template);
+  const { submissions, fetchError } = await fetchSubmissionsForTemplateWithStatus(template.id);
   const relatedTemplates = SEED_TEMPLATES.filter((t) => t.id !== id).slice(0, 3);
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://tierlistmaker.app";
 
@@ -130,7 +130,7 @@ async function TemplateContent({ params }: { params: Promise<{ id: string }> }) 
       {/* JSON-LD Schema */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
       />
 
       {/* Interactive Ranking Studio Experience */}
@@ -198,8 +198,7 @@ async function TemplateContent({ params }: { params: Promise<{ id: string }> }) 
               >
                 <div className="w-10 h-10 rounded-lg bg-zinc-800 overflow-hidden flex-shrink-0 flex items-center justify-center border border-zinc-700/60">
                   {item.imageUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
+                    <ItemImage
                       src={item.imageUrl}
                       alt={`${item.name} - ${template.title} Tier List`}
                       className="w-full h-full object-cover"
@@ -221,54 +220,11 @@ async function TemplateContent({ params }: { params: Promise<{ id: string }> }) 
         </div>
 
         {/* Community Consensus Snapshot */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg sm:text-xl font-bold text-white tracking-tight flex items-center gap-2">
-              <BarChart3 className="w-5 h-5 text-cyan-400" />
-              <span>Global Community Consensus for {template.title}</span>
-            </h3>
-            <span className="text-xs text-zinc-400">
-              {consensus.totalSubmissions.toLocaleString()} submissions
-            </span>
-          </div>
-
-          <div className="rounded-xl border border-zinc-800/80 bg-zinc-900/40 p-4 space-y-3">
-            {consensus.tiers.map((row) => (
-              <div key={row.id} className="flex items-center gap-3">
-                <div
-                  className={`w-9 h-9 rounded-lg font-bold text-xs flex items-center justify-center text-white flex-shrink-0 bg-gradient-to-br ${row.color}`}
-                >
-                  {row.label}
-                </div>
-                <div className="flex-1 flex flex-wrap gap-1.5 min-h-[36px] items-center p-1.5 rounded-lg bg-zinc-900/80 border border-zinc-800/60">
-                  {row.items.length === 0 ? (
-                    <span className="text-[11px] text-zinc-600 px-2 italic">No items</span>
-                  ) : (
-                    row.items.map((it) => (
-                      <span
-                        key={it.item.id}
-                        className="px-2 py-0.5 rounded text-[11px] font-medium bg-zinc-800 border border-zinc-700 text-zinc-200"
-                      >
-                        {it.item.name} ({it.avgScore.toFixed(1)})
-                      </span>
-                    ))
-                  )}
-                </div>
-              </div>
-            ))}
-
-            {consensus.mostControversial?.item && (
-              <div className="pt-3 border-t border-zinc-800/60 flex items-center justify-between text-xs text-zinc-400">
-                <span className="flex items-center gap-1.5 text-amber-400 font-semibold">
-                  <Flame className="w-3.5 h-3.5" />
-                  <span>Most Controversial Item:</span>
-                  <span className="text-white">{consensus.mostControversial.item.name}</span>
-                </span>
-                <span>{consensus.overallAgreementPct}% Community Agreement</span>
-              </div>
-            )}
-          </div>
-        </div>
+        <TemplateConsensusSection
+          template={template}
+          initialSubmissions={submissions}
+          initialFetchError={fetchError}
+        />
 
         {/* Related Templates Grid */}
         <div className="space-y-4">

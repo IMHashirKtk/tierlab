@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import { ActivityTicker } from "@/components/ActivityTicker";
 import { Navbar } from "@/components/Navbar";
 import { Hero } from "@/components/Hero";
 import { QuickRankBoard } from "@/components/QuickRankBoard";
@@ -22,15 +21,12 @@ export default function Home() {
       {/* Ambient Radial Glow */}
       <div className="fixed inset-0 pointer-events-none ambient-glow z-0" />
 
-      {/* Top Real-time UGC Ticker */}
-      <ActivityTicker />
-
       {/* Header & Navigation */}
       <Navbar onOpenPublish={() => setIsPublishModalOpen(true)} />
 
       {/* Main Content */}
       <main className="flex-1 relative z-10">
-        <Hero onOpenPublish={() => setIsPublishModalOpen(true)} />
+        <Hero />
         <QuickRankBoard />
         <TrendingTemplates />
         <LiveFeed />

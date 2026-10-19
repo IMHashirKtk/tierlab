@@ -1,5 +1,7 @@
 "use client";
 
+import { ItemImage } from "@/components/ItemImage";
+import { useDialogFocus } from "@/lib/use-dialog-focus";
 import React, { useState, useEffect, useRef, useTransition, useCallback, useMemo } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
@@ -101,6 +103,7 @@ import {
   countRanked,
 } from "@/lib/board";
 import { getProject, saveProject } from "@/lib/storage";
+import { fetchTemplateById } from "@/lib/community";
 import { DropZone, ItemCard } from "@/components/studio/BoardDnd";
 
 const COLOR_PRESETS = [
@@ -113,15 +116,6 @@ const COLOR_PRESETS = [
   { name: "Graphite", class: "from-zinc-600 to-zinc-800" },
 ];
 
-const STARTER_UNRANKED: Item[] = [
-  { id: "item-1", name: "Elden Ring: Shadow of the Erdtree", imageUrl: "https://images.unsplash.com/photo-1579783902614-a3fb3927b675?auto=format&fit=crop&w=300&q=80" },
-  { id: "item-2", name: "Baldur's Gate 3", imageUrl: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=300&q=80" },
-  { id: "item-3", name: "Cyberpunk 2077 Phantom Liberty", imageUrl: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=300&q=80" },
-  { id: "item-4", name: "Black Myth: Wukong", imageUrl: "https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=300&q=80" },
-  { id: "item-5", name: "Metaphor: ReFantazio", imageUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=300&q=80" },
-  { id: "item-6", name: "Final Fantasy VII Rebirth", imageUrl: "https://images.unsplash.com/photo-1563089145-599997674d42?auto=format&fit=crop&w=300&q=80" },
-];
-
 interface StudioProps {
   initialProjectId?: string;
   initialTemplate?: Template;
@@ -130,14 +124,14 @@ interface StudioProps {
 export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
   const { openPrivacyModal } = usePwa();
   const [projectId, setProjectId] = useState<string>(() => initialProjectId || createId("proj"));
-  const [title, setTitle] = useState<string>("Untitled Tier List");
+  const [title, setTitle] = useState<string>(initialTemplate?.title || "Untitled Tier List");
   const [board, setBoard] = useState<Board>(() => {
     if (initialTemplate) {
       const p = projectFromTemplate(initialTemplate, createId("proj"));
       return { tiers: p.tiers, unranked: p.unranked };
     }
     const blank = newBlankProject(createId("proj"));
-    return { tiers: blank.tiers, unranked: STARTER_UNRANKED };
+    return { tiers: blank.tiers, unranked: [] };
   });
 
   // History stack for Undo / Redo
@@ -149,7 +143,7 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
   const [overContainerId, setOverContainerId] = useState<string | null>(null);
 
   // Persistence status
-  const [saveStatus, setSaveStatus] = useState<"saving" | "saved" | "idle">("saved");
+  const [saveStatus, setSaveStatus] = useState<"saving" | "saved" | "idle" | "error">("idle");
   const isInitialMount = useRef(true);
 
   // Studio UI states
@@ -165,6 +159,21 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
   const [isPresetsModalOpen, setIsPresetsModalOpen] = useState(false);
   const [isMobileToolsOpen, setIsMobileToolsOpen] = useState(false);
   const [unrankedSearch, setUnrankedSearch] = useState("");
+
+  const toolsDialogRef = useDialogFocus(isMobileToolsOpen);
+  const isStudioDialogOpen = isWebSearchOpen || isShareModalOpen || isExportModalOpen || isVideoModalOpen || isConsensusModalOpen || isBlindModalOpen || isPresentationModalOpen || isPresetsModalOpen || isMobileToolsOpen;
+
+  // Loaded project metadata preservation
+  const [loadedTemplateId, setLoadedTemplateId] = useState<string | undefined>(initialTemplate?.id);
+  const [resolvedTemplate, setResolvedTemplate] = useState<Template | null>(initialTemplate || null);
+  const [publishedShareId, setPublishedShareId] = useState<string | undefined>(undefined);
+  const [projectCreatedAt, setProjectCreatedAt] = useState<number>(() => Date.now());
+  const [isProjectHydrated, setIsProjectHydrated] = useState<boolean>(!initialProjectId);
+  const activeProjectIdRef = useRef<string>(projectId);
+
+  useEffect(() => {
+    activeProjectIdRef.current = projectId;
+  }, [projectId]);
 
   // Tap-to-rank quick selection state
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
@@ -197,20 +206,46 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
 
   // Load existing project if initialProjectId provided
   useEffect(() => {
-    if (!initialProjectId) return;
+    if (!initialProjectId) {
+      return;
+    }
     let isCancelled = false;
-    getProject(initialProjectId).then((loaded) => {
-      if (isCancelled || !loaded) return;
-      setProjectId(loaded.id);
-      setTitle(loaded.title);
-      setBoard({ tiers: loaded.tiers, unranked: loaded.unranked });
-      setHistory([]);
-      setFuture([]);
-    });
+    getProject(initialProjectId)
+      .then((loaded) => {
+        if (isCancelled) return;
+        if (!loaded) {
+          setIsProjectHydrated(true);
+          return;
+        }
+        activeProjectIdRef.current = loaded.id;
+        setProjectId(loaded.id);
+        setTitle(loaded.title);
+        setBoard({ tiers: loaded.tiers, unranked: loaded.unranked });
+        if (loaded.templateId) {
+          setLoadedTemplateId(loaded.templateId);
+          if (!initialTemplate) {
+            fetchTemplateById(loaded.templateId).then((t) => {
+              if (!isCancelled && t) setResolvedTemplate(t);
+            });
+          }
+        } else {
+          setLoadedTemplateId(undefined);
+          if (!initialTemplate) setResolvedTemplate(null);
+        }
+        setPublishedShareId(loaded.publishedShareId || undefined);
+        setProjectCreatedAt(loaded.createdAt || Date.now());
+        setHistory([]);
+        setFuture([]);
+        setSaveStatus("saved");
+        setIsProjectHydrated(true);
+      })
+      .catch(() => {
+        if (!isCancelled) setIsProjectHydrated(true);
+      });
     return () => {
       isCancelled = true;
     };
-  }, [initialProjectId]);
+  }, [initialProjectId, initialTemplate]);
 
   // Synchronize state when backup is restored or storage is cleared
   useEffect(() => {
@@ -219,52 +254,59 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
       if (p) {
         setTitle(p.title);
         setBoard({ tiers: p.tiers, unranked: p.unranked });
+        setLoadedTemplateId(p.templateId || undefined);
+        setPublishedShareId(p.publishedShareId || undefined);
+        if (p.createdAt) setProjectCreatedAt(p.createdAt);
       }
     };
     window.addEventListener("tierlistmaker-data-synced", handleSync);
     return () => window.removeEventListener("tierlistmaker-data-synced", handleSync);
   }, [projectId]);
 
-  // Set template if passed
+  // Set template if passed for a fresh template project
   useEffect(() => {
-    if (initialTemplate) {
-      const p = projectFromTemplate(initialTemplate, projectId);
+    if (initialTemplate && !initialProjectId) {
+      const p = projectFromTemplate(initialTemplate, activeProjectIdRef.current);
       setTitle(p.title);
       setBoard({ tiers: p.tiers, unranked: p.unranked });
+      setLoadedTemplateId(initialTemplate.id);
+      setResolvedTemplate(initialTemplate);
+      setPublishedShareId(undefined);
       setHistory([]);
       setFuture([]);
     }
-  }, [initialTemplate]);
+  }, [initialTemplate, initialProjectId]);
 
-  // Debounced Auto-save to IndexedDB (skips while user is dragging)
+  // Debounced Auto-save to IndexedDB (skips while user is dragging or while project is hydrating)
   useEffect(() => {
     if (isInitialMount.current) {
       isInitialMount.current = false;
       return;
     }
-    if (activeItem) return;
+    if (!isProjectHydrated || activeItem) return;
 
-    setSaveStatus("saving");
     const timer = setTimeout(() => {
+      setSaveStatus("saving");
       const currentProject: Project = {
         id: projectId,
         title,
         tiers: board.tiers,
         unranked: board.unranked,
-        templateId: initialTemplate?.id,
-        createdAt: Date.now(),
+        templateId: loadedTemplateId || initialTemplate?.id,
+        publishedShareId,
+        createdAt: projectCreatedAt,
         updatedAt: Date.now(),
       };
       saveProject(currentProject)
         .then(() => setSaveStatus("saved"))
         .catch((err) => {
           console.error("Auto-save failed", err);
-          setSaveStatus("idle");
+          setSaveStatus("error");
         });
     }, 600);
 
     return () => clearTimeout(timer);
-  }, [board, title, projectId, initialTemplate, activeItem]);
+  }, [board, title, projectId, initialTemplate, loadedTemplateId, publishedShareId, projectCreatedAt, activeItem, isProjectHydrated]);
 
   // Push board change to history (for Undo)
   const commitBoardChange = useCallback(
@@ -297,12 +339,13 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
 
   // Drop FX celebration (dynamically load confetti library on demand)
   const triggerDropFx = async (tierLabel: string) => {
-    if (!dropFxEnabled) return;
+    if (!dropFxEnabled || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const upper = tierLabel.trim().toUpperCase();
     if (upper === "S" || upper === "S+" || upper.includes("GOD")) {
       try {
         const confetti = (await import("canvas-confetti")).default;
         confetti({
+          zIndex: 20,
           particleCount: 80,
           spread: 70,
           origin: { y: 0.5 },
@@ -319,6 +362,7 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
   // Hotkey listener for Presentation Mode ('P')
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (isStudioDialogOpen) return;
       const target = e.target as HTMLElement;
       if (
         target &&
@@ -334,7 +378,7 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [isStudioDialogOpen]);
 
   // Composite collision strategy: direct pointerWithin for empty containers & items,
   // falling back to rectIntersection and closestCorners for smooth targeting
@@ -595,7 +639,7 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
   // Keyboard Shortcuts for Tap-to-Rank Dock (1-9 to assign tier, Backspace to unrank, Esc to deselect)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!selectedItem) return;
+      if (!selectedItem || isStudioDialogOpen) return;
       const activeEl = document.activeElement;
       if (
         activeEl &&
@@ -625,7 +669,7 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [selectedItem, board.tiers]);
+  }, [selectedItem, board.tiers, isStudioDialogOpen]);
 
   // Tier Row Operations
   const handleUpdateTierLabel = (tierId: string, newLabel: string) => {
@@ -857,8 +901,8 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
         />
 
         {/* Top Header */}
-        <header className="sticky top-0 z-40 glass-panel border-b border-zinc-800/80 px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3 min-w-0">
+        <header className="sticky top-0 z-40 glass-panel border-b border-zinc-800/80 px-3 sm:px-6 h-16 flex items-center justify-between gap-2 sm:gap-4">
+          <div className="flex flex-1 items-center gap-2 sm:gap-3 min-w-0">
             <Link
               href="/"
               className="p-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white transition-colors flex-shrink-0"
@@ -866,12 +910,12 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
             >
               <ArrowLeft className="w-4 h-4" />
             </Link>
-            <div className="flex items-center gap-2 min-w-0">
+            <div className="flex flex-1 items-center gap-2 min-w-0">
               <input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="bg-transparent border border-transparent hover:border-zinc-700 focus:border-indigo-500 rounded-md px-2 py-1 font-bold text-sm sm:text-base text-zinc-100 focus:outline-none transition-colors truncate max-w-[120px] sm:max-w-[170px] lg:max-w-xs"
+                className="w-full min-w-0 bg-transparent border border-transparent hover:border-zinc-700 focus:border-indigo-500 rounded-md px-1 sm:px-2 py-1 font-bold text-sm sm:text-base text-zinc-100 focus:outline-none transition-colors truncate sm:min-w-40 sm:max-w-md"
                 title="Click to rename"
               />
 
@@ -892,129 +936,14 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
                     <span className="text-zinc-400 group-hover:text-zinc-200">Saved to device</span>
                   </>
                 ) : (
-                  <span>Offline</span>
+                  <span role="status" className={saveStatus === "error" ? "text-rose-300" : "text-zinc-400"}>{saveStatus === "error" ? "Could not save — keep this tab open" : "Changes save on this device"}</span>
                 )}
               </button>
             </div>
           </div>
 
-          {/* Studio Actions: Desktop View */}
-          <div className="hidden lg:flex items-center gap-1.5 sm:gap-2">
-            {/* Undo & Redo */}
-            <button
-              onClick={handleUndo}
-              disabled={history.length === 0}
-              className="p-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-300 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
-              title="Undo (Ctrl+Z)"
-            >
-              <Undo2 className="w-4 h-4" />
-            </button>
-            <button
-              onClick={handleRedo}
-              disabled={future.length === 0}
-              className="p-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-300 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
-              title="Redo"
-            >
-              <Redo2 className="w-4 h-4" />
-            </button>
-
-            {/* Drop FX Toggle */}
-            <button
-              onClick={() => setDropFxEnabled(!dropFxEnabled)}
-              className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
-                dropFxEnabled
-                  ? "bg-amber-500/10 text-amber-300 border border-amber-500/30"
-                  : "bg-zinc-900 text-zinc-500 border border-zinc-800"
-              }`}
-              title="Toggle S-Tier screen shake and particle confetti"
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span className="hidden xl:inline">Drop FX: {dropFxEnabled ? "ON" : "OFF"}</span>
-            </button>
-
-            {/* Reset */}
-            <button
-              onClick={handleReset}
-              className="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 transition-colors cursor-pointer flex items-center gap-1"
-              title="Move all items back to unranked"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-              <span className="hidden xl:inline">Reset</span>
-            </button>
-
-            {/* Blind Rank Mode (TikTok / Shorts Mystery Challenge) */}
-            <button
-              onClick={() => setIsBlindModalOpen(true)}
-              className="px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center gap-1.5 transition-colors cursor-pointer"
-              title="Play TikTok Blind Ranking Game Mode"
-            >
-              <Dices className="w-3.5 h-3.5 text-amber-400" />
-              <span className="hidden xl:inline">Blind Rank</span>
-            </button>
-
-            {/* Streamer & Presenter View */}
-            <button
-              onClick={() => setIsPresentationModalOpen(true)}
-              className="px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 flex items-center gap-1.5 transition-colors cursor-pointer"
-              title="Clean Presenter View for Streamers & Screen Recording (Hotkey: P)"
-            >
-              <Tv className="w-3.5 h-3.5 text-cyan-400" />
-              <span className="hidden xl:inline">Present</span>
-            </button>
-
-            {/* Tier Presets (1-Click Curated Presets) */}
-            <button
-              onClick={() => setIsPresetsModalOpen(true)}
-              className="px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold bg-violet-500/10 hover:bg-violet-500/20 text-violet-300 border border-violet-500/30 flex items-center gap-1.5 transition-colors cursor-pointer"
-              title="Apply curated tier presets (S-F, Buyer's Guide, Gaming, Taste, etc.)"
-            >
-              <Wand2 className="w-3.5 h-3.5 text-violet-400" />
-              <span className="hidden xl:inline">Presets</span>
-            </button>
-
-            {/* Community Consensus Button (if template exists) */}
-            {initialTemplate && (
-              <button
-                onClick={() => setIsConsensusModalOpen(true)}
-                className="px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 flex items-center gap-1.5 transition-colors cursor-pointer"
-                title="Compare your tier placements with global community consensus"
-              >
-                <BrainCircuit className="w-3.5 h-3.5" />
-                <span className="hidden xl:inline">Consensus</span>
-              </button>
-            )}
-
-            {/* Share Button */}
-            <button
-              onClick={() => setIsShareModalOpen(true)}
-              className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-700/80 flex items-center gap-1.5 transition-colors cursor-pointer"
-            >
-              <Share2 className="w-3.5 h-3.5 text-indigo-400" />
-              <span>Share</span>
-            </button>
-
-            {/* TikTok / Animated Video Export */}
-            <button
-              onClick={() => setIsVideoModalOpen(true)}
-              className="px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold bg-gradient-to-r from-rose-500/15 to-pink-500/15 hover:from-rose-500/25 hover:to-pink-500/25 text-rose-300 border border-rose-500/30 flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
-              title="Export Animated Reveal Video (TikTok / Reels / Shorts)"
-            >
-              <Film className="w-3.5 h-3.5 text-rose-400" />
-              <span className="hidden xl:inline">Video Export</span>
-            </button>
-
-            {/* Export 4K */}
-            <button
-              onClick={() => setIsExportModalOpen(true)}
-              className="px-3.5 sm:px-4 py-1.5 rounded-lg text-xs font-semibold bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white shadow-md shadow-indigo-600/25 flex items-center gap-1.5 transition-all cursor-pointer"
-            >
-              <Download className="w-3.5 h-3.5" />
-              <span>Export</span>
-            </button>
-          </div>
-
           {/* Studio Actions: Mobile & Tablet Compact View */}
-          <div className="flex lg:hidden items-center gap-1.5">
+          <div className="flex shrink-0 items-center gap-1.5">
             {/* Undo */}
             <button
               onClick={handleUndo}
@@ -1059,11 +988,11 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
         {/* Mobile Tools Bottom Sheet / Drawer */}
         {isMobileToolsOpen && (
           <div
-            className="fixed inset-0 z-50 lg:hidden flex flex-col justify-end bg-black/75 backdrop-blur-sm animate-in fade-in"
+            ref={toolsDialogRef} role="dialog" aria-modal="true" aria-label="Creator Studio Tools" tabIndex={-1} onKeyDown={(event) => { if (event.key === "Escape") setIsMobileToolsOpen(false); }} className="fixed inset-0 z-50 flex flex-col justify-end sm:justify-center sm:items-center bg-black/75 backdrop-blur-sm p-0 sm:p-6"
             onClick={() => setIsMobileToolsOpen(false)}
           >
             <div
-              className="bg-zinc-900 border-t border-zinc-800 rounded-t-3xl p-5 space-y-4 shadow-2xl max-h-[80vh] overflow-y-auto"
+              className="bg-zinc-900 border border-zinc-800 rounded-t-3xl sm:rounded-2xl p-5 space-y-4 shadow-2xl max-h-[85dvh] overflow-y-auto w-full sm:max-w-lg"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between border-b border-zinc-800/80 pb-3">
@@ -1078,6 +1007,7 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
                 </div>
                 <button
                   onClick={() => setIsMobileToolsOpen(false)}
+                  aria-label="Close tools"
                   className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
                 >
                   <X className="w-5 h-5" />
@@ -1208,9 +1138,9 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
         )}
 
         {/* Main Studio Area */}
-        <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 pb-40 grid grid-cols-1 lg:grid-cols-4 items-start gap-4 sm:gap-6">
           {/* Tier Board (3 Columns) */}
-          <div className="lg:col-span-3 space-y-4">
+          <div className="lg:col-span-3 min-w-0 space-y-4">
             <div
               ref={boardRef}
               className="space-y-3 p-3 rounded-2xl bg-zinc-950/60 border border-zinc-800/80 transition-transform"
@@ -1223,11 +1153,12 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
                   {/* Editable Tier Badge */}
                   <div className="relative flex-shrink-0 flex items-center">
                     <div
-                      className={`w-20 sm:w-28 h-full bg-gradient-to-br ${tier.color} flex items-center justify-center font-bold text-xl sm:text-2xl text-white select-none shadow-inner p-2 text-center break-words`}
+                      className={`w-16 sm:w-20 h-full bg-gradient-to-br ${tier.color} flex items-center justify-center font-bold text-xl sm:text-2xl text-white select-none shadow-inner p-2 text-center break-words`}
                     >
                       <input
                         type="text"
                         value={tier.label}
+                        aria-label={`Tier ${index + 1} label`}
                         onChange={(e) => handleUpdateTierLabel(tier.id, e.target.value)}
                         className="w-full text-center bg-transparent border-none text-white font-bold focus:outline-none focus:ring-1 focus:ring-white/40 rounded"
                       />
@@ -1268,7 +1199,7 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
                     highlighted={overContainerId === tier.id}
                     className="flex-1 p-2.5 min-h-[82px]"
                     emptyHint={
-                      <span className="text-xs text-zinc-600 italic px-3 select-none flex items-center h-full pointer-events-none">
+                      <span className="text-xs text-zinc-400 italic px-3 select-none flex items-center h-full pointer-events-none">
                         Drag items here
                       </span>
                     }
@@ -1279,7 +1210,7 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
                   />
 
                   {/* Tier Row Operations (Sort, Shuffle, Clear, Move, Delete) */}
-                  <div className="hidden sm:flex flex-col justify-center items-center px-1.5 py-1 border-l border-zinc-800/80 gap-1 opacity-30 group-hover:opacity-100 transition-opacity">
+                  <div className="hidden sm:grid grid-cols-2 content-center items-center px-1.5 py-1 border-l border-zinc-800/80 gap-1 text-zinc-400">
                     <button
                       onClick={() => handleSortTierAlphabetical(tier.id)}
                       disabled={tier.items.length <= 1}
@@ -1304,7 +1235,6 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
                     >
                       <Eraser className="w-3.5 h-3.5" />
                     </button>
-                    <div className="w-full h-px bg-zinc-800/80 my-0.5" />
                     <button
                       disabled={index === 0}
                       onClick={() => handleMoveTier(index, "up")}
@@ -1347,7 +1277,7 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
           <div
             onDragOver={handleDragOverFiles}
             onDrop={handleDropFiles}
-            className="rounded-2xl bg-zinc-900/80 border border-zinc-800 p-5 flex flex-col justify-between h-fit space-y-4"
+            className="order-first lg:order-last min-w-0 lg:sticky lg:top-20 rounded-2xl bg-zinc-900/80 border border-zinc-800 p-5 flex flex-col justify-between h-fit space-y-4"
           >
             <div>
               <div className="flex items-center justify-between pb-3 border-b border-zinc-800 mb-4">
@@ -1463,7 +1393,7 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
               )}
 
               {/* Droppable Unranked Tray powered by dnd-kit */}
-              <div className="max-h-[460px] overflow-y-auto pr-1">
+              <div className="max-h-40 lg:max-h-[460px] overflow-y-auto pr-1">
                 <DropZone
                   id={UNRANKED}
                   items={filteredUnranked}
@@ -1472,11 +1402,11 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
                   onSelectItem={(item) =>
                     setSelectedItem((prev) => (prev?.id === item.id ? null : item))
                   }
-                  className="min-h-[140px] p-1"
+                  className="min-h-[64px] p-1"
                   emptyHint={
                     board.unranked.length > 0 && filteredUnranked.length === 0 ? (
                       <div className="w-full py-8 text-center text-xs text-zinc-500 space-y-1.5">
-                        <p>No unranked items match "{unrankedSearch}"</p>
+                        <p>No unranked items match &quot;{unrankedSearch}&quot;</p>
                         <button
                           onClick={() => setUnrankedSearch("")}
                           className="text-indigo-400 hover:underline text-[11px] cursor-pointer"
@@ -1485,8 +1415,8 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
                         </button>
                       </div>
                     ) : (
-                      <div className="w-full py-10 text-center text-xs text-zinc-500 space-y-2">
-                        <p>All items have been placed in tiers!</p>
+                      <div className="w-full py-5 text-center text-xs text-zinc-400 space-y-2">
+                        <p className="text-zinc-300">{board.tiers.some(t => t.items.length) ? "All items have been ranked." : "Start with your own images or text."}</p>
                         <div className="flex justify-center gap-2 pt-1">
                           <button
                             onClick={() => setIsWebSearchOpen(true)}
@@ -1501,6 +1431,7 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
                           >
                             + Upload Images
                           </button>
+                          <button onClick={() => setIsAddingText(true)} className="text-indigo-300 hover:underline font-medium text-[11px] cursor-pointer">+ Add Text</button>
                         </div>
                       </div>
                     )
@@ -1512,7 +1443,7 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
             </div>
 
             {/* Quick Action Buttons */}
-            <div className="grid grid-cols-2 gap-2">
+            <div className="hidden lg:grid grid-cols-2 gap-2">
               <button
                 onClick={() => setIsWebSearchOpen(true)}
                 className="p-3 rounded-xl border border-dashed border-indigo-500/40 hover:border-indigo-500 bg-indigo-500/10 hover:bg-indigo-500/20 text-center transition-colors cursor-pointer"
@@ -1553,19 +1484,37 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
         <ShareModal
           isOpen={isShareModalOpen}
           onClose={() => setIsShareModalOpen(false)}
+          projectId={projectId}
           boardTitle={title}
           totalRankedCount={totalRanked}
           tiers={board.tiers}
           unranked={board.unranked}
-          templateId={initialTemplate?.id}
+          templateId={resolvedTemplate?.id || initialTemplate?.id}
+          publishedShareId={publishedShareId}
+          onPublishSuccess={async (newShareId, targetProjectId) => {
+            const targetPid = targetProjectId || projectId;
+            await saveProject({
+              id: targetPid,
+              title,
+              tiers: board.tiers,
+              unranked: board.unranked,
+              templateId: loadedTemplateId || initialTemplate?.id,
+              publishedShareId: newShareId,
+              createdAt: projectCreatedAt,
+              updatedAt: Date.now(),
+            });
+            if (activeProjectIdRef.current === targetPid) {
+              setPublishedShareId(newShareId);
+            }
+          }}
         />
 
-        {initialTemplate && (
+        {(resolvedTemplate || initialTemplate) && (
           <ConsensusComparisonModal
             isOpen={isConsensusModalOpen}
             onClose={() => setIsConsensusModalOpen(false)}
             board={board}
-            template={initialTemplate}
+            template={resolvedTemplate || initialTemplate!}
           />
         )}
 
@@ -1574,7 +1523,10 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
           isOpen={isExportModalOpen}
           onClose={() => setIsExportModalOpen(false)}
           boardTitle={title}
-          authorName={initialTemplate?.author.username || "Creator"}
+          authorName={
+            (typeof window !== "undefined" ? localStorage.getItem("tl_commenter_name") : null) ||
+            "Creator"
+          }
           tiers={board.tiers}
           onSwitchToVideo={() => setIsVideoModalOpen(true)}
         />
@@ -1584,7 +1536,10 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
           isOpen={isVideoModalOpen}
           onClose={() => setIsVideoModalOpen(false)}
           boardTitle={title}
-          authorName={initialTemplate?.author.username || "Creator"}
+          authorName={
+            (typeof window !== "undefined" ? localStorage.getItem("tl_commenter_name") : null) ||
+            "Creator"
+          }
           tiers={board.tiers}
         />
 
@@ -1594,7 +1549,11 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
           onClose={() => setIsBlindModalOpen(false)}
           board={board}
           onPlaceBlindItem={handlePlaceBlindItem}
-          onOpenConsensus={initialTemplate ? () => setIsConsensusModalOpen(true) : undefined}
+          onOpenConsensus={
+            resolvedTemplate || initialTemplate
+              ? () => setIsConsensusModalOpen(true)
+              : undefined
+          }
         />
 
         {/* Presentation & Streamer Mode Modal */}
@@ -1602,7 +1561,10 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
           isOpen={isPresentationModalOpen}
           onClose={() => setIsPresentationModalOpen(false)}
           boardTitle={title}
-          authorName={initialTemplate?.author.username || "Creator"}
+          authorName={
+            (typeof window !== "undefined" ? localStorage.getItem("tl_commenter_name") : null) ||
+            "Creator"
+          }
           tiers={board.tiers}
           onOpenExport={() => setIsExportModalOpen(true)}
         />
@@ -1615,12 +1577,12 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
         />
 
         {/* Tap-to-Rank Dock (Mobile & Desktop Rapid Ranking) */}
-        {selectedItem && (
-          <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-2xl bg-zinc-900/95 backdrop-blur-xl border border-indigo-500/40 shadow-2xl shadow-indigo-950/60 rounded-2xl p-3 flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 animate-in fade-in slide-in-from-bottom-4 duration-200">
+        {selectedItem && !isStudioDialogOpen && (
+          <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 w-[95%] max-w-2xl bg-zinc-900/95 backdrop-blur-xl border border-indigo-500/40 shadow-2xl shadow-indigo-950/60 rounded-2xl p-3 flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 animate-in fade-in slide-in-from-bottom-4 duration-200">
             <div className="flex items-center gap-2.5 min-w-0 pr-2">
               <div className="w-10 h-10 rounded-lg overflow-hidden bg-zinc-800 flex-shrink-0 border border-zinc-700 relative">
                 {selectedItem.imageUrl ? (
-                  <img
+                  <ItemImage
                     src={selectedItem.imageUrl}
                     alt={selectedItem.name}
                     className="w-full h-full object-cover"
@@ -1648,7 +1610,7 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
                   key={t.id}
                   onClick={() => handleQuickAssignTier(t.id)}
                   style={{ backgroundColor: t.color }}
-                  className="min-w-[34px] min-h-[34px] px-2.5 py-1 rounded-lg text-xs font-black text-black/90 shadow-sm hover:scale-105 active:scale-95 transition-all flex items-center justify-center cursor-pointer"
+                  className="min-w-10 min-h-10 px-2.5 py-1 rounded-lg text-xs font-black text-black/90 shadow-sm hover:scale-105 active:scale-95 transition-all flex items-center justify-center cursor-pointer"
                   title={`Assign to ${t.label} (Press ${idx + 1})`}
                 >
                   {t.label}

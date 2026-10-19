@@ -1,5 +1,7 @@
 "use client";
 
+import { useDialogFocus } from "@/lib/use-dialog-focus";
+import { ItemImage } from "@/components/ItemImage";
 import React, { useEffect, useState } from "react";
 import { X, Maximize, Minimize, Download, Sparkles, Layers } from "lucide-react";
 import type { TierRow } from "@/types";
@@ -23,6 +25,16 @@ export function PresentationModal({
 }: PresentationModalProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
 
+  const toggleFullscreen = React.useCallback(() => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+      setIsFullscreen(true);
+    } else {
+      document.exitFullscreen().catch(() => {});
+      setIsFullscreen(false);
+    }
+  }, []);
+
   // Esc key listener
   useEffect(() => {
     if (!isOpen) return;
@@ -41,22 +53,14 @@ export function PresentationModal({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen]);
+  }, [isOpen, onClose, toggleFullscreen]);
 
-  const toggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch(() => {});
-      setIsFullscreen(true);
-    } else {
-      document.exitFullscreen().catch(() => {});
-      setIsFullscreen(false);
-    }
-  };
+  const dialogRef = useDialogFocus(isOpen);
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-[#09090b] z-50 flex flex-col p-4 sm:p-8 overflow-y-auto select-none">
+    <div ref={dialogRef} role="dialog" aria-modal="true" aria-label="Presentation mode" tabIndex={-1} className="fixed inset-0 bg-[#09090b] z-50 flex flex-col p-4 sm:p-8 overflow-y-auto select-none">
       {/* Floating Presenter Toolbar (fades in on top) */}
       <div className="flex items-center justify-between pb-6 border-b border-zinc-800/80 mb-6">
         <div className="flex items-center gap-3">
@@ -99,6 +103,7 @@ export function PresentationModal({
 
           <button
             onClick={onClose}
+            aria-label="Close dialog"
             className="p-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white transition-colors cursor-pointer"
             title="Close Presenter Mode (Esc)"
           >
@@ -139,8 +144,7 @@ export function PresentationModal({
                     title={item.name}
                   >
                     {item.imageUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
+                      <ItemImage
                         src={item.imageUrl}
                         alt={item.name}
                         className="w-full h-full object-cover"

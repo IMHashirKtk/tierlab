@@ -7,6 +7,8 @@ import { fetchTemplateById } from "@/lib/community";
 import type { Template } from "@/types";
 import { Layers } from "lucide-react";
 
+import { TemplateConsensusSection } from "./TemplateConsensusSection";
+
 interface TemplateClientLoaderProps {
   templateId: string;
   serverTemplate: Template | null;
@@ -49,6 +51,17 @@ export function TemplateClientLoader({ templateId, serverTemplate }: TemplateCli
         >
           Explore All Templates
         </Link>
+      </div>
+    );
+  }
+
+  if (!serverTemplate) {
+    return (
+      <div>
+        <Studio initialTemplate={template} />
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 border-t border-zinc-800/80">
+          <TemplateConsensusSection template={template} />
+        </section>
       </div>
     );
   }

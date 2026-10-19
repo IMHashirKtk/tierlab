@@ -157,7 +157,9 @@ export async function renderAnimatedTierListVideo(
 
   if (withAudio && typeof window !== "undefined") {
     try {
-      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      const AudioContextClass =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
       if (AudioContextClass) {
         audioCtx = new AudioContextClass();
         audioDest = audioCtx.createMediaStreamDestination();
@@ -319,8 +321,6 @@ export async function renderAnimatedTierListVideo(
 
   // 6. Deterministic Render Loop
   for (let frame = 0; frame < totalFrames; frame++) {
-    const time = frame / FPS;
-
     // Trigger audio SFX and particles on exact reveal frame
     placements.forEach((p) => {
       if (frame === p.revealFrame) {

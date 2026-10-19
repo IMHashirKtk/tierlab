@@ -34,7 +34,8 @@ export async function generateMetadata({
   params: Promise<{ category: string }>;
 }): Promise<Metadata> {
   const { category } = await params;
-  const catObj = CATEGORIES.find((c) => c.id.toLowerCase() === category.toLowerCase());
+  const catObj = CATEGORIES.find((c) => c.id === category && c.id !== "all");
+  if (!catObj) notFound();
   const categoryName = catObj?.name || category.charAt(0).toUpperCase() + category.slice(1);
 
   const title = `${categoryName} Tier List Maker — Free Templates & Community Rankings`;
@@ -78,8 +79,10 @@ async function CategoryContent({
 }) {
   const { category } = await params;
   const currentCat = CATEGORIES.find(
-    (c) => c.id.toLowerCase() === category.toLowerCase()
+    (c) => c.id === category && c.id !== "all"
   );
+
+  if (!currentCat) notFound();
 
   const categoryName =
     currentCat?.name || category.charAt(0).toUpperCase() + category.slice(1);

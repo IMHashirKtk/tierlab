@@ -22,6 +22,8 @@ try {
   assert(routes.every(r=>r.url.startsWith('https://tierlistmaker.app')));
   assert(!routes.some(r=>/launch-test|invalid-items|empty-template|\/create$|\/versus$|\/my-projects/.test(r.url)));
   assert.equal(routes.find(r=>r.url==='https://tierlistmaker.app').lastModified,undefined);
+  assert(robots().rules.allow.includes('/api/cdn/'));
+  assert(robots().rules.allow.includes('/api/og'));
   assert.equal(robots().sitemap,'https://tierlistmaker.app/sitemap.xml');
   process.env.VERCEL_ENV='preview';
   assert.equal(canIndexSite(),false);

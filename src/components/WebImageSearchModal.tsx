@@ -247,7 +247,7 @@ export function WebImageSearchModal({ isOpen, onClose, onAddItems }: WebImageSea
         </div>
 
         {/* Source Mode Tabs */}
-        <div className="flex gap-1.5 overflow-x-auto pb-1 mb-3">
+        <div className="flex flex-wrap shrink-0 gap-1.5 pb-1 mb-3">
           <button
             type="button"
             onClick={() => setSource("wikipedia")}

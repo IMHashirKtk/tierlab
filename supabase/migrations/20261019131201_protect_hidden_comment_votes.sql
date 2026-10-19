@@ -77,4 +77,3 @@ $$ language plpgsql security definer set search_path = public;
 
 revoke all on function public.set_vote(text, text, boolean) from public, anon;
 grant execute on function public.set_vote(text, text, boolean) to authenticated;
-

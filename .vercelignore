@@ -1,0 +1,11 @@
+# Remote builds use the production project's environment and build from source.
+.env*
+.next*
+.vercel/
+.git/
+node_modules/
+tests/
+docs/
+.agents/
+.codex/
+*.tsbuildinfo

@@ -1,6 +1,18 @@
 # Technical SEO audit — 20 October 2026
 
-Implemented locally; these changes have not been deployed. The review covered route layouts and metadata, public content queries, template/category rendering, discovery links, social and embed links, structured data, robots/sitemaps, PWA caching, and the main client bundles. The local production audit walked all 35 sitemap URLs: 7 static pages, 7 category hubs, and 21 templates. Browser checks also covered public profiles, navigation, the editor, and deferred dialogs.
+Implemented, committed, pushed, and released to production on 20 October 2026. The review covered route layouts and metadata, public content queries, template/category rendering, discovery links, social and embed links, structured data, robots/sitemaps, PWA caching, and the main client bundles. The local production audit walked all 35 sitemap URLs: 7 static pages, 7 category hubs, and 21 templates. Browser checks also covered public profiles, navigation, the editor, and deferred dialogs.
+
+## Production release result
+
+- URL: [tierlistmaker.app](https://tierlistmaker.app/)
+- Target/status: production / READY; project `tierlab-production`
+- Application commit: `4c2ee47`; deployed source commit: `43f122c` (includes deployment input exclusions)
+- Framework/build duration: Next.js 16.4.0 / 41 seconds
+- Deployment: [`dpl_6pxEWzS2m73GeqRiKY24oyG4kNWZ`](https://vercel.com/hashirs-projects-57d66e99/tierlab-production/6pxEWzS2m73GeqRiKY24oyG4kNWZ)
+- Tested with production environment settings before domain promotion; the workspace's existing staging link was preserved.
+- After promotion, both the site-wide audit and live-readiness audit passed against the public domain: 35 sitemap pages, 40 internal path destinations, zero site-wide audit findings. The release-specific runtime error query returned no entries; this is a bounded check, not a guarantee about future runtime behavior.
+- The live build's initial-script gzip total was 280,690 bytes. The local before/after comparison below remains the controlled comparison; deployment-generated bundles differ slightly.
+- Long-term field Core Web Vitals monitoring and Search Console analysis remain operator follow-up work. No new monitoring drain was configured.
 
 Leaked identifiers such as `titlematchScore`, `site2vecEmbedding`, `siteLinkIn`, `siteLinkOut`, `pnav`, `pnavClicks`, `impressions`, `chromeInTotal`, and `directFrac` are hypotheses for investigation, not confirmed ranking inputs or scores this application can measure. The implementation uses descriptive content, actual site entities, crawlable navigation, and less client code. No traffic generation, synthetic searches, click manipulation, or fabricated engagement was added.
 
@@ -57,7 +69,7 @@ node tests/live-readiness-audit.mjs
 
 ## Actions outside the codebase
 
-1. **Deploy and validate the final host.** The live homepage was checked in a browser: its canonical is `https://tierlistmaker.app`, it permits indexing, and `www` redirects to the apex. These local changes still need deployment and the same URL audit on the deployed build.
+1. **Maintain release verification.** This release is deployed and both live audits passed. The live homepage's canonical is `https://tierlistmaker.app`, it permits indexing, and `www` redirects to the apex. Repeat the URL audit after future releases and monitor indexing after Google recrawls the changed pages.
 2. **Use actual Search Console query data.** Verify ownership, submit the sitemap, and inspect the homepage, each category, and representative starter/user templates. Compare query/page clicks, impressions, CTR, and average position over comparable 28-day windows. Segment branded versus nonbranded queries and device types. The title changes here are based on page subjects and intent, not unavailable query-volume or ranking data.
 3. **Measure real Core Web Vitals.** Check PageSpeed Insights and Search Console after deployment. Target p75 LCP at or below 2.5 s, INP at or below 200 ms, and CLS at or below 0.1. Local payload and rendering checks do not establish production field scores. Prioritize the slowest template/category groups and compare after enough real-user data accumulates.
 4. **Expand useful editorial content.** Review rosters for accuracy, scope, outdated entries, and permitted subject artwork. Add original comparison guidance and maintain it when games, releases, or products change. Cite authoritative subject sources when they help explain a roster; do not add irrelevant outbound links merely to chase an inferred metric.

@@ -2,10 +2,8 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Search, Plus, Layers, User, Swords, ShieldCheck, Menu, X } from "lucide-react";
+import { Search, Plus, Layers, User, Swords, Menu, X } from "lucide-react";
 import { fetchTemplates } from "@/lib/community";
-import { usePwa } from "@/components/pwa/PwaProvider";
 import type { Template } from "@/types";
 
 interface NavbarProps {
@@ -13,8 +11,6 @@ interface NavbarProps {
 }
 
 export function Navbar({ onOpenPublish }: NavbarProps) {
-  const router = useRouter();
-  const { openPrivacyModal } = usePwa();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const headerRef = useRef<HTMLElement>(null);
@@ -168,27 +164,16 @@ export function Navbar({ onOpenPublish }: NavbarProps) {
             </Link>
           </nav>
 
-          {/* Privacy & Device Storage Hub */}
-          <button
-            onClick={openPrivacyModal}
-            aria-label="Privacy and device storage"
-            className="hidden xl:flex items-center justify-center w-10 h-10 rounded-xl text-zinc-400 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 transition-colors cursor-pointer"
-            title="Privacy & Device Storage Hub"
-          >
-            <ShieldCheck className="w-4 h-4 text-emerald-400" />
-          </button>
-
-          {/* Secondary CTA: Publish Template */}
-          <button
-            onClick={() => {
-              if (onOpenPublish) onOpenPublish();
-              else router.push("/create");
-            }}
-            className="hidden xl:flex px-3 py-2 rounded-xl text-sm font-semibold text-zinc-300 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 flex items-center gap-2 whitespace-nowrap transition-colors cursor-pointer"
-          >
-            <Plus className="w-4 h-4 text-indigo-400" />
-            <span className="hidden sm:inline">New Template</span>
-          </button>
+          {onOpenPublish && (
+            <button
+              type="button"
+              onClick={onOpenPublish}
+              className="hidden xl:flex px-3 py-2 rounded-xl text-sm font-semibold text-zinc-300 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 items-center gap-2 whitespace-nowrap transition-colors cursor-pointer"
+            >
+              <Plus className="w-4 h-4 text-indigo-400" />
+              <span>New Template</span>
+            </button>
+          )}
 
           {/* Primary CTA: Start Ranking */}
           <Link
@@ -217,8 +202,18 @@ export function Navbar({ onOpenPublish }: NavbarProps) {
             {[
               ["Browse templates", "/#trending"], ["Categories", "/#categories"], ["Community rankings", "/#feed"], ["My Projects", "/my-projects"], ["Versus", "/versus"], ["Creator features", "/#dropfx"], ["My Profile", `/user/${encodeURIComponent(creatorHandle)}`],
             ].map(([label, href]) => <Link key={href} href={href} onClick={() => setMenuOpen(false)} className="px-3 py-3 rounded-lg text-sm text-zinc-200 hover:bg-zinc-800 focus-visible:ring-2 focus-visible:ring-indigo-400">{label}</Link>)}
-            <button onClick={() => { setMenuOpen(false); if (onOpenPublish) onOpenPublish(); else router.push('/create'); }} className="px-3 py-3 text-left rounded-lg text-sm text-zinc-200 hover:bg-zinc-800">New Template</button>
-            <button onClick={() => { setMenuOpen(false); openPrivacyModal(); }} className="px-3 py-3 text-left rounded-lg text-sm text-zinc-400 hover:bg-zinc-800">Privacy & Device Storage</button>
+            {onOpenPublish && (
+              <button
+                type="button"
+                onClick={() => {
+                  setMenuOpen(false);
+                  onOpenPublish();
+                }}
+                className="px-3 py-3 text-left rounded-lg text-sm text-zinc-200 hover:bg-zinc-800"
+              >
+                New Template
+              </button>
+            )}
           </div>
         </nav>
       )}

@@ -54,6 +54,7 @@ export function Footer() {
             <ul className="space-y-1 text-zinc-500">
               <li>
                 <button
+                  type="button"
                   onClick={openPrivacyModal}
                   className="hover:text-zinc-300 text-left cursor-pointer flex items-center gap-1.5 py-1 min-h-[28px]"
                 >
@@ -62,28 +63,9 @@ export function Footer() {
                 </button>
               </li>
               <li>
-                <button
-                  onClick={openPrivacyModal}
-                  className="hover:text-zinc-300 text-left cursor-pointer py-1 inline-flex items-center min-h-[28px]"
-                >
-                  Export Data Backup
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={openPrivacyModal}
-                  className="hover:text-zinc-300 text-left cursor-pointer py-1 inline-flex items-center min-h-[28px]"
-                >
-                  Install PWA App
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={openPrivacyModal}
-                  className="hover:text-zinc-300 text-left cursor-pointer py-1 inline-flex items-center min-h-[28px]"
-                >
-                  Local-First Drafts
-                </button>
+                <Link href="/my-projects" className="hover:text-zinc-300 py-1 inline-flex items-center min-h-[28px]">
+                  My Projects
+                </Link>
               </li>
             </ul>
           </div>
@@ -92,13 +74,6 @@ export function Footer() {
         <div className="pt-8 border-t border-zinc-900 flex flex-col sm:flex-row items-center justify-between gap-4 text-zinc-600">
           <span>© 2026 Tier List Maker (tierlistmaker.app). All user uploads belong to their respective creators.</span>
           <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
-            <button
-              onClick={openPrivacyModal}
-              className="hover:text-emerald-400 text-zinc-400 cursor-pointer flex items-center gap-1 transition-colors py-1 min-h-[28px]"
-            >
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Local-First Privacy</span>
-            </button>
             <Link href="/terms" className="hover:text-zinc-300 py-1">Terms</Link>
             <Link href="/copyright" className="hover:text-zinc-300 py-1">Copyright</Link>
             <Link href="/privacy" className="hover:text-zinc-300 py-1">Privacy</Link>

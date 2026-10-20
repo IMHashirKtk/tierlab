@@ -1,8 +1,8 @@
-import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/page-metadata";
 import { InfoPage } from "@/components/InfoPage";
 import { POLICY_UPDATED, SITE_OPERATOR, SUPPORT_EMAIL } from "@/lib/site-info";
 
-export const metadata: Metadata = { title: "Privacy Policy", description: "How Tier List Maker stores local drafts, anonymous sessions, uploaded images, and publicly published content.", alternates: { canonical: "/privacy" } };
+export const metadata = pageMetadata("Privacy Policy", "How Tier List Maker stores local drafts, anonymous sessions, uploaded images, and publicly published content.", "/privacy");
 
 export default function PrivacyPage() {
   return <InfoPage title="Privacy policy" intro={`Operated by ${SITE_OPERATOR}. Updated ${POLICY_UPDATED}.`}>

@@ -1,16 +1,14 @@
-"use client";
-
 import React from "react";
 import Link from "next/link";
 import { Sparkles, Layers, Flame, Shuffle, BarChart3, Video } from "lucide-react";
 
 export function Hero() {
   const popularTags = [
-    { name: "Roblox Games", href: "/categories/gaming" },
+    { name: "Roblox Games", href: "/template/roblox-games" },
     { name: "Elden Ring Bosses", href: "/template/elden-ring-bosses" },
-    { name: "Anime of the Year", href: "/categories/anime" },
-    { name: "Fast Food French Fries", href: "/categories/food" },
-    { name: "MCU Movie Phases", href: "/template/mcu-movies" },
+    { name: "Anime Series", href: "/template/modern-shonen-anime" },
+    { name: "Fast Food French Fries", href: "/template/fast-food-fries" },
+    { name: "MCU Movies", href: "/template/mcu-movies" },
   ];
 
   return (

@@ -1,13 +1,9 @@
-import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/page-metadata";
 import Link from "next/link";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 
-export const metadata: Metadata = {
-  title: "A Free TierMaker Alternative for Creators",
-  description: "Explore Tier List Maker: local drafts, text and image ranking, presentation mode, and image or video exports.",
-  alternates: { canonical: "/tiermaker-alternative" },
-};
+export const metadata = pageMetadata("A Free TierMaker Alternative for Creators", "Explore Tier List Maker: local drafts, text and image ranking, presentation mode, and image or video exports.", "/tiermaker-alternative");
 
 const features = [
   ["Start with your own items", "Upload images, add text, or choose a library template. Rename and recolor tiers to match your topic."],

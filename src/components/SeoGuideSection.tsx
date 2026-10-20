@@ -63,7 +63,7 @@ export function SeoGuideSection() {
   };
 
   return (
-    <section className="py-20 border-t border-zinc-800/80 bg-zinc-950/60 relative z-10">
+    <section id="creator-guide" className="py-20 border-t border-zinc-800/80 bg-zinc-950/60 relative z-10">
       {/* FAQPage JSON-LD Structured Data */}
       <script
         type="application/ld+json"

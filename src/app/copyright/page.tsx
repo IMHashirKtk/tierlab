@@ -1,8 +1,8 @@
-import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/page-metadata";
 import { InfoPage } from "@/components/InfoPage";
 import { POLICY_UPDATED, SUPPORT_EMAIL } from "@/lib/site-info";
 
-export const metadata: Metadata = { title: "Copyright & Content Removal", description: "How to report copyright concerns about images, templates, rankings, or other content published on Tier List Maker.", alternates: { canonical: "/copyright" } };
+export const metadata = pageMetadata("Copyright & Content Removal", "How to report copyright concerns about images, templates, rankings, or other content published on Tier List Maker.", "/copyright");
 
 export default function CopyrightPage() {
   return <InfoPage title="Copyright & content removal" intro={`Updated ${POLICY_UPDATED}. Artwork remains subject to its owners’ rights.`}>

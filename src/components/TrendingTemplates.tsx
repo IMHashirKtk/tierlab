@@ -19,13 +19,14 @@ export function TrendingTemplates() {
 
   useEffect(() => {
     let isCancelled = false;
-    fetchTemplates({ category: selectedCategory, sortBy: activeSort, search: searchQuery }).then((data) => {
+    const timer = setTimeout(() => fetchTemplates({ category: selectedCategory, sortBy: activeSort, search: searchQuery }).then((data) => {
       if (!isCancelled) {
         setTemplates(data);
       }
-    });
+    }), searchQuery ? 250 : 0);
     return () => {
       isCancelled = true;
+      clearTimeout(timer);
     };
   }, [selectedCategory, activeSort, searchQuery]);
 
@@ -222,7 +223,7 @@ export function TrendingTemplates() {
                     </div>
 
                     <h3 className="text-base font-bold text-white group-hover:text-indigo-400 transition-colors">
-                      {template.title}
+                      <Link href={`/template/${encodeURIComponent(template.id)}`}>{template.title}</Link>
                     </h3>
                     <p className="text-xs text-zinc-400 mt-1 line-clamp-2">
                       {template.description}
@@ -252,7 +253,8 @@ export function TrendingTemplates() {
                     </div>
 
                     <Link
-                      href={`/template/${template.id}`}
+                      href={`/template/${encodeURIComponent(template.id)}`}
+                      aria-label={`Rank ${template.title}`}
                       className="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition-all shadow-sm min-h-[28px] inline-flex items-center justify-center"
                     >
                       Rank This

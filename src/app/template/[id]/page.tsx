@@ -3,9 +3,11 @@ import React, { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { STARTER_GUIDES } from "@/data/starter-guides";
+import { CATEGORIES } from "@/data/categories";
+import { getPublicTemplate } from "@/lib/server/public-content";
 import { SEED_TEMPLATES } from "@/data/seed-templates";
-import { fetchTemplateById, fetchSubmissionsForTemplateWithStatus } from "@/lib/community";
-import { safeJsonLd, canIndexSite } from "@/lib/seo";
+import { fetchSubmissionsForTemplateWithStatus } from "@/lib/community";
+import { safeJsonLd, canIndexSite, getSiteUrl } from "@/lib/seo";
 import { isDiscoverableTemplate } from "@/lib/catalog";
 import { notFound } from "next/navigation";
 import { TemplateClientLoader } from "./TemplateClientLoader";
@@ -27,11 +29,11 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const template = await fetchTemplateById(id);
+  const template = await getPublicTemplate(id);
 
   if (!template) {
     return {
-      title: "Custom Template | Tier List Maker",
+      title: "Template not found",
       description: "Create and rank custom tier lists with Tier List Maker.",
       robots: { index: false, follow: true },
     };
@@ -43,9 +45,10 @@ export async function generateMetadata({
     template.items.length + " items"
   )}&mode=template`;
 
-  const pageTitle = `${template.title} Tier List Maker & Ranking`;
-  const pageDescription = `Rank ${template.title} with drag-and-drop tiers. View community consensus, compare similarity, and duel friends on Tier List Maker.`;
-  const canonicalUrl = `/template/${id}`;
+  const topic = STARTER_GUIDES[template.id]?.topic || template.title;
+  const pageTitle = /tier list/i.test(topic) ? `${topic} Template` : `${topic} Tier List Template`;
+  const pageDescription = `${template.description || `Rank ${template.items.length} items in ${template.title}.`} Customize your tiers and export your ranking.`;
+  const canonicalUrl = `/template/${encodeURIComponent(id)}`;
 
   return {
     title: pageTitle,
@@ -79,7 +82,7 @@ export async function generateMetadata({
 
 async function TemplateContent({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const template = await fetchTemplateById(id);
+  const template = await getPublicTemplate(id);
 
   if (!template) {
     notFound();
@@ -88,7 +91,8 @@ async function TemplateContent({ params }: { params: Promise<{ id: string }> }) 
   const { submissions, fetchError } = await fetchSubmissionsForTemplateWithStatus(template.id);
   const relatedTemplates = SEED_TEMPLATES.filter((t) => t.id !== id && t.category === template.category).slice(0, 3);
   const guide = STARTER_GUIDES[template.id];
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://tierlistmaker.app";
+  const siteUrl = getSiteUrl();
+  const categoryName = CATEGORIES.find(category => category.id === template.category)?.name || template.category;
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -105,7 +109,7 @@ async function TemplateContent({ params }: { params: Promise<{ id: string }> }) 
           {
             "@type": "ListItem",
             position: 2,
-            name: template.category.charAt(0).toUpperCase() + template.category.slice(1),
+            name: categoryName,
             item: `${siteUrl}/categories/${template.category}`,
           },
           {
@@ -117,9 +121,24 @@ async function TemplateContent({ params }: { params: Promise<{ id: string }> }) 
         ],
       },
       {
+        "@type": "CreativeWork",
+        "@id": `${siteUrl}/template/${encodeURIComponent(id)}#template`,
+        name: template.title,
+        description: template.description,
+        url: `${siteUrl}/template/${encodeURIComponent(id)}`,
+        genre: categoryName,
+        isPartOf: { "@id": `${siteUrl}/categories/${template.category}#collection` },
+        creator: template.isStarter
+          ? { "@id": `${siteUrl}/#operator` }
+          : { "@type": "Person", name: template.author.username, url: `${siteUrl}/user/${encodeURIComponent(template.author.username)}` },
+        mainEntity: { "@id": `${siteUrl}/template/${encodeURIComponent(id)}#items` },
+      },
+      {
         "@type": "ItemList",
+        "@id": `${siteUrl}/template/${encodeURIComponent(id)}#items`,
+        itemListOrder: "https://schema.org/ItemListUnordered",
         name: `${template.title} Items`,
-        description: `Complete roster of rankable items for ${template.title}`,
+        description: `The ${template.items.length} items included in this template.`,
         numberOfItems: template.items.length,
         itemListElement: template.items.map((item, index) => ({
           "@type": "ListItem",
@@ -157,7 +176,7 @@ async function TemplateContent({ params }: { params: Promise<{ id: string }> }) 
             href={`/categories/${template.category}`}
             className="hover:text-white transition-colors capitalize"
           >
-            {template.category}
+            {categoryName}
           </Link>
           <ChevronRight className="w-3 h-3 text-zinc-600" />
           <span className="text-indigo-400 font-semibold truncate max-w-xs sm:max-w-md">
@@ -173,14 +192,14 @@ async function TemplateContent({ params }: { params: Promise<{ id: string }> }) 
             </span>
             <span className="text-xs text-zinc-500">•</span>
             <span className="text-xs text-zinc-400">
-              Created by <span className="text-white font-medium">@{template.author.username}</span>
+              Created by {template.isStarter ? <Link href="/about" className="text-white font-medium">Template Library</Link> : <Link href={`/user/${encodeURIComponent(template.author.username)}`} className="text-white font-medium">@{template.author.username}</Link>}
             </span>
             <span className="text-xs text-zinc-500">•</span>
             <span className="text-xs text-zinc-400">{template.items.length} rankable items</span>
           </div>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-            About the {template.title} Tier List Maker
-          </h2>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+            {template.title} Tier List
+          </h1>
           <p className="text-zinc-400 text-sm sm:text-base leading-relaxed max-w-4xl">
             {template.description} Use our drag-and-drop studio above to rank every item from S Tier down to F Tier. Once ranked, compare your results against our mathematical crowd consensus or export in 4K PNG and animated 9:16 TikTok video formats.
           </p>
@@ -191,9 +210,9 @@ async function TemplateContent({ params }: { params: Promise<{ id: string }> }) 
           <div className="flex items-center justify-between">
             <h3 className="text-lg sm:text-xl font-bold text-white tracking-tight flex items-center gap-2">
               <Layers className="w-5 h-5 text-indigo-400" />
-              <span>All {template.items.length} Rankable Items in {template.title}</span>
+              <span>{template.items.length} Items in This Template</span>
             </h3>
-            <span className="text-xs text-zinc-400">Indexed Roster</span>
+            <span className="text-xs text-zinc-400">Template roster</span>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">

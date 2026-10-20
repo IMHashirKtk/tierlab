@@ -22,12 +22,13 @@ import type { PublishedTierList } from "@/types";
 
 interface SharedTierListClientProps {
   id: string;
+  initialRanking?: PublishedTierList;
 }
 
-export function SharedTierListClient({ id }: SharedTierListClientProps) {
-  const [ranking, setRanking] = useState<PublishedTierList | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [upvotes, setUpvotes] = useState(0);
+export function SharedTierListClient({ id, initialRanking }: SharedTierListClientProps) {
+  const [ranking, setRanking] = useState<PublishedTierList | null>(initialRanking || null);
+  const [loading, setLoading] = useState(!initialRanking);
+  const [upvotes, setUpvotes] = useState(initialRanking?.upvotes || 0);
   const [isUpvoted, setIsUpvoted] = useState(false);
   const [copied, setCopied] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
@@ -39,7 +40,7 @@ export function SharedTierListClient({ id }: SharedTierListClientProps) {
   useEffect(() => {
     if (!id) return;
     let active = true;
-    fetchSharedTierList(id).then((data) => {
+    if (!initialRanking || initialRanking.id !== id) fetchSharedTierList(id).then((data) => {
       if (!active) return;
       if (data) {
         setRanking(data);
@@ -51,7 +52,7 @@ export function SharedTierListClient({ id }: SharedTierListClientProps) {
       if (active) setIsUpvoted(voted);
     }).catch(() => {});
     return () => { active = false; };
-  }, [id]);
+  }, [id, initialRanking]);
 
   const [voteError, setVoteError] = useState("");
   const [voting, setVoting] = useState(false);

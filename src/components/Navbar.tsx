@@ -35,13 +35,14 @@ export function Navbar({ onOpenPublish }: NavbarProps) {
   useEffect(() => {
     if (!searchQuery.trim()) return;
     let isCancelled = false;
-    fetchTemplates({ search: searchQuery }).then((res) => {
+    const timer = setTimeout(() => fetchTemplates({ search: searchQuery }).then((res) => {
       if (!isCancelled) {
         setMatchingTemplates(res.slice(0, 6));
       }
-    });
+    }), 250);
     return () => {
       isCancelled = true;
+      clearTimeout(timer);
     };
   }, [searchQuery]);
 
@@ -188,6 +189,7 @@ export function Navbar({ onOpenPublish }: NavbarProps) {
             href={`/user/${encodeURIComponent(creatorHandle)}`}
             className="hidden xl:flex w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-800 items-center justify-center text-zinc-400 hover:text-white hover:border-zinc-700 transition-colors shrink-0"
             title={`Creator Profile (${creatorHandle})`}
+            aria-label={`Creator Profile (${creatorHandle})`}
           >
             <User className="w-4 h-4" />
           </Link>

@@ -7,7 +7,8 @@ import { CATEGORIES, SEED_TEMPLATES } from "@/data/seed-templates";
 import { fetchTemplates } from "@/lib/community";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-import { safeJsonLd } from "@/lib/seo";
+import { CATEGORY_GUIDES } from "@/data/category-guides";
+import { safeJsonLd, getSiteUrl } from "@/lib/seo";
 import {
   Layers,
   ChevronRight,
@@ -38,8 +39,9 @@ export async function generateMetadata({
   if (!catObj) notFound();
   const categoryName = catObj?.name || category.charAt(0).toUpperCase() + category.slice(1);
 
-  const title = `${categoryName} Tier List Maker — Free Templates & Community Rankings`;
-  const description = `Create and rank ${categoryName.toLowerCase()} tier lists online for free. Browse ${categoryName.toLowerCase()} starter and community templates, compare against crowd consensus, and export 4K PNGs or TikTok reveal videos with zero watermarks.`;
+  const guide = CATEGORY_GUIDES[category];
+  const title = guide.title;
+  const description = guide.description;
   const canonicalUrl = `/categories/${category}`;
   const ogUrl = `/api/og?title=${encodeURIComponent(categoryName + " Tier Lists")}&category=${encodeURIComponent(categoryName)}&mode=template`;
 
@@ -102,7 +104,8 @@ async function CategoryContent({
           (t) => t.category.toLowerCase() === category.toLowerCase()
         );
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://tierlistmaker.app";
+  const siteUrl = getSiteUrl();
+  const guide = CATEGORY_GUIDES[category];
 
   // Structured Data: CollectionPage & BreadcrumbList
   const jsonLd = {
@@ -133,8 +136,11 @@ async function CategoryContent({
       },
       {
         "@type": "CollectionPage",
+        "@id": `${siteUrl}/categories/${category}#collection`,
+        isPartOf: { "@id": `${siteUrl}/#website` },
+        about: { "@type": "Thing", name: categoryName },
         name: `${categoryName} Tier List Maker & Templates`,
-        description: `Browse and rank ${categoryName} tier list templates online for free on TierListMaker.app.`,
+        description: guide.description,
         url: `${siteUrl}/categories/${category}`,
         hasPart: categoryTemplates.map((t) => ({
           "@type": "CreativeWork",
@@ -194,7 +200,7 @@ async function CategoryContent({
               {categoryName} Tier List Maker & Templates
             </h1>
             <p className="text-zinc-400 text-sm sm:text-base mt-2 max-w-2xl leading-relaxed">
-              Browse {categoryName.toLowerCase()} starter templates and public community creations. Drag and drop items to build your personal ranking or compare against the community consensus.
+              {guide.intro}
             </p>
           </div>
 
@@ -316,7 +322,7 @@ async function CategoryContent({
                       </div>
 
                       <h3 className="text-base font-bold text-white group-hover:text-indigo-400 transition-colors">
-                        {template.title}
+                        <Link href={`/template/${encodeURIComponent(template.id)}`}>{template.title}</Link>
                       </h3>
                       <p className="text-xs text-zinc-400 mt-1 line-clamp-2">
                         {template.description}
@@ -339,7 +345,8 @@ async function CategoryContent({
                       </div>
 
                       <Link
-                        href={`/template/${template.id}`}
+                        href={`/template/${encodeURIComponent(template.id)}`}
+                        aria-label={`Rank ${template.title}`}
                         className="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition-all shadow-sm"
                       >
                         Rank This
@@ -350,6 +357,11 @@ async function CategoryContent({
               ))}
             </div>
           )}
+        </section>
+        <section className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-5 space-y-3">
+          <h2 className="text-lg font-semibold text-white">How to rank {categoryName.toLowerCase()}</h2>
+          <p className="text-sm text-zinc-400 leading-relaxed">{guide.criteria}</p>
+          <p className="text-sm text-zinc-400">Choose a template above, rename your tiers, and save a draft before exporting. <Link href="/#creator-guide" className="text-indigo-400 hover:text-indigo-300">Read the tier list creation guide</Link> for the full workflow.</p>
         </section>
       </main>
 

@@ -1,9 +1,9 @@
-import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/page-metadata";
 import Link from "next/link";
 import { InfoPage } from "@/components/InfoPage";
 import { POLICY_UPDATED, SITE_OPERATOR, SUPPORT_EMAIL } from "@/lib/site-info";
 
-export const metadata: Metadata = { title: "Terms of Use", description: "Tier List Maker terms covering permitted use, user content, public publishing, exports, and moderation.", alternates: { canonical: "/terms" } };
+export const metadata = pageMetadata("Terms of Use", "Tier List Maker terms covering permitted use, user content, public publishing, exports, and moderation.", "/terms");
 
 export default function TermsPage() {
   return <InfoPage title="Terms of use" intro={`Operated by ${SITE_OPERATOR}. Updated ${POLICY_UPDATED}.`}>

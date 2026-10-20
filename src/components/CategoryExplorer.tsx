@@ -1,8 +1,6 @@
-"use client";
-
 import React from "react";
 import Link from "next/link";
-import { CATEGORIES } from "@/data/seed-templates";
+import { CATEGORIES } from "@/data/categories";
 
 export function CategoryExplorer() {
   const categoriesList = CATEGORIES.filter((c) => c.id !== "all");

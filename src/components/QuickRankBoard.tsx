@@ -12,7 +12,6 @@ import {
   Check,
   Zap,
 } from "lucide-react";
-import confetti from "canvas-confetti";
 
 interface QuickItem {
   id: string;
@@ -115,14 +114,14 @@ export function QuickRankBoard() {
 
     if (tierId === "S") {
       try {
-        confetti({
+        void import("canvas-confetti").then(({ default: confetti }) => confetti({
           zIndex: 20,
           disableForReducedMotion: true,
           particleCount: 50,
           spread: 60,
           origin: { y: 0.6 },
           colors: ["#f43f5e", "#fbbf24", "#6366f1"],
-        });
+        })).catch(() => {});
       } catch {}
     }
 

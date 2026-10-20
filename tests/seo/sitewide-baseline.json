@@ -1,0 +1,3588 @@
+{
+  "base": "http://localhost:3012",
+  "generatedAt": "2026-10-20T15:04:59.573Z",
+  "pageCount": 35,
+  "issues": [
+    "/tiermaker-alternative: social title differs from page title",
+    "/about: social title differs from page title",
+    "/contact: social title differs from page title",
+    "/privacy: social title differs from page title",
+    "/terms: social title differs from page title",
+    "/copyright: social title differs from page title",
+    "/template/elden-ring-bosses: 0 H1 headings",
+    "/template/mcu-movies: 0 H1 headings",
+    "/template/modern-shonen-anime: 0 H1 headings",
+    "/template/fast-food-fries: 0 H1 headings",
+    "/template/roblox-games: 0 H1 headings",
+    "/template/hip-hop-2020s: 0 H1 headings",
+    "/template/nba-all-time-goat: 0 H1 headings",
+    "/template/world-football-goats: 0 H1 headings",
+    "/template/ai-models-and-tools-2026: 0 H1 headings",
+    "/template/programming-languages-meta: 0 H1 headings",
+    "/template/gta-franchise-games: 0 H1 headings",
+    "/template/energy-drinks-showdown: 0 H1 headings",
+    "/template/one-piece-characters-tier-list: 0 H1 headings",
+    "/template/naruto-shippuden-characters-tier-list: 0 H1 headings",
+    "/template/jujutsu-kaisen-characters-tier-list: 0 H1 headings",
+    "/template/valorant-agents-meta-tier-list: 0 H1 headings",
+    "/template/pokemon-starters-all-gens: 0 H1 headings",
+    "/template/kanye-west-discography-tier-list: 0 H1 headings",
+    "/template/taylor-swift-eras-albums-ranked: 0 H1 headings",
+    "/template/attack-on-titan-characters-tier-list: 0 H1 headings",
+    "/template/template-98mf: 0 H1 headings"
+  ],
+  "homeJavaScript": {
+    "requests": 12,
+    "gzipBytes": 301941,
+    "assets": [
+      {
+        "path": "/_next/static/chunks/3czyaf1jtkof6.js",
+        "bytes": 29512,
+        "gzipBytes": 7705
+      },
+      {
+        "path": "/_next/static/chunks/0p_w__bs2_j30.js",
+        "bytes": 229850,
+        "gzipBytes": 71991
+      },
+      {
+        "path": "/_next/static/chunks/0s5adnb_i7nb7.js",
+        "bytes": 168604,
+        "gzipBytes": 46469
+      },
+      {
+        "path": "/_next/static/chunks/turbopack-2c3mg3r-05n1w.js",
+        "bytes": 11255,
+        "gzipBytes": 4390
+      },
+      {
+        "path": "/_next/static/chunks/1tq6ppe__m8m-.js",
+        "bytes": 14090,
+        "gzipBytes": 3602
+      },
+      {
+        "path": "/_next/static/chunks/0xckp-gi6lr4_.js",
+        "bytes": 31792,
+        "gzipBytes": 9820
+      },
+      {
+        "path": "/_next/static/chunks/2d7190mos106z.js",
+        "bytes": 22700,
+        "gzipBytes": 8914
+      },
+      {
+        "path": "/_next/static/chunks/3x3k_aloo3f2b.js",
+        "bytes": 58096,
+        "gzipBytes": 14750
+      },
+      {
+        "path": "/_next/static/chunks/385g9o_alltzm.js",
+        "bytes": 61558,
+        "gzipBytes": 17692
+      },
+      {
+        "path": "/_next/static/chunks/0evytwa1ai1n8.js",
+        "bytes": 285075,
+        "gzipBytes": 75006
+      },
+      {
+        "path": "/_next/static/chunks/0cz1d0mv5g_q7.js",
+        "bytes": 112594,
+        "gzipBytes": 39627
+      },
+      {
+        "path": "/_next/static/chunks/1x6obpmlu1_c2.js",
+        "bytes": 5361,
+        "gzipBytes": 1975
+      }
+    ]
+  },
+  "outboundLinks": [],
+  "pages": [
+    {
+      "path": "/",
+      "status": 200,
+      "title": "Free Tier List Maker — Create, Rank & Share",
+      "description": "Create, rank, duel, and remix tier lists with images and text. 4K streamer exports, TikTok blind rank challenge, global community consensus, and zero watermarks.",
+      "canonical": "https://tierlistmaker.app",
+      "ogTitle": "Free Tier List Maker — Create, Rank & Share",
+      "h1": [
+        "Free Tier List Maker Your picks. Your tiers."
+      ],
+      "links": [
+        {
+          "href": "/",
+          "text": "Tier List Maker",
+          "rel": ""
+        },
+        {
+          "href": "/#trending",
+          "text": "Templates",
+          "rel": ""
+        },
+        {
+          "href": "/#categories",
+          "text": "Categories",
+          "rel": ""
+        },
+        {
+          "href": "/my-projects",
+          "text": "My Projects",
+          "rel": ""
+        },
+        {
+          "href": "/versus",
+          "text": "Versus",
+          "rel": ""
+        },
+        {
+          "href": "/create",
+          "text": "Rank Now",
+          "rel": ""
+        },
+        {
+          "href": "/user/Creator",
+          "text": "",
+          "rel": ""
+        },
+        {
+          "href": "/categories/gaming",
+          "text": "Roblox Games",
+          "rel": ""
+        },
+        {
+          "href": "/template/elden-ring-bosses",
+          "text": "Elden Ring Bosses",
+          "rel": ""
+        },
+        {
+          "href": "/categories/anime",
+          "text": "Anime of the Year",
+          "rel": ""
+        },
+        {
+          "href": "/categories/food",
+          "text": "Fast Food French Fries",
+          "rel": ""
+        },
+        {
+          "href": "/template/mcu-movies",
+          "text": "MCU Movie Phases",
+          "rel": ""
+        },
+        {
+          "href": "/create",
+          "text": "Create a tier list",
+          "rel": ""
+        },
+        {
+          "href": "#trending",
+          "text": "Browse templates",
+          "rel": ""
+        },
+        {
+          "href": "/create",
+          "text": "Full Studio",
+          "rel": ""
+        },
+        {
+          "href": "/create",
+          "text": "Upload Custom Images",
+          "rel": ""
+        },
+        {
+          "href": "/template/elden-ring-bosses",
+          "text": "Rank This",
+          "rel": ""
+        },
+        {
+          "href": "/template/mcu-movies",
+          "text": "Rank This",
+          "rel": ""
+        },
+        {
+          "href": "/template/modern-shonen-anime",
+          "text": "Rank This",
+          "rel": ""
+        },
+        {
+          "href": "/template/fast-food-fries",
+          "text": "Rank This",
+          "rel": ""
+        },
+        {
+          "href": "/template/roblox-games",
+          "text": "Rank This",
+          "rel": ""
+        },
+        {
+          "href": "/template/hip-hop-2020s",
+          "text": "Rank This",
+          "rel": ""
+        },
+        {
+          "href": "/template/nba-all-time-goat",
+          "text": "Rank This",
+          "rel": ""
+        },
+        {
+          "href": "/template/world-football-goats",
+          "text": "Rank This",
+          "rel": ""
+        },
+        {
+          "href": "/template/ai-models-and-tools-2026",
+          "text": "Rank This",
+          "rel": ""
+        },
+        {
+          "href": "/template/programming-languages-meta",
+          "text": "Rank This",
+          "rel": ""
+        },
+        {
+          "href": "/template/gta-franchise-games",
+          "text": "Rank This",
+          "rel": ""
+        },
+        {
+          "href": "/template/energy-drinks-showdown",
+          "text": "Rank This",
+          "rel": ""
+        },
+        {
+          "href": "#trending",
+          "text": "Explore All Templates →",
+          "rel": ""
+        },
+        {
+          "href": "/template/mcu-movies",
+          "text": "Rank & Challenge This Consensus",
+          "rel": ""
+        },
+        {
+          "href": "/template/mcu-movies",
+          "text": "Submit First Ranking",
+          "rel": ""
+        },
+        {
+          "href": "/categories/gaming",
+          "text": "🎮 Gaming Explore templates →",
+          "rel": ""
+        },
+        {
+          "href": "/categories/anime",
+          "text": "🎌 Anime & Manga Explore templates →",
+          "rel": ""
+        },
+        {
+          "href": "/categories/food",
+          "text": "🍔 Food & Drinks Explore templates →",
+          "rel": ""
+        },
+        {
+          "href": "/categories/movies",
+          "text": "🎬 Movies & TV Explore templates →",
+          "rel": ""
+        },
+        {
+          "href": "/categories/music",
+          "text": "🎵 Music & Albums Explore templates →",
+          "rel": ""
+        },
+        {
+          "href": "/categories/sports",
+          "text": "⚽ Sports Explore templates →",
+          "rel": ""
+        },
+        {
+          "href": "/categories/pop-culture",
+          "text": "⚡ Pop Culture & Tech Explore templates →",
+          "rel": ""
+        },
+        {
+          "href": "/create",
+          "text": "Start Making a Tier List Now",
+          "rel": ""
+        },
+        {
+          "href": "/",
+          "text": "Tier List Maker",
+          "rel": ""
+        },
+        {
+          "href": "/create",
+          "text": "Free Tier List Maker",
+          "rel": ""
+        },
+        {
+          "href": "/tiermaker-alternative",
+          "text": "TierMaker Alternative",
+          "rel": ""
+        },
+        {
+          "href": "/versus",
+          "text": "Versus Arena",
+          "rel": ""
+        },
+        {
+          "href": "/#trending",
+          "text": "Explore Templates",
+          "rel": ""
+        },
+        {
+          "href": "/#feed",
+          "text": "Community Rankings",
+          "rel": ""
+        },
+        {
+          "href": "/categories/gaming",
+          "text": "Gaming Tier Lists",
+          "rel": ""
+        },
+        {
+          "href": "/categories/anime",
+          "text": "Anime & Manga",
+          "rel": ""
+        },
+        {
+          "href": "/categories/food",
+          "text": "Food & Fast Food",
+          "rel": ""
+        },
+        {
+          "href": "/categories/movies",
+          "text": "MCU & Movies",
+          "rel": ""
+        },
+        {
+          "href": "/my-projects",
+          "text": "My Projects",
+          "rel": ""
+        },
+        {
+          "href": "/terms",
+          "text": "Terms",
+          "rel": ""
+        },
+        {
+          "href": "/copyright",
+          "text": "Copyright",
+          "rel": ""
+        },
+        {
+          "href": "/privacy",
+          "text": "Privacy",
+          "rel": ""
+        },
+        {
+          "href": "/about",
+          "text": "About",
+          "rel": ""
+        },
+        {
+          "href": "/contact",
+          "text": "Contact & report",
+          "rel": ""
+        }
+      ],
+      "schemaTypes": [
+        "WebApplication",
+        "FAQPage"
+      ],
+      "htmlBytes": 129046,
+      "responseMs": 779,
+      "inboundPages": 34
+    },
+    {
+      "path": "/tiermaker-alternative",
+      "status": 200,
+      "title": "A Free TierMaker Alternative for Creators | Tier List Maker",
+      "description": "Explore Tier List Maker: local drafts, text and image ranking, presentation mode, and image or video exports.",
+      "canonical": "https://tierlistmaker.app/tiermaker-alternative",
+      "ogTitle": "Free Tier List Maker — Create, Rank & Share",
+      "h1": [
+        "Looking for a TierMaker alternative?"
+      ],
+      "links": [
+        {
+          "href": "/",
+          "text": "Tier List Maker",
+          "rel": ""
+        },
+        {
+          "href": "/#trending",
+          "text": "Templates",
+          "rel": ""
+        },
+        {
+          "href": "/#categories",
+          "text": "Categories",
+          "rel": ""
+        },
+        {
+          "href": "/my-projects",
+          "text": "My Projects",
+          "rel": ""
+        },
+        {
+          "href": "/versus",
+          "text": "Versus",
+          "rel": ""
+        },
+        {
+          "href": "/create",
+          "text": "Rank Now",
+          "rel": ""
+        },
+        {
+          "href": "/user/Creator",
+          "text": "",
+          "rel": ""
+        },
+        {
+          "href": "/",
+          "text": "Home",
+          "rel": ""
+        },
+        {
+          "href": "/create",
+          "text": "Create a tier list",
+          "rel": ""
+        },
+        {
+          "href": "/",
+          "text": "Tier List Maker",
+          "rel": ""
+        },
+        {
+          "href": "/create",
+          "text": "Free Tier List Maker",
+          "rel": ""
+        },
+        {
+          "href": "/tiermaker-alternative",
+          "text": "TierMaker Alternative",
+          "rel": ""
+        },
+        {
+          "href": "/versus",
+          "text": "Versus Arena",
+          "rel": ""
+        },
+        {
+          "href": "/#trending",
+          "text": "Explore Templates",
+          "rel": ""
+        },
+        {
+          "href": "/#feed",
+          "text": "Community Rankings",
+          "rel": ""
+        },
+        {
+          "href": "/categories/gaming",
+          "text": "Gaming Tier Lists",
+          "rel": ""
+        },
+        {
+          "href": "/categories/anime",
+          "text": "Anime & Manga",
+          "rel": ""
+        },
+        {
+          "href": "/categories/food",
+          "text": "Food & Fast Food",
+          "rel": ""
+        },
+        {
+          "href": "/categories/movies",
+          "text": "MCU & Movies",
+          "rel": ""
+        },
+        {
+          "href": "/my-projects",
+          "text": "My Projects",
+          "rel": ""
+        },
+        {
+          "href": "/terms",
+          "text": "Terms",
+          "rel": ""
+        },
+        {
+          "href": "/copyright",
+          "text": "Copyright",
+          "rel": ""
+        },
+        {
+          "href": "/privacy",
+          "text": "Privacy",
+          "rel": ""
+        },
+        {
+          "href": "/about",
+          "text": "About",
+          "rel": ""
+        },
+        {
+          "href": "/contact",
+          "text": "Contact & report",
+          "rel": ""
+        }
+      ],
+      "schemaTypes": [
+        "WebApplication"
+      ],
+      "htmlBytes": 31893,
+      "responseMs": 649,
+      "inboundPages": 13
+    },
+    {
+      "path": "/about",
+      "status": 200,
+      "title": "About Tier List Maker | Tier List Maker",
+      "description": "Learn about Tier List Maker, operated by HashirK, and how its ranking tools and starter library work.",
+      "canonical": "https://tierlistmaker.app/about",
+      "ogTitle": "Free Tier List Maker — Create, Rank & Share",
+      "h1": [
+        "About Tier List Maker"
+      ],
+      "links": [
+        {
+          "href": "/",
+          "text": "Tier List Maker",
+          "rel": ""
+        },
+        {
+          "href": "/#trending",
+          "text": "Templates",
+          "rel": ""
+        },
+        {
+          "href": "/#categories",
+          "text": "Categories",
+          "rel": ""
+        },
+        {
+          "href": "/my-projects",
+          "text": "My Projects",
+          "rel": ""
+        },
+        {
+          "href": "/versus",
+          "text": "Versus",
+          "rel": ""
+        },
+        {
+          "href": "/create",
+          "text": "Rank Now",
+          "rel": ""
+        },
+        {
+          "href": "/user/Creator",
+          "text": "",
+          "rel": ""
+        },
+        {
+          "href": "/privacy",
+          "text": "privacy policy",
+          "rel": ""
+        },
+        {
+          "href": "/contact",
+          "text": "contact the operator",
+          "rel": ""
+        },
+        {
+          "href": "/",
+          "text": "Tier List Maker",
+          "rel": ""
+        },
+        {
+          "href": "/create",
+          "text": "Free Tier List Maker",
+          "rel": ""
+        },
+        {
+          "href": "/tiermaker-alternative",
+          "text": "TierMaker Alternative",
+          "rel": ""
+        },
+        {
+          "href": "/versus",
+          "text": "Versus Arena",
+          "rel": ""
+        },
+        {
+          "href": "/#trending",
+          "text": "Explore Templates",
+          "rel": ""
+        },
+        {
+          "href": "/#feed",
+          "text": "Community Rankings",
+          "rel": ""
+        },
+        {
+          "href": "/categories/gaming",
+          "text": "Gaming Tier Lists",
+          "rel": ""
+        },
+        {
+          "href": "/categories/anime",
+          "text": "Anime & Manga",
+          "rel": ""
+        },
+        {
+          "href": "/categories/food",
+          "text": "Food & Fast Food",
+          "rel": ""
+        },
+        {
+          "href": "/categories/movies",
+          "text": "MCU & Movies",
+          "rel": ""
+        },
+        {
+          "href": "/my-projects",
+          "text": "My Projects",
+          "rel": ""
+        },
+        {
+          "href": "/terms",
+          "text": "Terms",
+          "rel": ""
+        },
+        {
+          "href": "/copyright",
+          "text": "Copyright",
+          "rel": ""
+        },
+        {
+          "href": "/privacy",
+          "text": "Privacy",
+          "rel": ""
+        },
+        {
+          "href": "/about",
+          "text": "About",
+          "rel": ""
+        },
+        {
+          "href": "/contact",
+          "text": "Contact & report",
+          "rel": ""
+        }
+      ],
+      "schemaTypes": [
+        "WebApplication"
+      ],
+      "htmlBytes": 30033,
+      "responseMs": 552,
+      "inboundPages": 13
+    },
+    {
+      "path": "/contact",
+      "status": 200,
+      "title": "Contact & Report Content | Tier List Maker",
+      "description": "Contact HashirK for Tier List Maker support, feedback, privacy requests, or reports about published content.",
+      "canonical": "https://tierlistmaker.app/contact",
+      "ogTitle": "Free Tier List Maker — Create, Rank & Share",
+      "h1": [
+        "Contact & report content"
+      ],
+      "links": [
+        {
+          "href": "/",
+          "text": "Tier List Maker",
+          "rel": ""
+        },
+        {
+          "href": "/#trending",
+          "text": "Templates",
+          "rel": ""
+        },
+        {
+          "href": "/#categories",
+          "text": "Categories",
+          "rel": ""
+        },
+        {
+          "href": "/my-projects",
+          "text": "My Projects",
+          "rel": ""
+        },
+        {
+          "href": "/versus",
+          "text": "Versus",
+          "rel": ""
+        },
+        {
+          "href": "/create",
+          "text": "Rank Now",
+          "rel": ""
+        },
+        {
+          "href": "/user/Creator",
+          "text": "",
+          "rel": ""
+        },
+        {
+          "href": "mailto:Hello@hashirk.com",
+          "text": "Hello@hashirk.com",
+          "rel": ""
+        },
+        {
+          "href": "mailto:Hello@hashirk.com?subject=Tier%20List%20Maker%20content%20report",
+          "text": "Compose a content report",
+          "rel": ""
+        },
+        {
+          "href": "/privacy",
+          "text": "privacy policy",
+          "rel": ""
+        },
+        {
+          "href": "/copyright",
+          "text": "copyright reporting page",
+          "rel": ""
+        },
+        {
+          "href": "/",
+          "text": "Tier List Maker",
+          "rel": ""
+        },
+        {
+          "href": "/create",
+          "text": "Free Tier List Maker",
+          "rel": ""
+        },
+        {
+          "href": "/tiermaker-alternative",
+          "text": "TierMaker Alternative",
+          "rel": ""
+        },
+        {
+          "href": "/versus",
+          "text": "Versus Arena",
+          "rel": ""
+        },
+        {
+          "href": "/#trending",
+          "text": "Explore Templates",
+          "rel": ""
+        },
+        {
+          "href": "/#feed",
+          "text": "Community Rankings",
+          "rel": ""
+        },
+        {
+          "href": "/categories/gaming",
+          "text": "Gaming Tier Lists",
+          "rel": ""
+        },
+        {
+          "href": "/categories/anime",
+          "text": "Anime & Manga",
+          "rel": ""
+        },
+        {
+          "href": "/categories/food",
+          "text": "Food & Fast Food",
+          "rel": ""
+        },
+        {
+          "href": "/categories/movies",
+          "text": "MCU & Movies",
+          "rel": ""
+        },
+        {
+          "href": "/my-projects",
+          "text": "My Projects",
+          "rel": ""
+        },
+        {
+          "href": "/terms",
+          "text": "Terms",
+          "rel": ""
+        },
+        {
+          "href": "/copyright",
+          "text": "Copyright",
+          "rel": ""
+        },
+        {
+          "href": "/privacy",
+          "text": "Privacy",
+          "rel": ""
+        },
+        {
+          "href": "/about",
+          "text": "About",
+          "rel": ""
+        },
+        {
+          "href": "/contact",
+          "text": "Contact & report",
+          "rel": ""
+        }
+      ],
+      "schemaTypes": [
+        "WebApplication"
+      ],
+      "htmlBytes": 29606,
+      "responseMs": 544,
+      "inboundPages": 34
+    },
+    {
+      "path": "/privacy",
+      "status": 200,
+      "title": "Privacy Policy | Tier List Maker",
+      "description": "How Tier List Maker stores local drafts, anonymous sessions, uploaded images, and publicly published content.",
+      "canonical": "https://tierlistmaker.app/privacy",
+      "ogTitle": "Free Tier List Maker — Create, Rank & Share",
+      "h1": [
+        "Privacy policy"
+      ],
+      "links": [
+        {
+          "href": "/",
+          "text": "Tier List Maker",
+          "rel": ""
+        },
+        {
+          "href": "/#trending",
+          "text": "Templates",
+          "rel": ""
+        },
+        {
+          "href": "/#categories",
+          "text": "Categories",
+          "rel": ""
+        },
+        {
+          "href": "/my-projects",
+          "text": "My Projects",
+          "rel": ""
+        },
+        {
+          "href": "/versus",
+          "text": "Versus",
+          "rel": ""
+        },
+        {
+          "href": "/create",
+          "text": "Rank Now",
+          "rel": ""
+        },
+        {
+          "href": "/user/Creator",
+          "text": "",
+          "rel": ""
+        },
+        {
+          "href": "mailto:Hello@hashirk.com",
+          "text": "Hello@hashirk.com",
+          "rel": ""
+        },
+        {
+          "href": "/",
+          "text": "Tier List Maker",
+          "rel": ""
+        },
+        {
+          "href": "/create",
+          "text": "Free Tier List Maker",
+          "rel": ""
+        },
+        {
+          "href": "/tiermaker-alternative",
+          "text": "TierMaker Alternative",
+          "rel": ""
+        },
+        {
+          "href": "/versus",
+          "text": "Versus Arena",
+          "rel": ""
+        },
+        {
+          "href": "/#trending",
+          "text": "Explore Templates",
+          "rel": ""
+        },
+        {
+          "href": "/#feed",
+          "text": "Community Rankings",
+          "rel": ""
+        },
+        {
+          "href": "/categories/gaming",
+          "text": "Gaming Tier Lists",
+          "rel": ""
+        },
+        {
+          "href": "/categories/anime",
+          "text": "Anime & Manga",
+          "rel": ""
+        },
+        {
+          "href": "/categories/food",
+          "text": "Food & Fast Food",
+          "rel": ""
+        },
+        {
+          "href": "/categories/movies",
+          "text": "MCU & Movies",
+          "rel": ""
+        },
+        {
+          "href": "/my-projects",
+          "text": "My Projects",
+          "rel": ""
+        },
+        {
+          "href": "/terms",
+          "text": "Terms",
+          "rel": ""
+        },
+        {
+          "href": "/copyright",
+          "text": "Copyright",
+          "rel": ""
+        },
+        {
+          "href": "/privacy",
+          "text": "Privacy",
+          "rel": ""
+        },
+        {
+          "href": "/about",
+          "text": "About",
+          "rel": ""
+        },
+        {
+          "href": "/contact",
+          "text": "Contact & report",
+          "rel": ""
+        }
+      ],
+      "schemaTypes": [
+        "WebApplication"
+      ],
+      "htmlBytes": 31749,
+      "responseMs": 635,
+      "inboundPages": 13
+    },
+    {
+      "path": "/terms",
+      "status": 200,
+      "title": "Terms of Use | Tier List Maker",
+      "description": "Tier List Maker terms covering permitted use, user content, public publishing, exports, and moderation.",
+      "canonical": "https://tierlistmaker.app/terms",
+      "ogTitle": "Free Tier List Maker — Create, Rank & Share",
+      "h1": [
+        "Terms of use"
+      ],
+      "links": [
+        {
+          "href": "/",
+          "text": "Tier List Maker",
+          "rel": ""
+        },
+        {
+          "href": "/#trending",
+          "text": "Templates",
+          "rel": ""
+        },
+        {
+          "href": "/#categories",
+          "text": "Categories",
+          "rel": ""
+        },
+        {
+          "href": "/my-projects",
+          "text": "My Projects",
+          "rel": ""
+        },
+        {
+          "href": "/versus",
+          "text": "Versus",
+          "rel": ""
+        },
+        {
+          "href": "/create",
+          "text": "Rank Now",
+          "rel": ""
+        },
+        {
+          "href": "/user/Creator",
+          "text": "",
+          "rel": ""
+        },
+        {
+          "href": "/contact",
+          "text": "contact page",
+          "rel": ""
+        },
+        {
+          "href": "mailto:Hello@hashirk.com",
+          "text": "Hello@hashirk.com",
+          "rel": ""
+        },
+        {
+          "href": "/",
+          "text": "Tier List Maker",
+          "rel": ""
+        },
+        {
+          "href": "/create",
+          "text": "Free Tier List Maker",
+          "rel": ""
+        },
+        {
+          "href": "/tiermaker-alternative",
+          "text": "TierMaker Alternative",
+          "rel": ""
+        },
+        {
+          "href": "/versus",
+          "text": "Versus Arena",
+          "rel": ""
+        },
+        {
+          "href": "/#trending",
+          "text": "Explore Templates",
+          "rel": ""
+        },
+        {
+          "href": "/#feed",
+          "text": "Community Rankings",
+          "rel": ""
+        },
+        {
+          "href": "/categories/gaming",
+          "text": "Gaming Tier Lists",
+          "rel": ""
+        },
+        {
+          "href": "/categories/anime",
+          "text": "Anime & Manga",
+          "rel": ""
+        },
+        {
+          "href": "/categories/food",
+          "text": "Food & Fast Food",
+          "rel": ""
+        },
+        {
+          "href": "/categories/movies",
+          "text": "MCU & Movies",
+          "rel": ""
+        },
+        {
+          "href": "/my-projects",
+          "text": "My Projects",
+          "rel": ""
+        },
+        {
+          "href": "/terms",
+          "text": "Terms",
+          "rel": ""
+        },
+        {
+          "href": "/copyright",
+          "text": "Copyright",
+          "rel": ""
+        },
+        {
+          "href": "/privacy",
+          "text": "Privacy",
+          "rel": ""
+        },
+        {
+          "href": "/about",
+          "text": "About",
+          "rel": ""
+        },
+        {
+          "href": "/contact",
+          "text": "Contact & report",
+          "rel": ""
+        }
+      ],
+      "schemaTypes": [
+        "WebApplication"
+      ],
+      "htmlBytes": 30826,
+      "responseMs": 563,
+      "inboundPages": 13
+    },
+    {
+      "path": "/copyright",
+      "status": 200,
+      "title": "Copyright & Content Removal | Tier List Maker",
+      "description": "How to report copyright concerns about images, templates, rankings, or other content published on Tier List Maker.",
+      "canonical": "https://tierlistmaker.app/copyright",
+      "ogTitle": "Free Tier List Maker — Create, Rank & Share",
+      "h1": [
+        "Copyright & content removal"
+      ],
+      "links": [
+        {
+          "href": "/",
+          "text": "Tier List Maker",
+          "rel": ""
+        },
+        {
+          "href": "/#trending",
+          "text": "Templates",
+          "rel": ""
+        },
+        {
+          "href": "/#categories",
+          "text": "Categories",
+          "rel": ""
+        },
+        {
+          "href": "/my-projects",
+          "text": "My Projects",
+          "rel": ""
+        },
+        {
+          "href": "/versus",
+          "text": "Versus",
+          "rel": ""
+        },
+        {
+          "href": "/create",
+          "text": "Rank Now",
+          "rel": ""
+        },
+        {
+          "href": "/user/Creator",
+          "text": "",
+          "rel": ""
+        },
+        {
+          "href": "mailto:Hello@hashirk.com?subject=Tier%20List%20Maker%20copyright%20report",
+          "text": "Hello@hashirk.com",
+          "rel": ""
+        },
+        {
+          "href": "/",
+          "text": "Tier List Maker",
+          "rel": ""
+        },
+        {
+          "href": "/create",
+          "text": "Free Tier List Maker",
+          "rel": ""
+        },
+        {
+          "href": "/tiermaker-alternative",
+          "text": "TierMaker Alternative",
+          "rel": ""
+        },
+        {
+          "href": "/versus",
+          "text": "Versus Arena",
+          "rel": ""
+        },
+        {
+          "href": "/#trending",
+          "text": "Explore Templates",
+          "rel": ""
+        },
+        {
+          "href": "/#feed",
+          "text": "Community Rankings",
+          "rel": ""
+        },
+        {
+          "href": "/categories/gaming",
+          "text": "Gaming Tier Lists",
+          "rel": ""
+        },
+        {
+          "href": "/categories/anime",
+          "text": "Anime & Manga",
+          "rel": ""
+        },
+        {
+          "href": "/categories/food",
+          "text": "Food & Fast Food",
+          "rel": ""
+        },
+        {
+          "href": "/categories/movies",
+          "text": "MCU & Movies",
+          "rel": ""
+        },
+        {
+          "href": "/my-projects",
+          "text": "My Projects",
+          "rel": ""
+        },
+        {
+          "href": "/terms",
+          "text": "Terms",
+          "rel": ""
+        },
+        {
+          "href": "/copyright",
+          "text": "Copyright",
+          "rel": ""
+        },
+        {
+          "href": "/privacy",
+          "text": "Privacy",
+          "rel": ""
+        },
+        {
+          "href": "/about",
+          "text": "About",
+          "rel": ""
+        },
+        {
+          "href": "/contact",
+          "text": "Contact & report",
+          "rel": ""
+        }
+      ],
+      "schemaTypes": [
+        "WebApplication"
+      ],
+      "htmlBytes": 29105,
+      "responseMs": 581,
+      "inboundPages": 13
+    },
+    {
+      "path": "/categories/gaming",
+      "status": 200,
+      "title": "Gaming Tier List Maker — Free Templates & Community Rankings | Tier List Maker",
+      "description": "Create and rank gaming tier lists online for free. Browse gaming starter and community templates, compare against crowd consensus, and export 4K PNGs or TikTok reveal videos with zero watermarks.",
+      "canonical": "https://tierlistmaker.app/categories/gaming",
+      "ogTitle": "Gaming Tier List Maker — Free Templates & Community Rankings | Tier List Maker",
+      "h1": [
+        "Gaming Tier List Maker & Templates"
+      ],
+      "links": [
+        {
+          "href": "/",
+          "text": "Tier List Maker",
+          "rel": ""
+        },
+        {
+          "href": "/#trending",
+          "text": "Templates",
+          "rel": ""
+        },
+        {
+          "href": "/#categories",
+          "text": "Categories",
+          "rel": ""
+        },
+        {
+          "href": "/my-projects",
+          "text": "My Projects",
+          "rel": ""
+        },
+        {
+          "href": "/versus",
+          "text": "Versus",
+          "rel": ""
+        },
+        {
+          "href": "/create",
+          "text": "Rank Now",
+          "rel": ""
+        },
+        {
+          "href": "/user/Creator",
+          "text": "",
+          "rel": ""
+        },
+        {
+          "href": "/",
+          "text": "Home",
+          "rel": ""
+        },
+        {
+          "href": "/#categories",
+          "text": "Categories",
+          "rel": ""
+        },
+        {
+          "href": "/create",
+          "text": "Create Custom Tier List",
+          "rel": ""
+        },
+        {
+          "href": "/categories/anime",
+          "text": "🎌 Anime & Manga",
+          "rel": ""
+        },
+        {
+          "href": "/categories/food",
+          "text": "🍔 Food & Drinks",
+          "rel": ""
+        },
+        {
+          "href": "/categories/movies",
+          "text": "🎬 Movies & TV",
+          "rel": ""
+        },
+        {
+          "href": "/categories/music",
+          "text": "🎵 Music & Albums",
+          "rel": ""
+        },
+        {
+          "href": "/categories/sports",
+          "text": "⚽ Sports",
+          "rel": ""
+        },
+        {
+          "href": "/categories/pop-culture",
+          "text": "⚡ Pop Culture & Tech",
+          "rel": ""
+        },
+        {
+          "href": "/",
+          "text": "Tier List Maker",
+          "rel": ""
+        },
+        {
+          "href": "/create",
+          "text": "Free Tier List Maker",
+          "rel": ""
+        },
+        {
+          "href": "/tiermaker-alternative",
+          "text": "TierMaker Alternative",
+          "rel": ""
+        },
+        {
+          "href": "/versus",
+          "text": "Versus Arena",
+          "rel": ""
+        },
+        {
+          "href": "/#trending",
+          "text": "Explore Templates",
+          "rel": ""
+        },
+        {
+          "href": "/#feed",
+          "text": "Community Rankings",
+          "rel": ""
+        },
+        {
+          "href": "/categories/gaming",
+          "text": "Gaming Tier Lists",
+          "rel": ""
+        },
+        {
+          "href": "/categories/anime",
+          "text": "Anime & Manga",
+          "rel": ""
+        },
+        {
+          "href": "/categories/food",
+          "text": "Food & Fast Food",
+          "rel": ""
+        },
+        {
+          "href": "/categories/movies",
+          "text": "MCU & Movies",
+          "rel": ""
+        },
+        {
+          "href": "/my-projects",
+          "text": "My Projects",
+          "rel": ""
+        },
+        {
+          "href": "/terms",
+          "text": "Terms",
+          "rel": ""
+        },
+        {
+          "href": "/copyright",
+          "text": "Copyright",
+          "rel": ""
+        },
+        {
+          "href": "/privacy",
+          "text": "Privacy",
+          "rel": ""
+        },
+        {
+          "href": "/about",
+          "text": "About",
+          "rel": ""
+        },
+        {
+          "href": "/contact",
+          "text": "Contact & report",
+          "rel": ""
+        },
+        {
+          "href": "/template/gta-franchise-games",
+          "text": "Rank This",
+          "rel": ""
+        },
+        {
+          "href": "/template/roblox-games",
+          "text": "Rank This",
+          "rel": ""
+        },
+        {
+          "href": "/template/valorant-agents-meta-tier-list",
+          "text": "Rank This",
+          "rel": ""
+        },
+        {
+          "href": "/template/pokemon-starters-all-gens",
+          "text": "Rank This",
+          "rel": ""
+        },
+        {
+          "href": "/template/template-98mf",
+          "text": "Rank This",
+          "rel": ""
+        },
+        {
+          "href": "/template/elden-ring-bosses",
+          "text": "Rank This",
+          "rel": ""
+        }
+      ],
+      "schemaTypes": [
+        "WebApplication",
+        "BreadcrumbList",
+        "CollectionPage"
+      ],
+      "htmlBytes": 103737,
+      "responseMs": 14860,
+      "inboundPages": 19
+    },
+    {
+      "path": "/categories/anime",
+      "status": 200,
+      "title": "Anime & Manga Tier List Maker — Free Templates & Community Rankings | Tier List Maker",
+      "description": "Create and rank anime & manga tier lists online for free. Browse anime & manga starter and community templates, compare against crowd consensus, and export 4K PNGs or TikTok reveal videos with zero watermarks.",
+      "canonical": "https://tierlistmaker.app/categories/anime",
+      "ogTitle": "Anime & Manga Tier List Maker — Free Templates & Community Rankings | Tier List Maker",
+      "h1": [
+        "Anime & Manga Tier List Maker & Templates"
+      ],
+      "links": [
+        {
+          "href": "/",
+          "text": "Tier List Maker",
+          "rel": ""
+        },
+        {
+          "href": "/#trending",
+          "text": "Templates",
+          "rel": ""
+        },
+        {
+          "href": "/#categories",
+          "text": "Categories",
+          "rel": ""
+        },
+        {
+          "href": "/my-projects",
+          "text": "My Projects",
+          "rel": ""
+        },
+        {
+          "href": "/versus",
+          "text": "Versus",
+          "rel": ""
+        },
+        {
+          "href": "/create",
+          "text": "Rank Now",
+          "rel": ""
+        },
+        {
+          "href": "/user/Creator",
+          "text": "",
+          "rel": ""
+        },
+        {
+          "href": "/",
+          "text": "Home",
+          "rel": ""
+        },
+        {
+          "href": "/#categories",
+          "text": "Categories",
+          "rel": ""
+        },
+        {
+          "href": "/create",
+          "text": "Create Custom Tier List",
+          "rel": ""
+        },
+        {
+          "href": "/categories/gaming",
+          "text": "🎮 Gaming",
+          "rel": ""
+        },
+        {
+          "href": "/categories/food",
+          "text": "🍔 Food & Drinks",
+          "rel": ""
+        },
+        {
+          "href": "/categories/movies",
+          "text": "🎬 Movies & TV",
+          "rel": ""
+        },
+        {
+          "href": "/categories/music",
+          "text": "🎵 Music & Albums",
+          "rel": ""
+        },
+        {
+          "href": "/categories/sports",
+          "text": "⚽ Sports",
+          "rel": ""
+        },
+        {
+          "href": "/categories/pop-culture",
+          "text": "⚡ Pop Culture & Tech",
+          "rel": ""
+        },
+        {
+          "href": "/",
+          "text": "Tier List Maker",
+          "rel": ""
+        },
+        {
+          "href": "/create",
+          "text": "Free Tier List Maker",
+          "rel": ""
+        },
+        {
+          "href": "/tiermaker-alternative",
+          "text": "TierMaker Alternative",
+          "rel": ""
+        },
+        {
+          "href": "/versus",
+          "text": "Versus Arena",
+          "rel": ""
+        },
+        {
+          "href": "/#trending",
+          "text": "Explore Templates",
+          "rel": ""
+        },
+        {
+          "href": "/#feed",
+          "text": "Community Rankings",
+          "rel": ""
+        },
+        {
+          "href": "/categories/gaming",
+          "text": "Gaming Tier Lists",
+          "rel": ""
+        },
+        {
+          "href": "/categories/anime",
+          "text": "Anime & Manga",
+          "rel": ""
+        },
+        {
+          "href": "/categories/food",
+          "text": "Food & Fast Food",
+          "rel": ""
+        },
+        {
+          "href": "/categories/movies",
+          "text": "MCU & Movies",
+          "rel": ""
+        },
+        {
+          "href": "/my-projects",
+          "text": "My Projects",
+          "rel": ""
+        },
+        {
+          "href": "/terms",
+          "text": "Terms",
+          "rel": ""
+        },
+        {
+          "href": "/copyright",
+          "text": "Copyright",
+          "rel": ""
+        },
+        {
+          "href": "/privacy",
+          "text": "Privacy",
+          "rel": ""
+        },
+        {
+          "href": "/about",
+          "text": "About",
+          "rel": ""
+        },
+        {
+          "href": "/contact",
+          "text": "Contact & report",
+          "rel": ""
+        },
+        {
+          "href": "/template/one-piece-characters-tier-list",
+          "text": "Rank This",
+          "rel": ""
+        },
+        {
+          "href": "/template/naruto-shippuden-characters-tier-list",
+          "text": "Rank This",
+          "rel": ""
+        },
+        {
+          "href": "/template/jujutsu-kaisen-characters-tier-list",
+          "text": "Rank This",
+          "rel": ""
+        },
+        {
+          "href": "/template/modern-shonen-anime",
+          "text": "Rank This",
+          "rel": ""
+        },
+        {
+          "href": "/template/attack-on-titan-characters-tier-list",
+          "text": "Rank This",
+          "rel": ""
+        }
+      ],
+      "schemaTypes": [
+        "WebApplication",
+        "BreadcrumbList",
+        "CollectionPage"
+      ],
+      "htmlBytes": 92124,
+      "responseMs": 579,
+      "inboundPages": 18
+    },
+    {
+      "path": "/categories/food",
+      "status": 200,
+      "title": "Food & Drinks Tier List Maker — Free Templates & Community Rankings | Tier List Maker",
+      "description": "Create and rank food & drinks tier lists online for free. Browse food & drinks starter and community templates, compare against crowd consensus, and export 4K PNGs or TikTok reveal videos with zero watermarks.",
+      "canonical": "https://tierlistmaker.app/categories/food",
+      "ogTitle": "Food & Drinks Tier List Maker — Free Templates & Community Rankings | Tier List Maker",
+      "h1": [
+        "Food & Drinks Tier List Maker & Templates"
+      ],
+      "links": [
+        {
+          "href": "/",
+          "text": "Tier List Maker",
+          "rel": ""
+        },
+        {
+          "href": "/#trending",
+          "text": "Templates",
+          "rel": ""
+        },
+        {
+          "href": "/#categories",
+          "text": "Categories",
+          "rel": ""
+        },
+        {
+          "href": "/my-projects",
+          "text": "My Projects",
+          "rel": ""
+        },
+        {
+          "href": "/versus",
+          "text": "Versus",
+          "rel": ""
+        },
+        {
+          "href": "/create",
+          "text": "Rank Now",
+          "rel": ""
+        },
+        {
+          "href": "/user/Creator",
+          "text": "",
+          "rel": ""
+        },
+        {
+          "href": "/",
+          "text": "Home",
+          "rel": ""
+        },
+        {
+          "href": "/#categories",
+          "text": "Categories",
+          "rel": ""
+        },
+        {
+          "href": "/create",
+          "text": "Create Custom Tier List",
+          "rel": ""
+        },
+        {
+          "href": "/categories/gaming",
+          "text": "🎮 Gaming",
+          "rel": ""
+        },
+        {
+          "href": "/categories/anime",
+          "text": "🎌 Anime & Manga",
+          "rel": ""
+        },
+        {
+          "href": "/categories/movies",
+          "text": "🎬 Movies & TV",
+          "rel": ""
+        },
+        {
+          "href": "/categories/music",
+          "text": "🎵 Music & Albums",
+          "rel": ""
+        },
+        {
+          "href": "/categories/sports",
+          "text": "⚽ Sports",
+          "rel": ""
+        },
+        {
+          "href": "/categories/pop-culture",
+          "text": "⚡ Pop Culture & Tech",
+          "rel": ""
+        },
+        {
+          "href": "/",
+          "text": "Tier List Maker",
+          "rel": ""
+        },
+        {
+          "href": "/create",
+          "text": "Free Tier List Maker",
+          "rel": ""
+        },
+        {
+          "href": "/tiermaker-alternative",
+          "text": "TierMaker Alternative",
+          "rel": ""
+        },
+        {
+          "href": "/versus",
+          "text": "Versus Arena",
+          "rel": ""
+        },
+        {
+          "href": "/#trending",
+          "text": "Explore Templates",
+          "rel": ""
+        },
+        {
+          "href": "/#feed",
+          "text": "Community Rankings",
+          "rel": ""
+        },
+        {
+          "href": "/categories/gaming",
+          "text": "Gaming Tier Lists",
+          "rel": ""
+        },
+        {
+          "href": "/categories/anime",
+          "text": "Anime & Manga",
+          "rel": ""
+        },
+        {
+          "href": "/categories/food",
+          "text": "Food & Fast Food",
+          "rel": ""
+        },
+        {
+          "href": "/categories/movies",
+          "text": "MCU & Movies",
+          "rel": ""
+        },
+        {
+          "href": "/my-projects",
+          "text": "My Projects",
+          "rel": ""
+        },
+        {
+          "href": "/terms",
+          "text": "Terms",
+          "rel": ""
+        },
+        {
+          "href": "/copyright",
+          "text": "Copyright",
+          "rel": ""
+        },
+        {
+          "href": "/privacy",
+          "text": "Privacy",
+          "rel": ""
+        },
+        {
+          "href": "/about",
+          "text": "About",
+          "rel": ""
+        },
+        {
+          "href": "/contact",
+          "text": "Contact & report",
+          "rel": ""
+        },
+        {
+          "href": "/template/fast-food-fries",
+          "text": "Rank This",
+          "rel": ""
+        },
+        {
+          "href": "/template/energy-drinks-showdown",
+          "text": "Rank This",
+          "rel": ""
+        }
+      ],
+      "schemaTypes": [
+        "WebApplication",
+        "BreadcrumbList",
+        "CollectionPage"
+      ],
+      "htmlBytes": 68251,
+      "responseMs": 4554,
+      "inboundPages": 15
+    },
+    {
+      "path": "/categories/movies",
+      "status": 200,
+      "title": "Movies & TV Tier List Maker — Free Templates & Community Rankings | Tier List Maker",
+      "description": "Create and rank movies & tv tier lists online for free. Browse movies & tv starter and community templates, compare against crowd consensus, and export 4K PNGs or TikTok reveal videos with zero watermarks.",
+      "canonical": "https://tierlistmaker.app/categories/movies",
+      "ogTitle": "Movies & TV Tier List Maker — Free Templates & Community Rankings | Tier List Maker",
+      "h1": [
+        "Movies & TV Tier List Maker & Templates"
+      ],
+      "links": [
+        {
+          "href": "/",
+          "text": "Tier List Maker",
+          "rel": ""
+        },
+        {
+          "href": "/#trending",
+          "text": "Templates",
+          "rel": ""
+        },
+        {
+          "href": "/#categories",
+          "text": "Categories",
+          "rel": ""
+        },
+        {
+          "href": "/my-projects",
+          "text": "My Projects",
+          "rel": ""
+        },
+        {
+          "href": "/versus",
+          "text": "Versus",
+          "rel": ""
+        },
+        {
+          "href": "/create",
+          "text": "Rank Now",
+          "rel": ""
+        },
+        {
+          "href": "/user/Creator",
+          "text": "",
+          "rel": ""
+        },
+        {
+          "href": "/",
+          "text": "Home",
+          "rel": ""
+        },
+        {
+          "href": "/#categories",
+          "text": "Categories",
+          "rel": ""
+        },
+        {
+          "href": "/create",
+          "text": "Create Custom Tier List",
+          "rel": ""
+        },
+        {
+          "href": "/categories/gaming",
+          "text": "🎮 Gaming",
+          "rel": ""
+        },
+        {
+          "href": "/categories/anime",
+          "text": "🎌 Anime & Manga",
+          "rel": ""
+        },
+        {
+          "href": "/categories/food",
+          "text": "🍔 Food & Drinks",
+          "rel": ""
+        },
+        {
+          "href": "/categories/music",
+          "text": "🎵 Music & Albums",
+          "rel": ""
+        },
+        {
+          "href": "/categories/sports",
+          "text": "⚽ Sports",
+          "rel": ""
+        },
+        {
+          "href": "/categories/pop-culture",
+          "text": "⚡ Pop Culture & Tech",
+          "rel": ""
+        },
+        {
+          "href": "/",
+          "text": "Tier List Maker",
+          "rel": ""
+        },
+        {
+          "href": "/create",
+          "text": "Free Tier List Maker",
+          "rel": ""
+        },
+        {
+          "href": "/tiermaker-alternative",
+          "text": "TierMaker Alternative",
+          "rel": ""
+        },
+        {
+          "href": "/versus",
+          "text": "Versus Arena",
+          "rel": ""
+        },
+        {
+          "href": "/#trending",
+          "text": "Explore Templates",
+          "rel": ""
+        },
+        {
+          "href": "/#feed",
+          "text": "Community Rankings",
+          "rel": ""
+        },
+        {
+          "href": "/categories/gaming",
+          "text": "Gaming Tier Lists",
+          "rel": ""
+        },
+        {
+          "href": "/categories/anime",
+          "text": "Anime & Manga",
+          "rel": ""
+        },
+        {
+          "href": "/categories/food",
+          "text": "Food & Fast Food",
+          "rel": ""
+        },
+        {
+          "href": "/categories/movies",
+          "text": "MCU & Movies",
+          "rel": ""
+        },
+        {
+          "href": "/my-projects",
+          "text": "My Projects",
+          "rel": ""
+        },
+        {
+          "href": "/terms",
+          "text": "Terms",
+          "rel": ""
+        },
+        {
+          "href": "/copyright",
+          "text": "Copyright",
+          "rel": ""
+        },
+        {
+          "href": "/privacy",
+          "text": "Privacy",
+          "rel": ""
+        },
+        {
+          "href": "/about",
+          "text": "About",
+          "rel": ""
+        },
+        {
+          "href": "/contact",
+          "text": "Contact & report",
+          "rel": ""
+        },
+        {
+          "href": "/template/mcu-movies",
+          "text": "Rank This",
+          "rel": ""
+        }
+      ],
+      "schemaTypes": [
+        "WebApplication",
+        "BreadcrumbList",
+        "CollectionPage"
+      ],
+      "htmlBytes": 60329,
+      "responseMs": 552,
+      "inboundPages": 14
+    },
+    {
+      "path": "/categories/music",
+      "status": 200,
+      "title": "Music & Albums Tier List Maker — Free Templates & Community Rankings | Tier List Maker",
+      "description": "Create and rank music & albums tier lists online for free. Browse music & albums starter and community templates, compare against crowd consensus, and export 4K PNGs or TikTok reveal videos with zero watermarks.",
+      "canonical": "https://tierlistmaker.app/categories/music",
+      "ogTitle": "Music & Albums Tier List Maker — Free Templates & Community Rankings | Tier List Maker",
+      "h1": [
+        "Music & Albums Tier List Maker & Templates"
+      ],
+      "links": [
+        {
+          "href": "/",
+          "text": "Tier List Maker",
+          "rel": ""
+        },
+        {
+          "href": "/#trending",
+          "text": "Templates",
+          "rel": ""
+        },
+        {
+          "href": "/#categories",
+          "text": "Categories",
+          "rel": ""
+        },
+        {
+          "href": "/my-projects",
+          "text": "My Projects",
+          "rel": ""
+        },
+        {
+          "href": "/versus",
+          "text": "Versus",
+          "rel": ""
+        },
+        {
+          "href": "/create",
+          "text": "Rank Now",
+          "rel": ""
+        },
+        {
+          "href": "/user/Creator",
+          "text": "",
+          "rel": ""
+        },
+        {
+          "href": "/",
+          "text": "Home",
+          "rel": ""
+        },
+        {
+          "href": "/#categories",
+          "text": "Categories",
+          "rel": ""
+        },
+        {
+          "href": "/create",
+          "text": "Create Custom Tier List",
+          "rel": ""
+        },
+        {
+          "href": "/categories/gaming",
+          "text": "🎮 Gaming",
+          "rel": ""
+        },
+        {
+          "href": "/categories/anime",
+          "text": "🎌 Anime & Manga",
+          "rel": ""
+        },
+        {
+          "href": "/categories/food",
+          "text": "🍔 Food & Drinks",
+          "rel": ""
+        },
+        {
+          "href": "/categories/movies",
+          "text": "🎬 Movies & TV",
+          "rel": ""
+        },
+        {
+          "href": "/categories/sports",
+          "text": "⚽ Sports",
+          "rel": ""
+        },
+        {
+          "href": "/categories/pop-culture",
+          "text": "⚡ Pop Culture & Tech",
+          "rel": ""
+        },
+        {
+          "href": "/",
+          "text": "Tier List Maker",
+          "rel": ""
+        },
+        {
+          "href": "/create",
+          "text": "Free Tier List Maker",
+          "rel": ""
+        },
+        {
+          "href": "/tiermaker-alternative",
+          "text": "TierMaker Alternative",
+          "rel": ""
+        },
+        {
+          "href": "/versus",
+          "text": "Versus Arena",
+          "rel": ""
+        },
+        {
+          "href": "/#trending",
+          "text": "Explore Templates",
+          "rel": ""
+        },
+        {
+          "href": "/#feed",
+          "text": "Community Rankings",
+          "rel": ""
+        },
+        {
+          "href": "/categories/gaming",
+          "text": "Gaming Tier Lists",
+          "rel": ""
+        },
+        {
+          "href": "/categories/anime",
+          "text": "Anime & Manga",
+          "rel": ""
+        },
+        {
+          "href": "/categories/food",
+          "text": "Food & Fast Food",
+          "rel": ""
+        },
+        {
+          "href": "/categories/movies",
+          "text": "MCU & Movies",
+          "rel": ""
+        },
+        {
+          "href": "/my-projects",
+          "text": "My Projects",
+          "rel": ""
+        },
+        {
+          "href": "/terms",
+          "text": "Terms",
+          "rel": ""
+        },
+        {
+          "href": "/copyright",
+          "text": "Copyright",
+          "rel": ""
+        },
+        {
+          "href": "/privacy",
+          "text": "Privacy",
+          "rel": ""
+        },
+        {
+          "href": "/about",
+          "text": "About",
+          "rel": ""
+        },
+        {
+          "href": "/contact",
+          "text": "Contact & report",
+          "rel": ""
+        },
+        {
+          "href": "/template/hip-hop-2020s",
+          "text": "Rank This",
+          "rel": ""
+        },
+        {
+          "href": "/template/kanye-west-discography-tier-list",
+          "text": "Rank This",
+          "rel": ""
+        },
+        {
+          "href": "/template/taylor-swift-eras-albums-ranked",
+          "text": "Rank This",
+          "rel": ""
+        }
+      ],
+      "schemaTypes": [
+        "WebApplication",
+        "BreadcrumbList",
+        "CollectionPage"
+      ],
+      "htmlBytes": 80156,
+      "responseMs": 589,
+      "inboundPages": 10
+    },
+    {
+      "path": "/categories/sports",
+      "status": 200,
+      "title": "Sports Tier List Maker — Free Templates & Community Rankings | Tier List Maker",
+      "description": "Create and rank sports tier lists online for free. Browse sports starter and community templates, compare against crowd consensus, and export 4K PNGs or TikTok reveal videos with zero watermarks.",
+      "canonical": "https://tierlistmaker.app/categories/sports",
+      "ogTitle": "Sports Tier List Maker — Free Templates & Community Rankings | Tier List Maker",
+      "h1": [
+        "Sports Tier List Maker & Templates"
+      ],
+      "links": [
+        {
+          "href": "/",
+          "text": "Tier List Maker",
+          "rel": ""
+        },
+        {
+          "href": "/#trending",
+          "text": "Templates",
+          "rel": ""
+        },
+        {
+          "href": "/#categories",
+          "text": "Categories",
+          "rel": ""
+        },
+        {
+          "href": "/my-projects",
+          "text": "My Projects",
+          "rel": ""
+        },
+        {
+          "href": "/versus",
+          "text": "Versus",
+          "rel": ""
+        },
+        {
+          "href": "/create",
+          "text": "Rank Now",
+          "rel": ""
+        },
+        {
+          "href": "/user/Creator",
+          "text": "",
+          "rel": ""
+        },
+        {
+          "href": "/",
+          "text": "Home",
+          "rel": ""
+        },
+        {
+          "href": "/#categories",
+          "text": "Categories",
+          "rel": ""
+        },
+        {
+          "href": "/create",
+          "text": "Create Custom Tier List",
+          "rel": ""
+        },
+        {
+          "href": "/categories/gaming",
+          "text": "🎮 Gaming",
+          "rel": ""
+        },
+        {
+          "href": "/categories/anime",
+          "text": "🎌 Anime & Manga",
+          "rel": ""
+        },
+        {
+          "href": "/categories/food",
+          "text": "🍔 Food & Drinks",
+          "rel": ""
+        },
+        {
+          "href": "/categories/movies",
+          "text": "🎬 Movies & TV",
+          "rel": ""
+        },
+        {
+          "href": "/categories/music",
+          "text": "🎵 Music & Albums",
+          "rel": ""
+        },
+        {
+          "href": "/categories/pop-culture",
+          "text": "⚡ Pop Culture & Tech",
+          "rel": ""
+        },
+        {
+          "href": "/",
+          "text": "Tier List Maker",
+          "rel": ""
+        },
+        {
+          "href": "/create",
+          "text": "Free Tier List Maker",
+          "rel": ""
+        },
+        {
+          "href": "/tiermaker-alternative",
+          "text": "TierMaker Alternative",
+          "rel": ""
+        },
+        {
+          "href": "/versus",
+          "text": "Versus Arena",
+          "rel": ""
+        },
+        {
+          "href": "/#trending",
+          "text": "Explore Templates",
+          "rel": ""
+        },
+        {
+          "href": "/#feed",
+          "text": "Community Rankings",
+          "rel": ""
+        },
+        {
+          "href": "/categories/gaming",
+          "text": "Gaming Tier Lists",
+          "rel": ""
+        },
+        {
+          "href": "/categories/anime",
+          "text": "Anime & Manga",
+          "rel": ""
+        },
+        {
+          "href": "/categories/food",
+          "text": "Food & Fast Food",
+          "rel": ""
+        },
+        {
+          "href": "/categories/movies",
+          "text": "MCU & Movies",
+          "rel": ""
+        },
+        {
+          "href": "/my-projects",
+          "text": "My Projects",
+          "rel": ""
+        },
+        {
+          "href": "/terms",
+          "text": "Terms",
+          "rel": ""
+        },
+        {
+          "href": "/copyright",
+          "text": "Copyright",
+          "rel": ""
+        },
+        {
+          "href": "/privacy",
+          "text": "Privacy",
+          "rel": ""
+        },
+        {
+          "href": "/about",
+          "text": "About",
+          "rel": ""
+        },
+        {
+          "href": "/contact",
+          "text": "Contact & report",
+          "rel": ""
+        },
+        {
+          "href": "/template/nba-all-time-goat",
+          "text": "Rank This",
+          "rel": ""
+        },
+        {
+          "href": "/template/world-football-goats",
+          "text": "Rank This",
+          "rel": ""
+        }
+      ],
+      "schemaTypes": [
+        "WebApplication",
+        "BreadcrumbList",
+        "CollectionPage"
+      ],
+      "htmlBytes": 67586,
+      "responseMs": 810,
+      "inboundPages": 9
+    },
+    {
+      "path": "/categories/pop-culture",
+      "status": 200,
+      "title": "Pop Culture & Tech Tier List Maker — Free Templates & Community Rankings | Tier List Maker",
+      "description": "Create and rank pop culture & tech tier lists online for free. Browse pop culture & tech starter and community templates, compare against crowd consensus, and export 4K PNGs or TikTok reveal videos with zero watermarks.",
+      "canonical": "https://tierlistmaker.app/categories/pop-culture",
+      "ogTitle": "Pop Culture & Tech Tier List Maker — Free Templates & Community Rankings | Tier List Maker",
+      "h1": [
+        "Pop Culture & Tech Tier List Maker & Templates"
+      ],
+      "links": [
+        {
+          "href": "/",
+          "text": "Tier List Maker",
+          "rel": ""
+        },
+        {
+          "href": "/#trending",
+          "text": "Templates",
+          "rel": ""
+        },
+        {
+          "href": "/#categories",
+          "text": "Categories",
+          "rel": ""
+        },
+        {
+          "href": "/my-projects",
+          "text": "My Projects",
+          "rel": ""
+        },
+        {
+          "href": "/versus",
+          "text": "Versus",
+          "rel": ""
+        },
+        {
+          "href": "/create",
+          "text": "Rank Now",
+          "rel": ""
+        },
+        {
+          "href": "/user/Creator",
+          "text": "",
+          "rel": ""
+        },
+        {
+          "href": "/",
+          "text": "Home",
+          "rel": ""
+        },
+        {
+          "href": "/#categories",
+          "text": "Categories",
+          "rel": ""
+        },
+        {
+          "href": "/create",
+          "text": "Create Custom Tier List",
+          "rel": ""
+        },
+        {
+          "href": "/categories/gaming",
+          "text": "🎮 Gaming",
+          "rel": ""
+        },
+        {
+          "href": "/categories/anime",
+          "text": "🎌 Anime & Manga",
+          "rel": ""
+        },
+        {
+          "href": "/categories/food",
+          "text": "🍔 Food & Drinks",
+          "rel": ""
+        },
+        {
+          "href": "/categories/movies",
+          "text": "🎬 Movies & TV",
+          "rel": ""
+        },
+        {
+          "href": "/categories/music",
+          "text": "🎵 Music & Albums",
+          "rel": ""
+        },
+        {
+          "href": "/categories/sports",
+          "text": "⚽ Sports",
+          "rel": ""
+        },
+        {
+          "href": "/",
+          "text": "Tier List Maker",
+          "rel": ""
+        },
+        {
+          "href": "/create",
+          "text": "Free Tier List Maker",
+          "rel": ""
+        },
+        {
+          "href": "/tiermaker-alternative",
+          "text": "TierMaker Alternative",
+          "rel": ""
+        },
+        {
+          "href": "/versus",
+          "text": "Versus Arena",
+          "rel": ""
+        },
+        {
+          "href": "/#trending",
+          "text": "Explore Templates",
+          "rel": ""
+        },
+        {
+          "href": "/#feed",
+          "text": "Community Rankings",
+          "rel": ""
+        },
+        {
+          "href": "/categories/gaming",
+          "text": "Gaming Tier Lists",
+          "rel": ""
+        },
+        {
+          "href": "/categories/anime",
+          "text": "Anime & Manga",
+          "rel": ""
+        },
+        {
+          "href": "/categories/food",
+          "text": "Food & Fast Food",
+          "rel": ""
+        },
+        {
+          "href": "/categories/movies",
+          "text": "MCU & Movies",
+          "rel": ""
+        },
+        {
+          "href": "/my-projects",
+          "text": "My Projects",
+          "rel": ""
+        },
+        {
+          "href": "/terms",
+          "text": "Terms",
+          "rel": ""
+        },
+        {
+          "href": "/copyright",
+          "text": "Copyright",
+          "rel": ""
+        },
+        {
+          "href": "/privacy",
+          "text": "Privacy",
+          "rel": ""
+        },
+        {
+          "href": "/about",
+          "text": "About",
+          "rel": ""
+        },
+        {
+          "href": "/contact",
+          "text": "Contact & report",
+          "rel": ""
+        },
+        {
+          "href": "/template/ai-models-and-tools-2026",
+          "text": "Rank This",
+          "rel": ""
+        },
+        {
+          "href": "/template/programming-languages-meta",
+          "text": "Rank This",
+          "rel": ""
+        }
+      ],
+      "schemaTypes": [
+        "WebApplication",
+        "BreadcrumbList",
+        "CollectionPage"
+      ],
+      "htmlBytes": 68293,
+      "responseMs": 570,
+      "inboundPages": 9
+    },
+    {
+      "path": "/template/elden-ring-bosses",
+      "status": 200,
+      "title": "Elden Ring Bosses: Base Game & DLC Selection Tier List Maker & Ranking | Tier List Maker",
+      "description": "Rank Elden Ring Bosses: Base Game & DLC Selection with drag-and-drop tiers. View community consensus, compare similarity, and duel friends on Tier List Maker.",
+      "canonical": "https://tierlistmaker.app/template/elden-ring-bosses",
+      "ogTitle": "Elden Ring Bosses: Base Game & DLC Selection Tier List Maker & Ranking | Tier List Maker",
+      "h1": [],
+      "links": [
+        {
+          "href": "/",
+          "text": "",
+          "rel": ""
+        },
+        {
+          "href": "/",
+          "text": "Home",
+          "rel": ""
+        },
+        {
+          "href": "/categories/gaming",
+          "text": "gaming",
+          "rel": ""
+        },
+        {
+          "href": "/contact",
+          "text": "Report a problem with this template",
+          "rel": ""
+        },
+        {
+          "href": "/template/roblox-games",
+          "text": "10 items • gaming Roblox Games: 10-Game Starter Selection Rank a selection of 10 Roblox games, including Blox Fruits, Brookhaven, and Doors. This is not a live player-count chart. Rank this template",
+          "rel": ""
+        },
+        {
+          "href": "/template/gta-franchise-games",
+          "text": "10 items • gaming GTA Games: 10-Game Selection Rank 10 selected Grand Theft Auto releases, including GTA III, Vice City, San Andreas, GTA IV, and GTA V. Rank this template",
+          "rel": ""
+        }
+      ],
+      "schemaTypes": [
+        "WebApplication",
+        "BreadcrumbList",
+        "ItemList"
+      ],
+      "htmlBytes": 109506,
+      "responseMs": 1332,
+      "inboundPages": 7
+    },
+    {
+      "path": "/template/mcu-movies",
+      "status": 200,
+      "title": "MCU Movies: 10-Film Starter Selection Tier List Maker & Ranking | Tier List Maker",
+      "description": "Rank MCU Movies: 10-Film Starter Selection with drag-and-drop tiers. View community consensus, compare similarity, and duel friends on Tier List Maker.",
+      "canonical": "https://tierlistmaker.app/template/mcu-movies",
+      "ogTitle": "MCU Movies: 10-Film Starter Selection Tier List Maker & Ranking | Tier List Maker",
+      "h1": [],
+      "links": [
+        {
+          "href": "/",
+          "text": "",
+          "rel": ""
+        },
+        {
+          "href": "/",
+          "text": "Home",
+          "rel": ""
+        },
+        {
+          "href": "/categories/movies",
+          "text": "movies",
+          "rel": ""
+        },
+        {
+          "href": "/contact",
+          "text": "Report a problem with this template",
+          "rel": ""
+        }
+      ],
+      "schemaTypes": [
+        "WebApplication",
+        "BreadcrumbList",
+        "ItemList"
+      ],
+      "htmlBytes": 103927,
+      "responseMs": 566,
+      "inboundPages": 2
+    },
+    {
+      "path": "/template/modern-shonen-anime",
+      "status": 200,
+      "title": "Modern Anime: 10-Series Starter Selection Tier List Maker & Ranking | Tier List Maker",
+      "description": "Rank Modern Anime: 10-Series Starter Selection with drag-and-drop tiers. View community consensus, compare similarity, and duel friends on Tier List Maker.",
+      "canonical": "https://tierlistmaker.app/template/modern-shonen-anime",
+      "ogTitle": "Modern Anime: 10-Series Starter Selection Tier List Maker & Ranking | Tier List Maker",
+      "h1": [],
+      "links": [
+        {
+          "href": "/",
+          "text": "",
+          "rel": ""
+        },
+        {
+          "href": "/",
+          "text": "Home",
+          "rel": ""
+        },
+        {
+          "href": "/categories/anime",
+          "text": "anime",
+          "rel": ""
+        },
+        {
+          "href": "/contact",
+          "text": "Report a problem with this template",
+          "rel": ""
+        }
+      ],
+      "schemaTypes": [
+        "WebApplication",
+        "BreadcrumbList",
+        "ItemList"
+      ],
+      "htmlBytes": 103710,
+      "responseMs": 642,
+      "inboundPages": 6
+    },
+    {
+      "path": "/template/fast-food-fries",
+      "status": 200,
+      "title": "Fast Food Fries: 10-Chain Selection Tier List Maker & Ranking | Tier List Maker",
+      "description": "Rank Fast Food Fries: 10-Chain Selection with drag-and-drop tiers. View community consensus, compare similarity, and duel friends on Tier List Maker.",
+      "canonical": "https://tierlistmaker.app/template/fast-food-fries",
+      "ogTitle": "Fast Food Fries: 10-Chain Selection Tier List Maker & Ranking | Tier List Maker",
+      "h1": [],
+      "links": [
+        {
+          "href": "/",
+          "text": "",
+          "rel": ""
+        },
+        {
+          "href": "/",
+          "text": "Home",
+          "rel": ""
+        },
+        {
+          "href": "/categories/food",
+          "text": "food",
+          "rel": ""
+        },
+        {
+          "href": "/contact",
+          "text": "Report a problem with this template",
+          "rel": ""
+        },
+        {
+          "href": "/template/energy-drinks-showdown",
+          "text": "10 items • food Energy Drinks: 10-Drink Selection Rank 10 selected energy drinks and flavors by personal taste. Formulas and availability may differ between markets. Rank this template",
+          "rel": ""
+        }
+      ],
+      "schemaTypes": [
+        "WebApplication",
+        "BreadcrumbList",
+        "ItemList"
+      ],
+      "htmlBytes": 105981,
+      "responseMs": 832,
+      "inboundPages": 3
+    },
+    {
+      "path": "/template/roblox-games",
+      "status": 200,
+      "title": "Roblox Games: 10-Game Starter Selection Tier List Maker & Ranking | Tier List Maker",
+      "description": "Rank Roblox Games: 10-Game Starter Selection with drag-and-drop tiers. View community consensus, compare similarity, and duel friends on Tier List Maker.",
+      "canonical": "https://tierlistmaker.app/template/roblox-games",
+      "ogTitle": "Roblox Games: 10-Game Starter Selection Tier List Maker & Ranking | Tier List Maker",
+      "h1": [],
+      "links": [
+        {
+          "href": "/",
+          "text": "",
+          "rel": ""
+        },
+        {
+          "href": "/",
+          "text": "Home",
+          "rel": ""
+        },
+        {
+          "href": "/categories/gaming",
+          "text": "gaming",
+          "rel": ""
+        },
+        {
+          "href": "/contact",
+          "text": "Report a problem with this template",
+          "rel": ""
+        },
+        {
+          "href": "/template/elden-ring-bosses",
+          "text": "10 items • gaming Elden Ring Bosses: Base Game & DLC Selection Rank 10 selected bosses from Elden Ring and Shadow of the Erdtree, including Malenia, Messmer, and Promised Consort Radahn. This is a starter selection, not every boss. Rank this template",
+          "rel": ""
+        },
+        {
+          "href": "/template/gta-franchise-games",
+          "text": "10 items • gaming GTA Games: 10-Game Selection Rank 10 selected Grand Theft Auto releases, including GTA III, Vice City, San Andreas, GTA IV, and GTA V. Rank this template",
+          "rel": ""
+        }
+      ],
+      "schemaTypes": [
+        "WebApplication",
+        "BreadcrumbList",
+        "ItemList"
+      ],
+      "htmlBytes": 107706,
+      "responseMs": 571,
+      "inboundPages": 7
+    },
+    {
+      "path": "/template/hip-hop-2020s",
+      "status": 200,
+      "title": "Hip-Hop Albums of the 2020s: 10-Album Selection Tier List Maker & Ranking | Tier List Maker",
+      "description": "Rank Hip-Hop Albums of the 2020s: 10-Album Selection with drag-and-drop tiers. View community consensus, compare similarity, and duel friends on Tier List Maker.",
+      "canonical": "https://tierlistmaker.app/template/hip-hop-2020s",
+      "ogTitle": "Hip-Hop Albums of the 2020s: 10-Album Selection Tier List Maker & Ranking | Tier List Maker",
+      "h1": [],
+      "links": [
+        {
+          "href": "/",
+          "text": "",
+          "rel": ""
+        },
+        {
+          "href": "/",
+          "text": "Home",
+          "rel": ""
+        },
+        {
+          "href": "/categories/music",
+          "text": "music",
+          "rel": ""
+        },
+        {
+          "href": "/contact",
+          "text": "Report a problem with this template",
+          "rel": ""
+        }
+      ],
+      "schemaTypes": [
+        "WebApplication",
+        "BreadcrumbList",
+        "ItemList"
+      ],
+      "htmlBytes": 103725,
+      "responseMs": 529,
+      "inboundPages": 4
+    },
+    {
+      "path": "/template/nba-all-time-goat",
+      "status": 200,
+      "title": "NBA Legends: 10-Player Selection Tier List Maker & Ranking | Tier List Maker",
+      "description": "Rank NBA Legends: 10-Player Selection with drag-and-drop tiers. View community consensus, compare similarity, and duel friends on Tier List Maker.",
+      "canonical": "https://tierlistmaker.app/template/nba-all-time-goat",
+      "ogTitle": "NBA Legends: 10-Player Selection Tier List Maker & Ranking | Tier List Maker",
+      "h1": [],
+      "links": [
+        {
+          "href": "/",
+          "text": "",
+          "rel": ""
+        },
+        {
+          "href": "/",
+          "text": "Home",
+          "rel": ""
+        },
+        {
+          "href": "/categories/sports",
+          "text": "sports",
+          "rel": ""
+        },
+        {
+          "href": "/contact",
+          "text": "Report a problem with this template",
+          "rel": ""
+        },
+        {
+          "href": "/template/world-football-goats",
+          "text": "10 items • sports Modern Football Legends: 10-Player Selection Rank 10 selected football players, including Lionel Messi, Cristiano Ronaldo, Zinedine Zidane, and Ronaldinho. Rank this template",
+          "rel": ""
+        }
+      ],
+      "schemaTypes": [
+        "WebApplication",
+        "BreadcrumbList",
+        "ItemList"
+      ],
+      "htmlBytes": 105268,
+      "responseMs": 534,
+      "inboundPages": 3
+    },
+    {
+      "path": "/template/world-football-goats",
+      "status": 200,
+      "title": "Modern Football Legends: 10-Player Selection Tier List Maker & Ranking | Tier List Maker",
+      "description": "Rank Modern Football Legends: 10-Player Selection with drag-and-drop tiers. View community consensus, compare similarity, and duel friends on Tier List Maker.",
+      "canonical": "https://tierlistmaker.app/template/world-football-goats",
+      "ogTitle": "Modern Football Legends: 10-Player Selection Tier List Maker & Ranking | Tier List Maker",
+      "h1": [],
+      "links": [
+        {
+          "href": "/",
+          "text": "",
+          "rel": ""
+        },
+        {
+          "href": "/",
+          "text": "Home",
+          "rel": ""
+        },
+        {
+          "href": "/categories/sports",
+          "text": "sports",
+          "rel": ""
+        },
+        {
+          "href": "/contact",
+          "text": "Report a problem with this template",
+          "rel": ""
+        },
+        {
+          "href": "/template/nba-all-time-goat",
+          "text": "10 items • sports NBA Legends: 10-Player Selection Compare 10 selected NBA legends, including Michael Jordan, LeBron James, Stephen Curry, and Kobe Bryant. Rank this template",
+          "rel": ""
+        }
+      ],
+      "schemaTypes": [
+        "WebApplication",
+        "BreadcrumbList",
+        "ItemList"
+      ],
+      "htmlBytes": 105778,
+      "responseMs": 777,
+      "inboundPages": 3
+    },
+    {
+      "path": "/template/ai-models-and-tools-2026",
+      "status": 200,
+      "title": "AI Products: 10-Tool Starter Selection Tier List Maker & Ranking | Tier List Maker",
+      "description": "Rank AI Products: 10-Tool Starter Selection with drag-and-drop tiers. View community consensus, compare similarity, and duel friends on Tier List Maker.",
+      "canonical": "https://tierlistmaker.app/template/ai-models-and-tools-2026",
+      "ogTitle": "AI Products: 10-Tool Starter Selection Tier List Maker & Ranking | Tier List Maker",
+      "h1": [],
+      "links": [
+        {
+          "href": "/",
+          "text": "",
+          "rel": ""
+        },
+        {
+          "href": "/",
+          "text": "Home",
+          "rel": ""
+        },
+        {
+          "href": "/categories/pop-culture",
+          "text": "pop-culture",
+          "rel": ""
+        },
+        {
+          "href": "/contact",
+          "text": "Report a problem with this template",
+          "rel": ""
+        },
+        {
+          "href": "/template/programming-languages-meta",
+          "text": "10 items • pop-culture Programming Languages: 10-Language Selection Rank 10 selected programming languages for your own projects. This is a preference template, not a measured popularity ranking. Rank this template",
+          "rel": ""
+        }
+      ],
+      "schemaTypes": [
+        "WebApplication",
+        "BreadcrumbList",
+        "ItemList"
+      ],
+      "htmlBytes": 105347,
+      "responseMs": 868,
+      "inboundPages": 3
+    },
+    {
+      "path": "/template/programming-languages-meta",
+      "status": 200,
+      "title": "Programming Languages: 10-Language Selection Tier List Maker & Ranking | Tier List Maker",
+      "description": "Rank Programming Languages: 10-Language Selection with drag-and-drop tiers. View community consensus, compare similarity, and duel friends on Tier List Maker.",
+      "canonical": "https://tierlistmaker.app/template/programming-languages-meta",
+      "ogTitle": "Programming Languages: 10-Language Selection Tier List Maker & Ranking | Tier List Maker",
+      "h1": [],
+      "links": [
+        {
+          "href": "/",
+          "text": "",
+          "rel": ""
+        },
+        {
+          "href": "/",
+          "text": "Home",
+          "rel": ""
+        },
+        {
+          "href": "/categories/pop-culture",
+          "text": "pop-culture",
+          "rel": ""
+        },
+        {
+          "href": "/contact",
+          "text": "Report a problem with this template",
+          "rel": ""
+        },
+        {
+          "href": "/template/ai-models-and-tools-2026",
+          "text": "10 items • pop-culture AI Products: 10-Tool Starter Selection Compare 10 selected AI products across coding, writing, images, and audio. These are different tools, not a current model benchmark. Rank this template",
+          "rel": ""
+        }
+      ],
+      "schemaTypes": [
+        "WebApplication",
+        "BreadcrumbList",
+        "ItemList"
+      ],
+      "htmlBytes": 105133,
+      "responseMs": 588,
+      "inboundPages": 3
+    },
+    {
+      "path": "/template/gta-franchise-games",
+      "status": 200,
+      "title": "GTA Games: 10-Game Selection Tier List Maker & Ranking | Tier List Maker",
+      "description": "Rank GTA Games: 10-Game Selection with drag-and-drop tiers. View community consensus, compare similarity, and duel friends on Tier List Maker.",
+      "canonical": "https://tierlistmaker.app/template/gta-franchise-games",
+      "ogTitle": "GTA Games: 10-Game Selection Tier List Maker & Ranking | Tier List Maker",
+      "h1": [],
+      "links": [
+        {
+          "href": "/",
+          "text": "",
+          "rel": ""
+        },
+        {
+          "href": "/",
+          "text": "Home",
+          "rel": ""
+        },
+        {
+          "href": "/categories/gaming",
+          "text": "gaming",
+          "rel": ""
+        },
+        {
+          "href": "/contact",
+          "text": "Report a problem with this template",
+          "rel": ""
+        },
+        {
+          "href": "/template/elden-ring-bosses",
+          "text": "10 items • gaming Elden Ring Bosses: Base Game & DLC Selection Rank 10 selected bosses from Elden Ring and Shadow of the Erdtree, including Malenia, Messmer, and Promised Consort Radahn. This is a starter selection, not every boss. Rank this template",
+          "rel": ""
+        },
+        {
+          "href": "/template/roblox-games",
+          "text": "10 items • gaming Roblox Games: 10-Game Starter Selection Rank a selection of 10 Roblox games, including Blox Fruits, Brookhaven, and Doors. This is not a live player-count chart. Rank this template",
+          "rel": ""
+        }
+      ],
+      "schemaTypes": [
+        "WebApplication",
+        "BreadcrumbList",
+        "ItemList"
+      ],
+      "htmlBytes": 107747,
+      "responseMs": 598,
+      "inboundPages": 7
+    },
+    {
+      "path": "/template/energy-drinks-showdown",
+      "status": 200,
+      "title": "Energy Drinks: 10-Drink Selection Tier List Maker & Ranking | Tier List Maker",
+      "description": "Rank Energy Drinks: 10-Drink Selection with drag-and-drop tiers. View community consensus, compare similarity, and duel friends on Tier List Maker.",
+      "canonical": "https://tierlistmaker.app/template/energy-drinks-showdown",
+      "ogTitle": "Energy Drinks: 10-Drink Selection Tier List Maker & Ranking | Tier List Maker",
+      "h1": [],
+      "links": [
+        {
+          "href": "/",
+          "text": "",
+          "rel": ""
+        },
+        {
+          "href": "/",
+          "text": "Home",
+          "rel": ""
+        },
+        {
+          "href": "/categories/food",
+          "text": "food",
+          "rel": ""
+        },
+        {
+          "href": "/contact",
+          "text": "Report a problem with this template",
+          "rel": ""
+        },
+        {
+          "href": "/template/fast-food-fries",
+          "text": "10 items • food Fast Food Fries: 10-Chain Selection Compare fries from 10 selected fast-food chains. Availability, recipes, and serving quality can vary by location. Rank this template",
+          "rel": ""
+        }
+      ],
+      "schemaTypes": [
+        "WebApplication",
+        "BreadcrumbList",
+        "ItemList"
+      ],
+      "htmlBytes": 105820,
+      "responseMs": 588,
+      "inboundPages": 3
+    },
+    {
+      "path": "/template/one-piece-characters-tier-list",
+      "status": 200,
+      "title": "One Piece Characters: 12-Character Selection Tier List Maker & Ranking | Tier List Maker",
+      "description": "Rank One Piece Characters: 12-Character Selection with drag-and-drop tiers. View community consensus, compare similarity, and duel friends on Tier List Maker.",
+      "canonical": "https://tierlistmaker.app/template/one-piece-characters-tier-list",
+      "ogTitle": "One Piece Characters: 12-Character Selection Tier List Maker & Ranking | Tier List Maker",
+      "h1": [],
+      "links": [
+        {
+          "href": "/",
+          "text": "",
+          "rel": ""
+        },
+        {
+          "href": "/",
+          "text": "Home",
+          "rel": ""
+        },
+        {
+          "href": "/categories/anime",
+          "text": "anime",
+          "rel": ""
+        },
+        {
+          "href": "/contact",
+          "text": "Report a problem with this template",
+          "rel": ""
+        },
+        {
+          "href": "/template/modern-shonen-anime",
+          "text": "10 items • anime Modern Anime: 10-Series Starter Selection Rank 10 selected modern anime series, including Frieren, Jujutsu Kaisen, and Demon Slayer. This selection spans different genres rather than only shonen. Rank this template",
+          "rel": ""
+        }
+      ],
+      "schemaTypes": [
+        "WebApplication",
+        "BreadcrumbList",
+        "ItemList"
+      ],
+      "htmlBytes": 106910,
+      "responseMs": 1035,
+      "inboundPages": 1
+    },
+    {
+      "path": "/template/naruto-shippuden-characters-tier-list",
+      "status": 200,
+      "title": "Naruto Shippuden: 12-Character Selection Tier List Maker & Ranking | Tier List Maker",
+      "description": "Rank Naruto Shippuden: 12-Character Selection with drag-and-drop tiers. View community consensus, compare similarity, and duel friends on Tier List Maker.",
+      "canonical": "https://tierlistmaker.app/template/naruto-shippuden-characters-tier-list",
+      "ogTitle": "Naruto Shippuden: 12-Character Selection Tier List Maker & Ranking | Tier List Maker",
+      "h1": [],
+      "links": [
+        {
+          "href": "/",
+          "text": "",
+          "rel": ""
+        },
+        {
+          "href": "/",
+          "text": "Home",
+          "rel": ""
+        },
+        {
+          "href": "/categories/anime",
+          "text": "anime",
+          "rel": ""
+        },
+        {
+          "href": "/contact",
+          "text": "Report a problem with this template",
+          "rel": ""
+        },
+        {
+          "href": "/template/modern-shonen-anime",
+          "text": "10 items • anime Modern Anime: 10-Series Starter Selection Rank 10 selected modern anime series, including Frieren, Jujutsu Kaisen, and Demon Slayer. This selection spans different genres rather than only shonen. Rank this template",
+          "rel": ""
+        }
+      ],
+      "schemaTypes": [
+        "WebApplication",
+        "BreadcrumbList",
+        "ItemList"
+      ],
+      "htmlBytes": 107144,
+      "responseMs": 694,
+      "inboundPages": 1
+    },
+    {
+      "path": "/template/jujutsu-kaisen-characters-tier-list",
+      "status": 200,
+      "title": "Jujutsu Kaisen: 12-Character Selection Tier List Maker & Ranking | Tier List Maker",
+      "description": "Rank Jujutsu Kaisen: 12-Character Selection with drag-and-drop tiers. View community consensus, compare similarity, and duel friends on Tier List Maker.",
+      "canonical": "https://tierlistmaker.app/template/jujutsu-kaisen-characters-tier-list",
+      "ogTitle": "Jujutsu Kaisen: 12-Character Selection Tier List Maker & Ranking | Tier List Maker",
+      "h1": [],
+      "links": [
+        {
+          "href": "/",
+          "text": "",
+          "rel": ""
+        },
+        {
+          "href": "/",
+          "text": "Home",
+          "rel": ""
+        },
+        {
+          "href": "/categories/anime",
+          "text": "anime",
+          "rel": ""
+        },
+        {
+          "href": "/contact",
+          "text": "Report a problem with this template",
+          "rel": ""
+        },
+        {
+          "href": "/template/modern-shonen-anime",
+          "text": "10 items • anime Modern Anime: 10-Series Starter Selection Rank 10 selected modern anime series, including Frieren, Jujutsu Kaisen, and Demon Slayer. This selection spans different genres rather than only shonen. Rank this template",
+          "rel": ""
+        }
+      ],
+      "schemaTypes": [
+        "WebApplication",
+        "BreadcrumbList",
+        "ItemList"
+      ],
+      "htmlBytes": 107295,
+      "responseMs": 674,
+      "inboundPages": 1
+    },
+    {
+      "path": "/template/valorant-agents-meta-tier-list",
+      "status": 200,
+      "title": "Valorant Agents: 12-Agent Selection Tier List Maker & Ranking | Tier List Maker",
+      "description": "Rank Valorant Agents: 12-Agent Selection with drag-and-drop tiers. View community consensus, compare similarity, and duel friends on Tier List Maker.",
+      "canonical": "https://tierlistmaker.app/template/valorant-agents-meta-tier-list",
+      "ogTitle": "Valorant Agents: 12-Agent Selection Tier List Maker & Ranking | Tier List Maker",
+      "h1": [],
+      "links": [
+        {
+          "href": "/",
+          "text": "",
+          "rel": ""
+        },
+        {
+          "href": "/",
+          "text": "Home",
+          "rel": ""
+        },
+        {
+          "href": "/categories/gaming",
+          "text": "gaming",
+          "rel": ""
+        },
+        {
+          "href": "/contact",
+          "text": "Report a problem with this template",
+          "rel": ""
+        },
+        {
+          "href": "/template/elden-ring-bosses",
+          "text": "10 items • gaming Elden Ring Bosses: Base Game & DLC Selection Rank 10 selected bosses from Elden Ring and Shadow of the Erdtree, including Malenia, Messmer, and Promised Consort Radahn. This is a starter selection, not every boss. Rank this template",
+          "rel": ""
+        },
+        {
+          "href": "/template/roblox-games",
+          "text": "10 items • gaming Roblox Games: 10-Game Starter Selection Rank a selection of 10 Roblox games, including Blox Fruits, Brookhaven, and Doors. This is not a live player-count chart. Rank this template",
+          "rel": ""
+        },
+        {
+          "href": "/template/gta-franchise-games",
+          "text": "10 items • gaming GTA Games: 10-Game Selection Rank 10 selected Grand Theft Auto releases, including GTA III, Vice City, San Andreas, GTA IV, and GTA V. Rank this template",
+          "rel": ""
+        }
+      ],
+      "schemaTypes": [
+        "WebApplication",
+        "BreadcrumbList",
+        "ItemList"
+      ],
+      "htmlBytes": 121623,
+      "responseMs": 719,
+      "inboundPages": 1
+    },
+    {
+      "path": "/template/pokemon-starters-all-gens",
+      "status": 200,
+      "title": "Pokémon Starter Forms: Generations 1–4 Tier List Maker & Ranking | Tier List Maker",
+      "description": "Rank Pokémon Starter Forms: Generations 1–4 with drag-and-drop tiers. View community consensus, compare similarity, and duel friends on Tier List Maker.",
+      "canonical": "https://tierlistmaker.app/template/pokemon-starters-all-gens",
+      "ogTitle": "Pokémon Starter Forms: Generations 1–4 Tier List Maker & Ranking | Tier List Maker",
+      "h1": [],
+      "links": [
+        {
+          "href": "/",
+          "text": "",
+          "rel": ""
+        },
+        {
+          "href": "/",
+          "text": "Home",
+          "rel": ""
+        },
+        {
+          "href": "/categories/gaming",
+          "text": "gaming",
+          "rel": ""
+        },
+        {
+          "href": "/contact",
+          "text": "Report a problem with this template",
+          "rel": ""
+        },
+        {
+          "href": "/template/elden-ring-bosses",
+          "text": "10 items • gaming Elden Ring Bosses: Base Game & DLC Selection Rank 10 selected bosses from Elden Ring and Shadow of the Erdtree, including Malenia, Messmer, and Promised Consort Radahn. This is a starter selection, not every boss. Rank this template",
+          "rel": ""
+        },
+        {
+          "href": "/template/roblox-games",
+          "text": "10 items • gaming Roblox Games: 10-Game Starter Selection Rank a selection of 10 Roblox games, including Blox Fruits, Brookhaven, and Doors. This is not a live player-count chart. Rank this template",
+          "rel": ""
+        },
+        {
+          "href": "/template/gta-franchise-games",
+          "text": "10 items • gaming GTA Games: 10-Game Selection Rank 10 selected Grand Theft Auto releases, including GTA III, Vice City, San Andreas, GTA IV, and GTA V. Rank this template",
+          "rel": ""
+        }
+      ],
+      "schemaTypes": [
+        "WebApplication",
+        "BreadcrumbList",
+        "ItemList"
+      ],
+      "htmlBytes": 123515,
+      "responseMs": 779,
+      "inboundPages": 1
+    },
+    {
+      "path": "/template/kanye-west-discography-tier-list",
+      "status": 200,
+      "title": "Kanye West Albums: 12-Entry Selection Tier List Maker & Ranking | Tier List Maker",
+      "description": "Rank Kanye West Albums: 12-Entry Selection with drag-and-drop tiers. View community consensus, compare similarity, and duel friends on Tier List Maker.",
+      "canonical": "https://tierlistmaker.app/template/kanye-west-discography-tier-list",
+      "ogTitle": "Kanye West Albums: 12-Entry Selection Tier List Maker & Ranking | Tier List Maker",
+      "h1": [],
+      "links": [
+        {
+          "href": "/",
+          "text": "",
+          "rel": ""
+        },
+        {
+          "href": "/",
+          "text": "Home",
+          "rel": ""
+        },
+        {
+          "href": "/categories/music",
+          "text": "music",
+          "rel": ""
+        },
+        {
+          "href": "/contact",
+          "text": "Report a problem with this template",
+          "rel": ""
+        },
+        {
+          "href": "/template/hip-hop-2020s",
+          "text": "10 items • music Hip-Hop Albums of the 2020s: 10-Album Selection Rank 10 selected hip-hop albums from the 2020s, including projects by Kendrick Lamar, Tyler the Creator, and Travis Scott. Rank this template",
+          "rel": ""
+        }
+      ],
+      "schemaTypes": [
+        "WebApplication",
+        "BreadcrumbList",
+        "ItemList"
+      ],
+      "htmlBytes": 122533,
+      "responseMs": 724,
+      "inboundPages": 1
+    },
+    {
+      "path": "/template/taylor-swift-eras-albums-ranked",
+      "status": 200,
+      "title": "Taylor Swift Albums: 12-Entry Selection Tier List Maker & Ranking | Tier List Maker",
+      "description": "Rank Taylor Swift Albums: 12-Entry Selection with drag-and-drop tiers. View community consensus, compare similarity, and duel friends on Tier List Maker.",
+      "canonical": "https://tierlistmaker.app/template/taylor-swift-eras-albums-ranked",
+      "ogTitle": "Taylor Swift Albums: 12-Entry Selection Tier List Maker & Ranking | Tier List Maker",
+      "h1": [],
+      "links": [
+        {
+          "href": "/",
+          "text": "",
+          "rel": ""
+        },
+        {
+          "href": "/",
+          "text": "Home",
+          "rel": ""
+        },
+        {
+          "href": "/categories/music",
+          "text": "music",
+          "rel": ""
+        },
+        {
+          "href": "/contact",
+          "text": "Report a problem with this template",
+          "rel": ""
+        },
+        {
+          "href": "/template/hip-hop-2020s",
+          "text": "10 items • music Hip-Hop Albums of the 2020s: 10-Album Selection Rank 10 selected hip-hop albums from the 2020s, including projects by Kendrick Lamar, Tyler the Creator, and Travis Scott. Rank this template",
+          "rel": ""
+        }
+      ],
+      "schemaTypes": [
+        "WebApplication",
+        "BreadcrumbList",
+        "ItemList"
+      ],
+      "htmlBytes": 122516,
+      "responseMs": 1005,
+      "inboundPages": 1
+    },
+    {
+      "path": "/template/attack-on-titan-characters-tier-list",
+      "status": 200,
+      "title": "Attack on Titan: 12-Character Selection Tier List Maker & Ranking | Tier List Maker",
+      "description": "Rank Attack on Titan: 12-Character Selection with drag-and-drop tiers. View community consensus, compare similarity, and duel friends on Tier List Maker.",
+      "canonical": "https://tierlistmaker.app/template/attack-on-titan-characters-tier-list",
+      "ogTitle": "Attack on Titan: 12-Character Selection Tier List Maker & Ranking | Tier List Maker",
+      "h1": [],
+      "links": [
+        {
+          "href": "/",
+          "text": "",
+          "rel": ""
+        },
+        {
+          "href": "/",
+          "text": "Home",
+          "rel": ""
+        },
+        {
+          "href": "/categories/anime",
+          "text": "anime",
+          "rel": ""
+        },
+        {
+          "href": "/contact",
+          "text": "Report a problem with this template",
+          "rel": ""
+        },
+        {
+          "href": "/template/modern-shonen-anime",
+          "text": "10 items • anime Modern Anime: 10-Series Starter Selection Rank 10 selected modern anime series, including Frieren, Jujutsu Kaisen, and Demon Slayer. This selection spans different genres rather than only shonen. Rank this template",
+          "rel": ""
+        }
+      ],
+      "schemaTypes": [
+        "WebApplication",
+        "BreadcrumbList",
+        "ItemList"
+      ],
+      "htmlBytes": 107416,
+      "responseMs": 694,
+      "inboundPages": 1
+    },
+    {
+      "path": "/template/template-98mf",
+      "status": 200,
+      "title": "Best Gaming List Tier List Maker & Ranking | Tier List Maker",
+      "description": "Rank Best Gaming List with drag-and-drop tiers. View community consensus, compare similarity, and duel friends on Tier List Maker.",
+      "canonical": "https://tierlistmaker.app/template/template-98mf",
+      "ogTitle": "Best Gaming List Tier List Maker & Ranking | Tier List Maker",
+      "h1": [],
+      "links": [
+        {
+          "href": "/",
+          "text": "",
+          "rel": ""
+        },
+        {
+          "href": "/",
+          "text": "Home",
+          "rel": ""
+        },
+        {
+          "href": "/categories/gaming",
+          "text": "gaming",
+          "rel": ""
+        },
+        {
+          "href": "/contact",
+          "text": "Report a problem with this template",
+          "rel": ""
+        },
+        {
+          "href": "/template/elden-ring-bosses",
+          "text": "10 items • gaming Elden Ring Bosses: Base Game & DLC Selection Rank 10 selected bosses from Elden Ring and Shadow of the Erdtree, including Malenia, Messmer, and Promised Consort Radahn. This is a starter selection, not every boss. Rank this template",
+          "rel": ""
+        },
+        {
+          "href": "/template/roblox-games",
+          "text": "10 items • gaming Roblox Games: 10-Game Starter Selection Rank a selection of 10 Roblox games, including Blox Fruits, Brookhaven, and Doors. This is not a live player-count chart. Rank this template",
+          "rel": ""
+        },
+        {
+          "href": "/template/gta-franchise-games",
+          "text": "10 items • gaming GTA Games: 10-Game Selection Rank 10 selected Grand Theft Auto releases, including GTA III, Vice City, San Andreas, GTA IV, and GTA V.",
+          "rel": ""
+        }
+      ],
+      "schemaTypes": [
+        "WebApplication",
+        "BreadcrumbList",
+        "ItemList"
+      ],
+      "htmlBytes": 94242,
+      "responseMs": 682,
+      "inboundPages": 1
+    }
+  ]
+}

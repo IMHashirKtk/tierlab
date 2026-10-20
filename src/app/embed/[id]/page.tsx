@@ -22,6 +22,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title,
     description: "Interactive chromeless tier list widget powered by TierListMaker.app.",
+    alternates: { canonical: ranking ? `/share/${encodeURIComponent(id)}` : template ? `/template/${encodeURIComponent(id)}` : `/embed/${encodeURIComponent(id)}` },
     robots: {
       index: false,
       follow: true,

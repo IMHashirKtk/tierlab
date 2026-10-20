@@ -1,9 +1,9 @@
 import React, { Suspense } from "react";
 import type { Metadata } from "next";
-import { fetchSharedTierList } from "@/lib/community";
+import { getPublicRanking } from "@/lib/server/public-content";
 import { SharedTierListClient } from "./SharedTierListClient";
 import { isDiscoverableRanking } from "@/lib/catalog";
-import { canIndexSite } from "@/lib/seo";
+import { canIndexSite, getSiteUrl, safeJsonLd } from "@/lib/seo";
 import { notFound } from "next/navigation";
 
 interface PageProps {
@@ -12,11 +12,11 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
-  const ranking = await fetchSharedTierList(id);
+  const ranking = await getPublicRanking(id);
 
   if (!ranking) {
     return {
-      title: "Shared Tier List | Tier List Maker",
+      title: "Ranking not found",
       description: "Explore community tier lists and rankings on Tier List Maker.",
       robots: { index: false, follow: true },
       alternates: { canonical: `/share/${encodeURIComponent(id)}` },
@@ -68,8 +68,24 @@ import { connection } from "next/server";
 async function SharedContent({ params }: PageProps) {
   await connection();
   const { id } = await params;
-  if (!await fetchSharedTierList(id)) notFound();
-  return <SharedTierListClient id={id} />;
+  const ranking = await getPublicRanking(id);
+  if (!ranking) notFound();
+  const siteUrl = getSiteUrl();
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CreativeWork",
+    "@id": `${siteUrl}/share/${encodeURIComponent(id)}#ranking`,
+    name: ranking.title,
+    url: `${siteUrl}/share/${encodeURIComponent(id)}`,
+    description: `A tier list ranked by ${ranking.authorName}.`,
+    isPartOf: { "@id": `${siteUrl}/#website` },
+    creator: { "@type": "Person", name: ranking.authorName, url: `${siteUrl}/user/${encodeURIComponent(ranking.authorName)}` },
+    ...(ranking.templateId ? { isBasedOn: `${siteUrl}/template/${encodeURIComponent(ranking.templateId)}` } : {}),
+  };
+  return <>
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
+    <SharedTierListClient key={id} id={id} initialRanking={ranking} />
+  </>;
 }
 
 export default function SharedTierListPage({ params }: PageProps) {

@@ -1,15 +1,15 @@
 "use client";
 
 import React, { useState } from "react";
-import confetti from "canvas-confetti";
 import { Sparkles, Video } from "lucide-react";
 
 export function DropFxTeaser() {
   const [fxState, setFxState] = useState(false);
 
-  const triggerTestFx = () => {
+  const triggerTestFx = async () => {
     setFxState(true);
     // Fire confetti particles
+    const { default: confetti } = await import("canvas-confetti");
     confetti({
       zIndex: 20,
       disableForReducedMotion: true,

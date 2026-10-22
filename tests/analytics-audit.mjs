@@ -19,6 +19,7 @@ try {
   assert(updateAnalyticsConsent('granted',id));
   assert(initializeAnalytics(id));
   const config=window.dataLayer.find(e=>e[0]==='config');
+  assert.equal(Object.prototype.toString.call(config),'[object Arguments]','Google must recognize the documented gtag command format');
   assert.equal(config[1],id);
   assert.equal(config[2].send_page_view,false,'Automatic page views disabled to prevent duplicate SPA events');
   assert.equal(config[2].allow_google_signals,false);

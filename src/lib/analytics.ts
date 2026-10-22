@@ -53,7 +53,11 @@ export function initializeAnalytics(id: string): boolean {
   const target = window;
   target[`ga-disable-${id}`] = false;
   target.dataLayer ||= [];
-  target.gtag ||= (...args: unknown[]) => { target.dataLayer!.push(args); };
+  target.gtag ||= function () {
+    // Google's command parser requires Arguments objects, not plain arrays.
+    // eslint-disable-next-line prefer-rest-params -- Google's documented gtag queue contract.
+    target.dataLayer!.push(arguments);
+  };
   target.gtag("consent", "default", { ...deniedAdvertising, analytics_storage: "denied" });
   target.gtag("consent", "update", { ...deniedAdvertising, analytics_storage: "granted" });
   target.gtag("set", analyticsPage(location.pathname, location.origin));

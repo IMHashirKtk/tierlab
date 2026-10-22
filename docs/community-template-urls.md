@@ -43,3 +43,32 @@ Search Console already reads `https://tierlistmaker.app/sitemap.xml`. Keep the
 301 redirects and Google verification file in future releases. Google will
 recrawl the sitemap and consolidate URLs over time; a migration does not
 guarantee immediate index or ranking changes.
+
+## Production release — 22 October 2026
+
+Source commit: `e7d5d03` (pushed to `codex/curate-music-rosters`). Released on
+`tierlistmaker.app` through production deployment
+`dpl_9cZJcaNW7anbhGxtRUgR3HkKuQQS` after checking its protected production URL.
+The Vercel production build completed in 48 seconds.
+
+The public URL sweep verified all 126 current community aliases as HTTP 301,
+all 126 descriptive destinations as HTTP 200 with no redirect chain, canonical
+sitemap entries only, and representative category links/content/metadata.
+The live browser followed `/template/b-ie9n` to
+`/template/blox-fruits-fruits`, rendered the ranking studio, and reported no
+console errors. Release error logs had no entries during verification.
+
+The production build, TypeScript, slug contract suite, authenticated SQL
+rollback suite, voting and catalog regression suites passed. Full repository
+lint had zero errors and 25 existing warnings; focused lint on the new URL
+code/tests had zero warnings. The local production readiness crawl passed all
+160 public sitemap pages, canonical tags, structured data parsing, noindex
+exclusions, unknown-category 404s, and image crawling rules.
+
+The same readiness crawl also passed all 160 pages on the live public domain
+after promotion. The working checkout retains its separate staging Vercel link;
+production deployment and verification used the explicit production project.
+
+Any rollback must retain slug-aware template resolution and the database
+migration. An older deployment that only looks up database IDs cannot serve
+the new descriptive URLs.

@@ -1,5 +1,7 @@
 "use client";
 
+import { templatePath } from "@/lib/template-url";
+
 import React, { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { BrainCircuit, CheckCircle2, Zap, Sparkles, HelpCircle, X } from "lucide-react";
@@ -77,7 +79,7 @@ export function ConsensusShowcase() {
 
               <div className="flex flex-wrap gap-3">
                 <Link
-                  href={`/template/${selectedTemplate.id}`}
+                  href={templatePath(selectedTemplate)}
                   className="px-5 py-2.5 rounded-xl font-semibold text-white bg-indigo-600 hover:bg-indigo-500 shadow-md text-xs sm:text-sm transition-all flex items-center gap-2"
                 >
                   <Sparkles className="w-4 h-4" />
@@ -135,7 +137,7 @@ export function ConsensusShowcase() {
                     No community rankings submitted yet — publish the first ranking to establish the consensus!
                   </p>
                   <Link
-                    href={`/template/${selectedTemplate.id}`}
+                    href={templatePath(selectedTemplate)}
                     className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition-colors"
                   >
                     <Sparkles className="w-3.5 h-3.5" />
@@ -194,7 +196,7 @@ export function ConsensusShowcase() {
                     </span>
                   </div>
                   <Link
-                    href={`/template/${selectedTemplate.id}`}
+                    href={templatePath(selectedTemplate)}
                     className="text-white hover:text-amber-200 underline font-semibold flex-shrink-0 text-[11px]"
                   >
                     Cast Vote &rarr;

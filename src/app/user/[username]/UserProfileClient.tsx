@@ -1,5 +1,7 @@
 "use client";
 
+import { templatePath } from "@/lib/template-url";
+
 import React, { useEffect, useState, Suspense } from "react";
 import Link from "next/link";
 import { ArrowLeft, Sparkles, Layers, ArrowBigUp, ExternalLink } from "lucide-react";
@@ -293,7 +295,7 @@ function UserProfileContent({ username, initialProfile }: ProfileProps) {
                           {tpl.remixCount} remixes
                         </span>
                         <Link
-                          href={`/template/${tpl.id}`}
+                          href={templatePath(tpl)}
                           className="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-md shadow-indigo-600/30 flex items-center gap-1.5"
                         >
                           <Sparkles className="w-3.5 h-3.5" />

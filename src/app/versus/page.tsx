@@ -129,7 +129,7 @@ function VersusContent() {
         </div>
 
         <Link
-          href={listA.templateId ? `/template/${listA.templateId}` : "/create"}
+          href={listA.templateId ? `/template/${encodeURIComponent(listA.templateSlug || listA.templateId)}` : "/create"}
           className="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-gradient-to-r from-rose-600 to-indigo-600 hover:from-rose-500 hover:to-indigo-500 text-white shadow-md shadow-rose-600/30 flex items-center gap-1.5"
         >
           <Sparkles className="w-3.5 h-3.5" />

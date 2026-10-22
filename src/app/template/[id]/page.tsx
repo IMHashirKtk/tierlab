@@ -1,3 +1,4 @@
+import { templatePath } from "@/lib/template-url";
 import { ItemImage } from "@/components/ItemImage";
 import React, { Suspense } from "react";
 import type { Metadata } from "next";
@@ -48,7 +49,7 @@ export async function generateMetadata({
   const topic = STARTER_GUIDES[template.id]?.topic || template.title;
   const pageTitle = /tier list/i.test(topic) ? `${topic} Template` : `${topic} Tier List Template`;
   const pageDescription = `${template.description || `Rank ${template.items.length} items in ${template.title}.`} Customize your tiers and export your ranking.`;
-  const canonicalUrl = `/template/${encodeURIComponent(id)}`;
+  const canonicalUrl = templatePath(template);
 
   return {
     title: pageTitle,
@@ -116,26 +117,26 @@ async function TemplateContent({ params }: { params: Promise<{ id: string }> }) 
             "@type": "ListItem",
             position: 3,
             name: template.title,
-            item: `${siteUrl}/template/${id}`,
+            item: `${siteUrl}${templatePath(template)}`,
           },
         ],
       },
       {
         "@type": "CreativeWork",
-        "@id": `${siteUrl}/template/${encodeURIComponent(id)}#template`,
+        "@id": `${siteUrl}${templatePath(template)}#template`,
         name: template.title,
         description: template.description,
-        url: `${siteUrl}/template/${encodeURIComponent(id)}`,
+        url: `${siteUrl}${templatePath(template)}`,
         genre: categoryName,
         isPartOf: { "@id": `${siteUrl}/categories/${template.category}#collection` },
         creator: template.isStarter
           ? { "@id": `${siteUrl}/#operator` }
           : { "@type": "Person", name: template.author.username, url: `${siteUrl}/user/${encodeURIComponent(template.author.username)}` },
-        mainEntity: { "@id": `${siteUrl}/template/${encodeURIComponent(id)}#items` },
+        mainEntity: { "@id": `${siteUrl}${templatePath(template)}#items` },
       },
       {
         "@type": "ItemList",
-        "@id": `${siteUrl}/template/${encodeURIComponent(id)}#items`,
+        "@id": `${siteUrl}${templatePath(template)}#items`,
         itemListOrder: "https://schema.org/ItemListUnordered",
         name: `${template.title} Items`,
         description: `The ${template.items.length} items included in this template.`,
@@ -159,7 +160,7 @@ async function TemplateContent({ params }: { params: Promise<{ id: string }> }) 
       />
 
       {/* Interactive Ranking Studio Experience */}
-      <TemplateClientLoader templateId={id} serverTemplate={template} />
+      <TemplateClientLoader templateId={template.id} serverTemplate={template} />
 
       {/* Crawlable Semantic SEO Content Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 border-t border-zinc-800/80 space-y-12 text-zinc-300">
@@ -273,7 +274,7 @@ async function TemplateContent({ params }: { params: Promise<{ id: string }> }) 
             {relatedTemplates.map((rel) => (
               <Link
                 key={rel.id}
-                href={`/template/${rel.id}`}
+                href={templatePath(rel)}
                 className="p-4 rounded-xl bg-zinc-900/60 border border-zinc-800 hover:border-indigo-500/40 transition-all group flex flex-col justify-between"
               >
                 <div>

@@ -1,0 +1,50 @@
+/** Read-only verification against the public Data API and a running deployment. */
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import nextEnv from '@next/env';
+nextEnv.loadEnvConfig(process.cwd());
+const base=(process.env.AUDIT_BASE_URL || 'http://localhost:3012').replace(/\/$/,'');
+const endpoint=new URL('/rest/v1/templates',process.env.NEXT_PUBLIC_SUPABASE_URL);
+endpoint.searchParams.set('select','id,slug,category,author_name');
+endpoint.searchParams.set('order','id');
+const catalogResponse=await fetch(endpoint,{headers:{apikey:process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}});
+assert.equal(catalogResponse.status,200);
+const catalog=await catalogResponse.json();
+assert(catalog.every(t=>t.slug),'Every public template must have a canonical slug');
+const migrated=catalog.filter(t=>t.id!==t.slug);
+assert(migrated.length>0);
+const sitemapResponse=await fetch(base+'/sitemap.xml');
+assert.equal(sitemapResponse.status,200);
+const sitemap=await sitemapResponse.text();
+const sitemapPaths=new Set([...sitemap.matchAll(/<loc>(.*?)<\/loc>/g)].map(m=>new URL(m[1]).pathname));
+const results=[];
+let cursor=0;
+await Promise.all(Array.from({length:2},async()=>{
+  while(cursor<migrated.length){
+    const t=migrated[cursor++];
+    const path='/template/'+encodeURIComponent(t.slug);
+    const legacy='/template/'+encodeURIComponent(t.id);
+    assert(sitemapPaths.has(path),'Missing canonical sitemap URL: '+path);
+    assert(!sitemapPaths.has(legacy),'Legacy URL in sitemap: '+legacy);
+    const old=await fetch(base+legacy,{method:'HEAD',redirect:'manual',signal:AbortSignal.timeout(30000)});
+    assert.equal(old.status,301,legacy+' must return 301');
+    assert.equal(new URL(old.headers.get('location'),base).pathname,path);
+    const current=await fetch(base+path,{method:'HEAD',redirect:'manual',signal:AbortSignal.timeout(30000)});
+    assert.equal(current.status,200,path+' must resolve without another redirect');
+    results.push({id:t.id,slug:t.slug,redirect:old.status,canonical:current.status});
+    if(results.length%25===0) console.log(`Checked ${results.length}/${migrated.length} migrated URLs`);
+  }
+}));
+const sample=migrated.find(t=>t.id==='b-ie9n');
+assert(sample);
+const html=await (await fetch(base+'/template/'+sample.slug)).text();
+assert(html.includes('https://tierlistmaker.app/template/'+sample.slug),'Canonical metadata must use slug');
+assert(!html.includes('https://tierlistmaker.app/template/'+sample.id),'Structured data must not use legacy URL');
+assert(html.includes('Blox Fruits Fruits'),'Canonical URL must render actual template content');
+const categoryHtml=await (await fetch(base+'/categories/'+sample.category)).text();
+const links=[...categoryHtml.matchAll(/href="(\/template\/[^"?#]*)/g)].map(m=>decodeURIComponent(m[1]));
+assert(links.length>0);
+for(const t of migrated) assert(!links.includes('/template/'+t.id),'Category still links to old ID: '+t.id);
+const report={base,checkedAt:new Date().toISOString(),publicTemplates:catalog.length,migratedTemplates:migrated.length,checks:results.sort((a,b)=>a.id.localeCompare(b.id))};
+fs.writeFileSync(process.env.SLUG_REPORT_PATH || 'tests/.tmp-template-slug-live.json',JSON.stringify(report,null,2));
+console.log(`PASS: ${migrated.length} legacy URLs return 301; every destination returns 200; sitemap lists canonical slugs only; sample metadata/content and category links verified`);

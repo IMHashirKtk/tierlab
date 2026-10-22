@@ -128,7 +128,7 @@ export function LiveFeed() {
                   )}
 
                   <Link
-                    href={rank.templateId !== "custom" ? `/template/${rank.templateId}` : "/create"}
+                    href={rank.templateId !== "custom" ? `/template/${encodeURIComponent(rank.templateSlug || rank.templateId)}` : "/create"}
                     className="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition-all shadow-sm flex items-center gap-1.5"
                   >
                     <Sparkles className="w-3 h-3" />

@@ -51,6 +51,7 @@ export interface Template {
 export interface UserRanking {
   id: string;
   templateId: string;
+  templateSlug?: string;
   templateTitle: string;
   title: string;
   author: {
@@ -72,6 +73,7 @@ export interface UserRanking {
 export interface PublishedTierList {
   id: string;
   templateId?: string;
+  templateSlug?: string;
   title: string;
   authorName: string;
   tiers: TierRow[];

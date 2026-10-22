@@ -80,7 +80,7 @@ async function SharedContent({ params }: PageProps) {
     description: `A tier list ranked by ${ranking.authorName}.`,
     isPartOf: { "@id": `${siteUrl}/#website` },
     creator: { "@type": "Person", name: ranking.authorName, url: `${siteUrl}/user/${encodeURIComponent(ranking.authorName)}` },
-    ...(ranking.templateId ? { isBasedOn: `${siteUrl}/template/${encodeURIComponent(ranking.templateId)}` } : {}),
+    ...(ranking.templateId ? { isBasedOn: `${siteUrl}/template/${encodeURIComponent(ranking.templateSlug || ranking.templateId)}` } : {}),
   };
   return <>
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />

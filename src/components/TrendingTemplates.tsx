@@ -1,5 +1,7 @@
 "use client";
 
+import { templatePath } from "@/lib/template-url";
+
 import { ItemImage } from "@/components/ItemImage";
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
@@ -223,7 +225,7 @@ export function TrendingTemplates() {
                     </div>
 
                     <h3 className="text-base font-bold text-white group-hover:text-indigo-400 transition-colors">
-                      <Link href={`/template/${encodeURIComponent(template.id)}`}>{template.title}</Link>
+                      <Link href={templatePath(template)}>{template.title}</Link>
                     </h3>
                     <p className="text-xs text-zinc-400 mt-1 line-clamp-2">
                       {template.description}
@@ -253,7 +255,7 @@ export function TrendingTemplates() {
                     </div>
 
                     <Link
-                      href={`/template/${encodeURIComponent(template.id)}`}
+                      href={templatePath(template)}
                       aria-label={`Rank ${template.title}`}
                       className="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition-all shadow-sm min-h-[28px] inline-flex items-center justify-center"
                     >

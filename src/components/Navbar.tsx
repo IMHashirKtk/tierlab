@@ -1,5 +1,7 @@
 "use client";
 
+import { templatePath } from "@/lib/template-url";
+
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { Search, Plus, Layers, User, Swords, Menu, X } from "lucide-react";
@@ -119,7 +121,7 @@ export function Navbar({ onOpenPublish }: NavbarProps) {
                 matchingTemplates.map((t) => (
                   <Link
                     key={t.id}
-                    href={`/template/${t.id}`}
+                    href={templatePath(t)}
                     onClick={() => {
                       setIsSearchFocused(false);
                       setSearchQuery("");

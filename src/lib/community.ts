@@ -98,7 +98,7 @@ export async function fetchTemplates(options?: {
       if (!error && data) {
         cloudTemplates = data.map((d) => ({
           id: d.id,
-          slug: d.id,
+          slug: d.slug || d.id,
           title: d.title,
           description: d.description || "",
           category: (d.category || "gaming") as Template["category"],
@@ -120,7 +120,7 @@ export async function fetchTemplates(options?: {
   // Merge cloud templates, local user templates, and seed templates (deduped by ID)
   const templateMap = new Map<string, Template>();
   cloudTemplates.forEach((t) => templateMap.set(t.id, t));
-  localUserTemplates.forEach((t) => templateMap.set(t.id, t));
+  localUserTemplates.forEach((t) => { if (!templateMap.has(t.id)) templateMap.set(t.id, t); });
   SEED_TEMPLATES.forEach((t) => {
     if (!templateMap.has(t.id)) templateMap.set(t.id, t);
   });
@@ -157,19 +157,21 @@ export async function fetchTemplates(options?: {
  * Fetch a single template by ID
  */
 export async function fetchTemplateById(id: string): Promise<Template | null> {
-  const local = getLocalUserTemplates().find((t) => t.id === id);
-  if (local) return presentTemplate(local);
+  const local = getLocalUserTemplates().find((t) => t.id === id || t.slug === id);
 
   const seed = SEED_TEMPLATES.find((t) => t.id === id);
   if (seed) return seed;
 
   if (isSupabaseConfigured() && supabase) {
     try {
-      const { data, error } = await supabase.from("templates").select("*").eq("id", id).maybeSingle();
+      let { data, error } = await supabase.from("templates").select("*").eq("slug", id).maybeSingle();
+      if (!error && !data) {
+        ({ data, error } = await supabase.from("templates").select("*").eq("id", id).maybeSingle());
+      }
       if (!error && data) {
         return presentTemplate({
           id: data.id,
-          slug: data.id,
+          slug: data.slug || data.id,
           title: data.title,
           description: data.description || "",
           category: (data.category || "gaming") as Template["category"],
@@ -187,20 +189,7 @@ export async function fetchTemplateById(id: string): Promise<Template | null> {
     }
   }
 
-  return null;
-}
-
-/**
- * Generate a keyword-rich, SEO-friendly URL slug for user-published templates
- */
-export function generateTemplateSlug(title: string): string {
-  const base = title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 48);
-  const suffix = Math.random().toString(36).slice(2, 6);
-  return base ? `${base}-${suffix}` : `tpl-${createId("ugc")}`;
+  return local ? presentTemplate(local) : null;
 }
 
 export function areSemanticJsonEqual(a: unknown, b: unknown): boolean {
@@ -273,7 +262,7 @@ async function handleExistingTemplate(
     // Idempotent retry: earlier attempt already succeeded and content is identical
     const confirmedTemplate: Template = {
       id: String(existing.id),
-      slug: String(existing.id),
+      slug: String(existing.slug || existing.id),
       title: String(existing.title || payload.title),
       description: typeof existing.description === "string" ? existing.description : "",
       category: (existing.category || payload.category) as Template["category"],
@@ -319,7 +308,7 @@ async function handleExistingTemplate(
 
   const confirmedTemplate: Template = {
     id: row.id,
-    slug: row.id,
+    slug: row.slug || row.id,
     title: row.title,
     description: row.description || "",
     category: (row.category || payload.category) as Template["category"],
@@ -357,7 +346,7 @@ export async function publishTemplate(payload: {
     throw new Error("Cloud publishing is temporarily unavailable. Keep your draft on this device and try again later.");
   }
 
-  const targetId = payload.existingId || payload.id || generateTemplateSlug(payload.title);
+  const targetId = payload.existingId || payload.id || createId("template");
   const cleanTitle = payload.title.trim();
   const cleanDescription = payload.description?.trim() || `User-created template featuring ${payload.items.length} items.`;
   const cleanCategory = (payload.category as Template["category"]) || "gaming";
@@ -377,7 +366,7 @@ export async function publishTemplate(payload: {
     // 1. Check if record already exists (retry of lost response, or edit)
     const { data: existing, error: fetchError } = await supabase
       .from("templates")
-      .select("id, author_id, title, description, category, items, default_tiers, author_name, upvotes, rank_count, created_at")
+      .select("id, slug, author_id, title, description, category, items, default_tiers, author_name, upvotes, rank_count, created_at")
       .eq("id", targetId)
       .maybeSingle();
 
@@ -416,7 +405,7 @@ export async function publishTemplate(payload: {
       ) {
         const { data: retryExisting, error: retryFetchError } = await supabase
           .from("templates")
-          .select("id, author_id, title, description, category, items, default_tiers, author_name, upvotes, rank_count, created_at")
+          .select("id, slug, author_id, title, description, category, items, default_tiers, author_name, upvotes, rank_count, created_at")
           .eq("id", targetId)
           .maybeSingle();
 
@@ -441,7 +430,7 @@ export async function publishTemplate(payload: {
 
     const confirmedTemplate: Template = {
       id: row.id,
-      slug: row.id,
+      slug: row.slug || row.id,
       title: row.title,
       description: row.description || "",
       category: (row.category as Template["category"]) || "gaming",
@@ -680,11 +669,12 @@ export async function fetchSharedTierList(id: string): Promise<PublishedTierList
 
   if (isSupabaseConfigured() && supabase) {
     try {
-      const { data, error } = await supabase.from("tier_lists").select("*").eq("id", id).maybeSingle();
+      const { data, error } = await supabase.from("tier_lists").select("*, templates(slug)").eq("id", id).maybeSingle();
       if (!error && data) {
         const ranking: PublishedTierList = {
           id: data.id,
           templateId: data.template_id || undefined,
+          templateSlug: data.templates?.slug || undefined,
           title: data.title,
           authorName: data.author_name || "Community",
           tiers: data.tiers || [],
@@ -785,6 +775,7 @@ function mapTierListRow(d: Record<string, unknown>): PublishedTierList {
   return {
     id: String(d.id),
     templateId: typeof d.template_id === "string" ? d.template_id : undefined,
+    templateSlug: (d.templates as { slug?: string } | null)?.slug,
     title: typeof d.title === "string" ? d.title : "",
     authorName: typeof d.author_name === "string" ? d.author_name : "Community",
     tiers: Array.isArray(d.tiers) ? (d.tiers as TierRow[]) : [],
@@ -803,6 +794,7 @@ function toUserRanking(p: PublishedTierList, isDemo = false): UserRanking {
   return {
     id: p.id,
     templateId: p.templateId || "custom",
+    templateSlug: p.templateSlug,
     templateTitle: p.title,
     title: p.title,
     author: { username: p.authorName },
@@ -832,7 +824,7 @@ export async function fetchLiveActivity(): Promise<UserRanking[]> {
     try {
       const { data, error } = await supabase
         .from("tier_lists")
-        .select("*")
+        .select("*, templates(slug)")
         .order("created_at", { ascending: false })
         .limit(20);
       if (!error && data) {
@@ -1237,7 +1229,7 @@ export async function fetchUserProfile(username: string): Promise<UserProfileDat
       if (tData) {
         cloudTemplates = tData.map((d) => ({
           id: d.id,
-          slug: d.id,
+          slug: d.slug || d.id,
           title: d.title,
           description: d.description || "",
           category: (d.category as Template["category"]) || "gaming",
@@ -1284,7 +1276,7 @@ export async function fetchUserProfile(username: string): Promise<UserProfileDat
   // Merge and deduplicate
   const tMap = new Map<string, Template>();
   cloudTemplates.forEach((t) => tMap.set(t.id, t));
-  localTemplates.forEach((t) => tMap.set(t.id, t));
+  localTemplates.forEach((t) => { if (!tMap.has(t.id)) tMap.set(t.id, t); });
 
   const rMap = new Map<string, PublishedTierList>();
   cloudTierLists.forEach((r) => rMap.set(r.id, r));

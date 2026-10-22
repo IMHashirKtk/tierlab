@@ -1,3 +1,4 @@
+import { templatePath } from "@/lib/template-url";
 import type { MetadataRoute } from "next";
 import { CATEGORIES, SEED_TEMPLATES } from "@/data/seed-templates";
 import { isSupabaseConfigured, supabase } from "@/lib/supabase";
@@ -19,12 +20,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     changeFrequency: "weekly", priority: 0.8,
   }));
   // Do not invent modification times for static pages and bundled templates.
-  const templates = new Map<string, { id: string; lastModified?: Date }>();
+  const templates = new Map<string, { id: string; slug?: string; lastModified?: Date }>();
   SEED_TEMPLATES.forEach(t => templates.set(t.id, { id: t.id }));
   if (isSupabaseConfigured() && supabase) {
     try {
       const { data, error } = await supabase.from("templates")
-        .select("id, updated_at, items").order("rank_count", { ascending: false }).limit(500);
+        .select("id, slug, updated_at, items").order("rank_count", { ascending: false }).limit(500);
       if (error) console.warn("Sitemap: template query failed; using bundled templates");
       if (!error && data) {
         for (const row of data) {
@@ -32,6 +33,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           const date = row.updated_at ? new Date(row.updated_at) : undefined;
           templates.set(row.id, {
             id: row.id,
+            slug: row.slug,
             lastModified: date && Number.isFinite(date.getTime()) ? date : undefined,
           });
         }
@@ -42,7 +44,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
   const templateRoutes: MetadataRoute.Sitemap = Array.from(templates.values())
     .filter(isDiscoverableTemplate).map(t => ({
-      url: `${siteUrl}/template/${encodeURIComponent(t.id)}`,
+      url: `${siteUrl}${templatePath(t)}`,
       ...(t.lastModified ? { lastModified: t.lastModified } : {}),
       changeFrequency: "weekly", priority: 0.8,
     }));

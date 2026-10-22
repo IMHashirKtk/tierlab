@@ -4,7 +4,8 @@ import { templatePath } from "@/lib/template-url";
 
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { Search, Plus, Layers, User, Swords, Menu, X } from "lucide-react";
+import { Search, Plus, User, Swords, Menu, X } from "lucide-react";
+import { BrandMark } from "@/components/BrandMark";
 import { fetchTemplates } from "@/lib/community";
 import type { Template } from "@/types";
 
@@ -79,11 +80,7 @@ export function Navbar({ onOpenPublish }: NavbarProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2 sm:gap-4">
         {/* Brand Logo */}
         <Link href="/" aria-label="Tier List Maker home" className="flex min-w-0 items-center gap-2 shrink-0 group">
-          <div className="w-8 h-8 sm:w-9 sm:h-9 shrink-0 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-cyan-400 p-[1.5px] shadow-lg shadow-indigo-500/20 group-hover:shadow-indigo-500/40 transition-all">
-            <div className="w-full h-full bg-zinc-950 rounded-[10px] flex items-center justify-center">
-              <Layers className="w-5 h-5 text-indigo-400 group-hover:text-cyan-300 transition-colors" />
-            </div>
-          </div>
+          <BrandMark className="w-8 h-8 sm:w-9 sm:h-9" />
           <div className="flex items-baseline gap-1.5">
             <span className="text-base sm:text-lg font-bold tracking-tight text-white whitespace-nowrap">
               Tier List <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">Maker</span>

@@ -3,7 +3,8 @@
 import React from "react";
 import { AnalyticsPreferencesButton } from "@/components/analytics/AnalyticsConsent";
 import Link from "next/link";
-import { Layers, ShieldCheck } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
+import { BrandMark } from "@/components/BrandMark";
 import { usePwa } from "@/components/pwa/PwaProvider";
 
 export function Footer() {
@@ -15,9 +16,7 @@ export function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-10">
           <div className="col-span-2">
             <Link href="/" className="flex items-center gap-2 mb-3 group">
-              <div className="w-6 h-6 rounded-lg bg-indigo-600 flex items-center justify-center text-white">
-                <Layers className="w-3.5 h-3.5" />
-              </div>
+              <BrandMark className="w-6 h-6" />
               <span className="text-white font-bold text-base">Tier List Maker</span>
             </Link>
             <p className="text-zinc-500 text-xs max-w-sm mb-4">

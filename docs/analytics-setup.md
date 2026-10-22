@@ -48,3 +48,31 @@ after an initial decline, allow analytics, navigate to another public page,
 and inspect the target property's Realtime report. Normal reports can take
 time to process. A visit blocked by an ad blocker or declined consent is
 intentionally absent from GA4.
+
+## Verified production release — 22 October 2026
+
+Released source `e05dec9` (integration `c6af634` plus the verified Google command
+queue correction) through production deployment
+`dpl_5kZ2V3vW4cj6x55G9adGR7ptAjNo`. Vercel built it successfully in 26 seconds.
+Both commits are pushed to `codex/curate-music-rosters`.
+
+Live verification confirmed:
+
+- Decline and reload: zero Google tag scripts loaded.
+- Privacy Hub opens analytics preferences and closes its focus-trapped dialog.
+- Allow: exactly one Google script loads for `G-EB8LN74C3Q`.
+- Home and client navigation to About: one `page_view` per pathname, both
+  accepted by Google's collection endpoint with HTTP 204.
+- GA4 Realtime showed 1 active user and 2 page views, plus `first_visit` and
+  `session_start` events from that real browser test.
+- Withdrawal disabled the property, removed GA cookies, and left the page-view
+  queue at 2 instead of emitting another page view.
+
+The live test caught and corrected an important external API requirement:
+Google's gtag command queue requires JavaScript `Arguments` objects. Plain rest
+parameter arrays can leave the script loaded without processing its commands.
+The regression suite now explicitly checks that contract.
+
+Production build/TypeScript, focused lint, analytics consent/event tests,
+sitemap/indexability tests, and community slug regression tests passed.
+The screenshot proof is saved locally at `tests/.tmp-ga4-realtime.jpg`.

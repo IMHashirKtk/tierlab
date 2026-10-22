@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { AnalyticsPreferencesButton } from "@/components/analytics/AnalyticsConsent";
 import Link from "next/link";
 import { Layers, ShieldCheck } from "lucide-react";
 import { usePwa } from "@/components/pwa/PwaProvider";
@@ -62,6 +63,7 @@ export function Footer() {
                   <span>Privacy & Storage Hub</span>
                 </button>
               </li>
+              <li><AnalyticsPreferencesButton className="hover:text-zinc-300 py-1 min-h-[28px] text-left" /></li>
               <li>
                 <Link href="/my-projects" className="hover:text-zinc-300 py-1 inline-flex items-center min-h-[28px]">
                   My Projects

@@ -1,3 +1,5 @@
+import { AnalyticsConsent } from "@/components/analytics/AnalyticsConsent";
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { PwaProvider } from "@/components/pwa/PwaProvider";
@@ -132,6 +134,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: safeJsonLd(webAppJsonLd) }}
         />
         <PwaProvider>{children}</PwaProvider>
+        {process.env.VERCEL_ENV === "production" && canIndexSite() && <Suspense fallback={null}><AnalyticsConsent measurementId="G-EB8LN74C3Q" /></Suspense>}
       </body>
     </html>
   );

@@ -1,5 +1,5 @@
 import { templatePath } from "@/lib/template-url";
-import { ItemImage } from "@/components/ItemImage";
+import { TemplateCover } from "@/components/TemplateCover";
 import React, { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -266,50 +266,7 @@ async function CategoryContent({
                   className="rounded-2xl bg-zinc-900/70 border border-zinc-800/90 overflow-hidden hover:border-zinc-700 transition-all duration-300 hover:-translate-y-1 group flex flex-col justify-between"
                 >
                   <div>
-                    {/* Visual Preview Header */}
-                    <div className="h-40 bg-gradient-to-tr from-indigo-950/40 via-zinc-900 to-zinc-950 p-4 relative overflow-hidden flex flex-col justify-between border-b border-zinc-800/50">
-                      <div className="flex items-center justify-between z-10">
-                        <span className="text-[11px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full bg-zinc-900/90 text-indigo-300 border border-zinc-700/60">
-                          {template.category}
-                        </span>
-                        <span className="text-[11px] font-mono text-zinc-400 bg-zinc-900/80 px-2 py-0.5 rounded border border-zinc-800">
-                          {template.itemCount} items
-                        </span>
-                      </div>
-
-                      {/* Tier Row Sample */}
-                      <div className="space-y-1.5 z-10 opacity-90 group-hover:opacity-100 transition-opacity">
-                        <div className="flex items-center gap-1.5">
-                          <span className="w-6 h-6 rounded bg-rose-500 text-[10px] font-bold text-white flex items-center justify-center flex-shrink-0">
-                            S
-                          </span>
-                          <div className="flex-1 flex gap-1.5 overflow-hidden">
-                            {template.items.slice(0, 4).map((it, idx) => (
-                              <div
-                                key={idx}
-                                className="w-7 h-7 rounded-md overflow-hidden bg-zinc-800 border border-zinc-700/80 flex items-center justify-center flex-shrink-0"
-                                title={it.name}
-                              >
-                                {it.imageUrl ? (
-                                  <ItemImage
-                                    src={it.imageUrl}
-                                    alt={it.name}
-                                    className="w-full h-full object-cover"
-                                  />
-                                ) : (
-                                  <span className="text-[9px] text-zinc-300 px-1 truncate">
-                                    {it.name}
-                                  </span>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Ambient Accent */}
-                      <div className="absolute -right-8 -bottom-8 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl group-hover:bg-indigo-500/20 transition-all pointer-events-none" />
-                    </div>
+                  <TemplateCover template={template} />
 
                     {/* Body */}
                     <div className="p-5">

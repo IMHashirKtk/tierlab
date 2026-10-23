@@ -4,11 +4,9 @@ import { Sparkles, Layers, Flame, Shuffle, BarChart3, Video } from "lucide-react
 
 export function Hero() {
   const popularTags = [
-    { name: "Roblox Games", href: "/template/roblox-games" },
-    { name: "Elden Ring Bosses", href: "/template/elden-ring-bosses" },
-    { name: "Anime Series", href: "/template/modern-shonen-anime" },
-    { name: "Fast Food French Fries", href: "/template/fast-food-fries" },
-    { name: "MCU Movies", href: "/template/mcu-movies" },
+    { name: "Overwatch Heroes", href: "/template/overwatch-heroes" },
+    { name: "DBD Killers", href: "/template/dead-by-daylight-killers" },
+    { name: "Apex Legends", href: "/template/apex-legends-legends" },
   ];
 
   return (

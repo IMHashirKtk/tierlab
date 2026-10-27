@@ -146,7 +146,7 @@ export function Navbar({ onOpenPublish }: NavbarProps) {
         {/* Action Controls */}
         <div className="flex shrink-0 items-center gap-2">
           <nav aria-label="Main navigation" className="hidden xl:flex items-center whitespace-nowrap text-sm font-medium text-zinc-400">
-            <Link href="/#trending" className="px-2.5 py-2 rounded-lg hover:text-white hover:bg-zinc-800/60 transition-colors">
+            <Link href="/templates" className="px-2.5 py-2 rounded-lg hover:text-white hover:bg-zinc-800/60 transition-colors">
               Templates
             </Link>
             <Link href="/#categories" className="px-2.5 py-2 rounded-lg hover:text-white hover:bg-zinc-800/60 transition-colors">
@@ -201,7 +201,7 @@ export function Navbar({ onOpenPublish }: NavbarProps) {
         <nav id="site-navigation" aria-label="Mobile navigation" className="xl:hidden absolute inset-x-0 top-full max-h-[calc(100dvh-4rem)] overflow-y-auto bg-zinc-950 border-b border-zinc-800 p-4 shadow-xl">
           <div className="max-w-7xl mx-auto grid gap-1">
             {[
-              ["Browse templates", "/#trending"], ["Categories", "/#categories"], ["Community rankings", "/#feed"], ["My Projects", "/my-projects"], ["Versus", "/versus"], ["Creator features", "/#dropfx"], ["My Profile", `/user/${encodeURIComponent(creatorHandle)}`],
+              ["Browse templates", "/templates"], ["Categories", "/#categories"], ["Community rankings", "/#feed"], ["My Projects", "/my-projects"], ["Versus", "/versus"], ["Creator features", "/#dropfx"], ["My Profile", `/user/${encodeURIComponent(creatorHandle)}`],
             ].map(([label, href]) => <Link key={href} href={href} onClick={() => setMenuOpen(false)} className="px-3 py-3 rounded-lg text-sm text-zinc-200 hover:bg-zinc-800 focus-visible:ring-2 focus-visible:ring-indigo-400">{label}</Link>)}
             {onOpenPublish && (
               <button

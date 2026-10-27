@@ -10,6 +10,7 @@ for (const url of urls) {
   const canonical = html.match(/<link[^>]*rel="canonical"[^>]*href="([^"]+)"/)?.[1];
   assert.equal(canonical, url, `${url}: sitemap/canonical mismatch`);
   assert(!/<meta[^>]*name="robots"[^>]*content="[^"]*noindex/.test(html), `${url}: sitemap includes noindex`);
+  assert(/<a\b[^>]*href="\//.test(clean), `${url}: no internal links in initial HTML`);
   for (const forbidden of ["Loading community rankings", "Awaiting first community submission", "No rankings yet", "No submissions yet", "Item #", "/user/Creator"])
     assert(!clean.includes(forbidden), `${url}: ${forbidden}`);
 }

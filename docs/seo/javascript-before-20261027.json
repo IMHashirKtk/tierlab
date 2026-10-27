@@ -1,0 +1,72 @@
+{
+  "page": "/template/elden-ring-bosses",
+  "chunks": [
+    {
+      "path": "/_next/static/immutable/chunks/19moxvumm_oah.js",
+      "status": 200,
+      "raw": 34816,
+      "gzip": 8731
+    },
+    {
+      "path": "/_next/static/immutable/chunks/23vy-i8andu79.js",
+      "status": 200,
+      "raw": 230088,
+      "gzip": 72147
+    },
+    {
+      "path": "/_next/static/immutable/chunks/15x9v8cn9wb_z.js",
+      "status": 200,
+      "raw": 163297,
+      "gzip": 45258
+    },
+    {
+      "path": "/_next/static/immutable/chunks/turbopack-1byz1flvc-bu1.js",
+      "status": 200,
+      "raw": 11255,
+      "gzip": 4390
+    },
+    {
+      "path": "/_next/static/immutable/chunks/1l85__j_bioq7.js",
+      "status": 200,
+      "raw": 35461,
+      "gzip": 11125
+    },
+    {
+      "path": "/_next/static/immutable/chunks/0z8p5t9dbxtsh.js",
+      "status": 200,
+      "raw": 1222,
+      "gzip": 409
+    },
+    {
+      "path": "/_next/static/immutable/chunks/1nqyl5ec2lsr7.js",
+      "status": 200,
+      "raw": 31853,
+      "gzip": 11148
+    },
+    {
+      "path": "/_next/static/immutable/chunks/0t3jtf-5m_qqz.js",
+      "status": 200,
+      "raw": 88951,
+      "gzip": 26839
+    },
+    {
+      "path": "/_next/static/immutable/chunks/32w4_rgahxdbl.js",
+      "status": 200,
+      "raw": 285736,
+      "gzip": 74838
+    },
+    {
+      "path": "/_next/static/immutable/chunks/0c0hxoamwjsbw.js",
+      "status": 200,
+      "raw": 112594,
+      "gzip": 39627
+    },
+    {
+      "path": "/_next/static/immutable/chunks/3douyljdx_-l2.js",
+      "status": 200,
+      "raw": 5584,
+      "gzip": 2035
+    }
+  ],
+  "totalGzipBytes": 296547
+}

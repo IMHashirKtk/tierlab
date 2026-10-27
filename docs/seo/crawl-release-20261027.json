@@ -1,0 +1,638 @@
+{
+  "checkedAt": "2026-10-27T17:10:02.598Z",
+  "sitemapCount": 50,
+  "googlebot": [
+    {
+      "url": "https://tierlistmaker.app",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 239
+    },
+    {
+      "url": "https://tierlistmaker.app/create",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/create",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 3
+    },
+    {
+      "url": "https://tierlistmaker.app/templates",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/templates",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 235
+    },
+    {
+      "url": "https://tierlistmaker.app/categories/gaming",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/categories/gaming",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 234
+    },
+    {
+      "url": "https://tierlistmaker.app/categories/anime",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/categories/anime",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 167
+    },
+    {
+      "url": "https://tierlistmaker.app/categories/food",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/categories/food",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 57
+    },
+    {
+      "url": "https://tierlistmaker.app/categories/movies",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/categories/movies",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 113
+    },
+    {
+      "url": "https://tierlistmaker.app/categories/music",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/categories/music",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 43
+    },
+    {
+      "url": "https://tierlistmaker.app/categories/sports",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/categories/sports",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 57
+    },
+    {
+      "url": "https://tierlistmaker.app/categories/pop-culture",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/categories/pop-culture",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 69
+    },
+    {
+      "url": "https://tierlistmaker.app/template/apex-legends-legends",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/template/apex-legends-legends",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 36
+    },
+    {
+      "url": "https://tierlistmaker.app/template/attack-on-titan-characters",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/template/attack-on-titan-characters",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 36
+    },
+    {
+      "url": "https://tierlistmaker.app/template/bleach-characters",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/template/bleach-characters",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 36
+    },
+    {
+      "url": "https://tierlistmaker.app/template/blox-fruits-fruits",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/template/blox-fruits-fruits",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 36
+    },
+    {
+      "url": "https://tierlistmaker.app/template/blox-fruits-swords",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/template/blox-fruits-swords",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 36
+    },
+    {
+      "url": "https://tierlistmaker.app/template/blue-lock-characters",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/template/blue-lock-characters",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 36
+    },
+    {
+      "url": "https://tierlistmaker.app/template/candy",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/template/candy",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 36
+    },
+    {
+      "url": "https://tierlistmaker.app/template/car-brands",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/template/car-brands",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 36
+    },
+    {
+      "url": "https://tierlistmaker.app/template/chainsaw-man-characters",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/template/chainsaw-man-characters",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 36
+    },
+    {
+      "url": "https://tierlistmaker.app/template/dead-by-daylight-killers",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/template/dead-by-daylight-killers",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 36
+    },
+    {
+      "url": "https://tierlistmaker.app/template/dead-by-daylight-survivors",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/template/dead-by-daylight-survivors",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 36
+    },
+    {
+      "url": "https://tierlistmaker.app/template/demon-slayer-characters",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/template/demon-slayer-characters",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 36
+    },
+    {
+      "url": "https://tierlistmaker.app/template/disney-movies",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/template/disney-movies",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 36
+    },
+    {
+      "url": "https://tierlistmaker.app/template/dragon-ball-characters",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/template/dragon-ball-characters",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 36
+    },
+    {
+      "url": "https://tierlistmaker.app/template/elden-ring-bosses",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/template/elden-ring-bosses",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 36
+    },
+    {
+      "url": "https://tierlistmaker.app/template/fast-food-restaurants",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/template/fast-food-restaurants",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 36
+    },
+    {
+      "url": "https://tierlistmaker.app/template/football-clubs",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/template/football-clubs",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 36
+    },
+    {
+      "url": "https://tierlistmaker.app/template/harry-potter-movies",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/template/harry-potter-movies",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 36
+    },
+    {
+      "url": "https://tierlistmaker.app/template/hollow-knight-charms",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/template/hollow-knight-charms",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 36
+    },
+    {
+      "url": "https://tierlistmaker.app/template/jujutsu-kaisen-characters",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/template/jujutsu-kaisen-characters",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 36
+    },
+    {
+      "url": "https://tierlistmaker.app/template/kanye-west-discography-tier-list",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/template/kanye-west-discography-tier-list",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 34
+    },
+    {
+      "url": "https://tierlistmaker.app/template/league-of-legends-adc-champions",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/template/league-of-legends-adc-champions",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 36
+    },
+    {
+      "url": "https://tierlistmaker.app/template/league-of-legends-jungle-champions",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/template/league-of-legends-jungle-champions",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 36
+    },
+    {
+      "url": "https://tierlistmaker.app/template/league-of-legends-mid-champions",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/template/league-of-legends-mid-champions",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 36
+    },
+    {
+      "url": "https://tierlistmaker.app/template/league-of-legends-top-champions",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/template/league-of-legends-top-champions",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 36
+    },
+    {
+      "url": "https://tierlistmaker.app/template/mcu-movies-2",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/template/mcu-movies-2",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 36
+    },
+    {
+      "url": "https://tierlistmaker.app/template/naruto-characters",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/template/naruto-characters",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 36
+    },
+    {
+      "url": "https://tierlistmaker.app/template/one-piece-characters",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/template/one-piece-characters",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 36
+    },
+    {
+      "url": "https://tierlistmaker.app/template/overwatch-heroes",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/template/overwatch-heroes",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 36
+    },
+    {
+      "url": "https://tierlistmaker.app/template/pokemon-games",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/template/pokemon-games",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 36
+    },
+    {
+      "url": "https://tierlistmaker.app/template/pokemon-starters",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/template/pokemon-starters",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 36
+    },
+    {
+      "url": "https://tierlistmaker.app/template/pokemon-types",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/template/pokemon-types",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 36
+    },
+    {
+      "url": "https://tierlistmaker.app/template/risk-of-rain-2-survivors",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/template/risk-of-rain-2-survivors",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 36
+    },
+    {
+      "url": "https://tierlistmaker.app/template/solo-leveling-characters",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/template/solo-leveling-characters",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 36
+    },
+    {
+      "url": "https://tierlistmaker.app/template/spider-man-movies",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/template/spider-man-movies",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 36
+    },
+    {
+      "url": "https://tierlistmaker.app/template/star-wars-movies",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/template/star-wars-movies",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 36
+    },
+    {
+      "url": "https://tierlistmaker.app/template/stardew-valley-villagers",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/template/stardew-valley-villagers",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 36
+    },
+    {
+      "url": "https://tierlistmaker.app/template/taylor-swift-eras-albums-ranked",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/template/taylor-swift-eras-albums-ranked",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 34
+    },
+    {
+      "url": "https://tierlistmaker.app/template/valorant-agents",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/template/valorant-agents",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 36
+    },
+    {
+      "url": "https://tierlistmaker.app/template/world-of-warcraft-classes",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/template/world-of-warcraft-classes",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 36
+    }
+  ],
+  "normalSample": [
+    {
+      "url": "https://tierlistmaker.app/template/jujutsu-kaisen-characters",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/template/jujutsu-kaisen-characters",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 36
+    },
+    {
+      "url": "https://tierlistmaker.app/template/harry-potter-movies",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/template/harry-potter-movies",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 36
+    },
+    {
+      "url": "https://tierlistmaker.app/template/disney-movies",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/template/disney-movies",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 36
+    },
+    {
+      "url": "https://tierlistmaker.app/template/league-of-legends-jungle-champions",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/template/league-of-legends-jungle-champions",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 36
+    },
+    {
+      "url": "https://tierlistmaker.app/template/naruto-characters",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/template/naruto-characters",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 36
+    },
+    {
+      "url": "https://tierlistmaker.app/template/league-of-legends-mid-champions",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/template/league-of-legends-mid-champions",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 36
+    },
+    {
+      "url": "https://tierlistmaker.app/template/spider-man-movies",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/template/spider-man-movies",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 36
+    },
+    {
+      "url": "https://tierlistmaker.app/template/dead-by-daylight-killers",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/template/dead-by-daylight-killers",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 36
+    },
+    {
+      "url": "https://tierlistmaker.app/template/car-brands",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/template/car-brands",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 36
+    },
+    {
+      "url": "https://tierlistmaker.app/template/risk-of-rain-2-survivors",
+      "status": 200,
+      "redirects": 0,
+      "canonical": "https://tierlistmaker.app/template/risk-of-rain-2-survivors",
+      "xRobotsTag": null,
+      "challenge": null,
+      "robots": "index, follow",
+      "internalLinks": 36
+    }
+  ],
+  "discoveredTemplates": 257,
+  "categoryCounts": {
+    "gaming": 103,
+    "anime": 67,
+    "food": 12,
+    "movies": 40,
+    "music": 5,
+    "sports": 12,
+    "pop-culture": 18
+  },
+  "unreviewed": {
+    "url": "https://tierlistmaker.app/template/roblox-games",
+    "status": 200,
+    "redirects": 0,
+    "canonical": "https://tierlistmaker.app/template/roblox-games",
+    "xRobotsTag": null,
+    "challenge": null,
+    "robots": "noindex, follow",
+    "internalLinks": 36
+  },
+  "comparison": {
+    "url": "https://tierlistmaker.app/tiermaker-alternative",
+    "status": 200,
+    "redirects": 0,
+    "canonical": "https://tierlistmaker.app/tiermaker-alternative",
+    "xRobotsTag": null,
+    "challenge": null,
+    "robots": "noindex, follow",
+    "internalLinks": 25
+  }
+}

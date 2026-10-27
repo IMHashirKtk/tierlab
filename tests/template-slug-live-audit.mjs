@@ -2,10 +2,11 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import nextEnv from '@next/env';
+import { templateQuality } from '../src/lib/indexability.ts';
 nextEnv.loadEnvConfig(process.cwd());
 const base=(process.env.AUDIT_BASE_URL || 'http://localhost:3012').replace(/\/$/,'');
 const endpoint=new URL('/rest/v1/templates',process.env.NEXT_PUBLIC_SUPABASE_URL);
-endpoint.searchParams.set('select','id,slug,category,author_name');
+endpoint.searchParams.set('select','id,slug,category,author_name,items');
 endpoint.searchParams.set('order','id');
 const catalogResponse=await fetch(endpoint,{headers:{apikey:process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}});
 assert.equal(catalogResponse.status,200);
@@ -24,7 +25,7 @@ await Promise.all(Array.from({length:2},async()=>{
     const t=migrated[cursor++];
     const path='/template/'+encodeURIComponent(t.slug);
     const legacy='/template/'+encodeURIComponent(t.id);
-    assert(sitemapPaths.has(path),'Missing canonical sitemap URL: '+path);
+    assert.equal(sitemapPaths.has(path), templateQuality(t).eligible, 'Sitemap must apply the editorial quality gate: '+path);
     assert(!sitemapPaths.has(legacy),'Legacy URL in sitemap: '+legacy);
     const old=await fetch(base+legacy,{method:'HEAD',redirect:'manual',signal:AbortSignal.timeout(30000)});
     assert.equal(old.status,301,legacy+' must return 301');

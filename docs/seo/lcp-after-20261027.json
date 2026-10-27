@@ -1,0 +1,74 @@
+[
+  {
+    "result": {
+      "type": "object",
+      "value": {
+        "element": "P",
+        "lcpMs": 2248,
+        "measuredAtMs": 8325.799999999814,
+        "scripts": [
+          "https://tierlistmaker.app/_next/static/immutable/chunks/19moxvumm_oah.js",
+          "https://tierlistmaker.app/_next/static/immutable/chunks/0pi0mrwq8vglv.js",
+          "https://tierlistmaker.app/_next/static/immutable/chunks/0z1q5r30q1ck8.js",
+          "https://tierlistmaker.app/_next/static/immutable/chunks/turbopack-1byz1flvc-bu1.js",
+          "https://tierlistmaker.app/_next/static/immutable/chunks/1vfgg19gmay2y.js",
+          "https://tierlistmaker.app/_next/static/immutable/chunks/3l6zd02mhyckk.js"
+        ],
+        "ttfbMs": 371.4000000003726,
+        "url": "https://tierlistmaker.app/template/elden-ring-bosses",
+        "viewport": {
+          "height": 730,
+          "width": 1536
+        }
+      }
+    }
+  },
+  {
+    "result": {
+      "type": "object",
+      "value": {
+        "element": "P",
+        "lcpMs": 1628,
+        "measuredAtMs": 1768.7999999998135,
+        "scripts": [
+          "https://tierlistmaker.app/_next/static/immutable/chunks/19moxvumm_oah.js",
+          "https://tierlistmaker.app/_next/static/immutable/chunks/0pi0mrwq8vglv.js",
+          "https://tierlistmaker.app/_next/static/immutable/chunks/0z1q5r30q1ck8.js",
+          "https://tierlistmaker.app/_next/static/immutable/chunks/turbopack-1byz1flvc-bu1.js",
+          "https://tierlistmaker.app/_next/static/immutable/chunks/1vfgg19gmay2y.js",
+          "https://tierlistmaker.app/_next/static/immutable/chunks/3l6zd02mhyckk.js"
+        ],
+        "ttfbMs": 1062.2999999998135,
+        "url": "https://tierlistmaker.app/template/overwatch-heroes",
+        "viewport": {
+          "height": 730,
+          "width": 1536
+        }
+      }
+    }
+  },
+  {
+    "result": {
+      "type": "object",
+      "value": {
+        "element": "P",
+        "lcpMs": 908,
+        "measuredAtMs": 1086.2999999998135,
+        "scripts": [
+          "https://tierlistmaker.app/_next/static/immutable/chunks/19moxvumm_oah.js",
+          "https://tierlistmaker.app/_next/static/immutable/chunks/0pi0mrwq8vglv.js",
+          "https://tierlistmaker.app/_next/static/immutable/chunks/0z1q5r30q1ck8.js",
+          "https://tierlistmaker.app/_next/static/immutable/chunks/turbopack-1byz1flvc-bu1.js",
+          "https://tierlistmaker.app/_next/static/immutable/chunks/1vfgg19gmay2y.js",
+          "https://tierlistmaker.app/_next/static/immutable/chunks/3l6zd02mhyckk.js"
+        ],
+        "ttfbMs": 514.7000000001863,
+        "url": "https://tierlistmaker.app/template/blox-fruits-fruits",
+        "viewport": {
+          "height": 730,
+          "width": 1536
+        }
+      }
+    }
+  }
+]

@@ -14,7 +14,9 @@ import { TemplateClientLoader } from "./TemplateClientLoader";
 import { TemplateConsensusSection } from "./TemplateConsensusSection";
 
 export async function generateStaticParams() {
-  return (await getPublicCatalog()).map(t => ({ id: t.slug || t.id }));
+  // Prebuild the reviewed search landing pages. Other public templates stay
+  // reachable and render on demand with the same explicit noindex gate.
+  return (await getPublicCatalog()).filter(t => templateQuality(t).eligible).map(t => ({ id: t.slug || t.id }));
 }
 
 async function findTemplate(id: string) {
@@ -76,13 +78,13 @@ async function TemplateContent({ id }: { id: string }) {
     <main>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd({ "@context": "https://schema.org", "@graph": graph }) }} />
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-5" data-template-overview>
-        <nav aria-label="Breadcrumb" className="flex flex-wrap gap-3 text-sm text-zinc-400"><Link href="/">Home</Link><Link href="/templates">Templates</Link><Link href={`/categories/${template.category}`}>{category}</Link></nav>
+        <nav aria-label="Breadcrumb" className="flex flex-wrap gap-3 text-sm text-zinc-400"><Link prefetch={false} href="/">Home</Link><Link prefetch={false} href="/templates">Templates</Link><Link prefetch={false} href={`/categories/${template.category}`}>{category}</Link></nav>
         <h1 className="text-3xl sm:text-4xl font-extrabold">{topic} Tier List Template</h1>
         <p className="text-xs text-zinc-400">{template.items.length} items · {template.isStarter ? "Template Library" : `By @${template.author.username}`}</p>
         <div className="max-w-4xl space-y-4 text-sm sm:text-base leading-relaxed text-zinc-300" data-template-intro data-reviewed={eligible ? "true" : "false"}>
           {(editorial?.intro || [template.description]).filter(Boolean).map(p => <p key={p.slice(0, 60)}>{p}</p>)}
         </div>
-        <Link href="/create" className="inline-flex text-indigo-300">Open the editor →</Link>
+        <Link prefetch={false} href="/create" className="inline-flex text-indigo-300">Open the editor →</Link>
       </section>
       <Suspense fallback={<div aria-hidden="true" className="min-h-64 bg-zinc-950" />}>
         <TemplateClientLoader templateId={template.id} serverTemplate={template} />
@@ -105,7 +107,7 @@ async function TemplateContent({ id }: { id: string }) {
         <section className="space-y-4" data-related-templates>
           <h2 className="text-2xl font-bold">More {category} templates</h2>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">{related.map(t => <Link key={t.id} href={templatePath(t)} prefetch={false} className="rounded-xl border border-zinc-800 bg-zinc-900 p-4 text-indigo-300">{t.title}</Link>)}</div>
-          <div className="flex flex-wrap gap-5 text-sm text-indigo-300"><Link href={`/categories/${template.category}`}>Browse {category} templates</Link><Link href="/create">Create a tier list</Link><Link href="/contact">Report a template problem</Link></div>
+          <div className="flex flex-wrap gap-5 text-sm text-indigo-300"><Link prefetch={false} href={`/categories/${template.category}`}>Browse {category} templates</Link><Link prefetch={false} href="/create">Create a tier list</Link><Link prefetch={false} href="/contact">Report a template problem</Link></div>
         </section>
       </section>
     </main><Footer />

@@ -1,70 +1,22 @@
 "use client";
-
-import React, { useEffect, useState } from "react";
+import { useState } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
-import { Studio } from "@/components/studio/Studio";
-import { fetchTemplateById } from "@/lib/community";
 import type { Template } from "@/types";
-import { Layers } from "lucide-react";
 
-import { TemplateConsensusSection } from "./TemplateConsensusSection";
+const Studio = dynamic(() => import("@/components/studio/Studio").then(module => module.Studio), {
+  ssr: false,
+  loading: () => <div aria-hidden="true" className="min-h-64 rounded-2xl border border-zinc-800 bg-zinc-950 animate-pulse" />,
+});
 
-interface TemplateClientLoaderProps {
-  templateId: string;
-  serverTemplate: Template | null;
-}
-
-export function TemplateClientLoader({ templateId, serverTemplate }: TemplateClientLoaderProps) {
-  const [template, setTemplate] = useState<Template | null>(serverTemplate);
-  const [loading, setLoading] = useState(!serverTemplate);
-
-  useEffect(() => {
-    if (!serverTemplate && templateId) {
-      fetchTemplateById(templateId).then((data) => {
-        setTemplate(data);
-        setLoading(false);
-      });
-    }
-  }, [templateId, serverTemplate]);
-
-  if (loading) {
-    return (
-      <div aria-hidden="true" className="min-h-64 bg-zinc-950">
-
-      </div>
-    );
-  }
-
-  if (!template) {
-    return (
-      <div className="min-h-screen bg-[#09090b] text-[#f4f4f5] flex flex-col items-center justify-center p-6 text-center space-y-4">
-        <div className="w-16 h-16 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-600">
-          <Layers className="w-8 h-8" />
-        </div>
-        <h2 className="text-xl font-bold text-white">Template Not Found</h2>
-        <p className="text-xs text-zinc-400 max-w-sm">
-          Could not find template &ldquo;{templateId}&rdquo;. It may have been removed or created on another browser.
-        </p>
-        <Link
-          href="/"
-          className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-md shadow-indigo-600/30"
-        >
-          Explore All Templates
-        </Link>
-      </div>
-    );
-  }
-
-  if (!serverTemplate) {
-    return (
-      <div>
-        <Studio initialTemplate={template} />
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 border-t border-zinc-800/80">
-          <TemplateConsensusSection template={template} />
-        </section>
-      </div>
-    );
-  }
-
-  return <Studio initialTemplate={template} />;
+export function TemplateClientLoader({ templateId, serverTemplate }: { templateId: string; serverTemplate: Template }) {
+  const [opened, setOpened] = useState(false);
+  if (opened) return <Studio initialTemplate={serverTemplate} />;
+  return <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6" aria-label="Template editor">
+    <div className="rounded-2xl border border-indigo-500/30 bg-zinc-900 p-6 flex flex-wrap items-center justify-between gap-5">
+      <div><h2 className="text-xl font-bold">Rank {serverTemplate.items.length} items your way</h2><p className="mt-2 text-sm text-zinc-400">Open this roster in the drag-and-drop editor, then save or export your ranking.</p></div>
+      <button type="button" onClick={() => setOpened(true)} className="rounded-xl bg-indigo-600 hover:bg-indigo-500 px-6 py-3 font-semibold cursor-pointer">Open the editor</button>
+      <Link href={`/create?template=${encodeURIComponent(templateId)}`} prefetch={false} className="text-sm text-indigo-300">Create a tier list on a separate page →</Link>
+    </div>
+  </section>;
 }

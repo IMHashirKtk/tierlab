@@ -6,7 +6,6 @@ import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { Search, Plus, Swords, Menu, X } from "lucide-react";
 import { BrandMark } from "@/components/BrandMark";
-import { fetchTemplates } from "@/lib/community";
 import type { Template } from "@/types";
 
 interface NavbarProps {
@@ -21,17 +20,20 @@ export function Navbar({ onOpenPublish }: NavbarProps) {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const [matchingTemplates, setMatchingTemplates] = useState<Template[]>([]);
+  const [matchingTemplates, setMatchingTemplates] = useState<Pick<Template, "id" | "slug" | "title" | "category" | "itemCount">[]>([]);
   useEffect(() => {
     if (!searchQuery.trim()) return;
-    let isCancelled = false;
-    const timer = setTimeout(() => fetchTemplates({ search: searchQuery }).then((res) => {
-      if (!isCancelled) {
-        setMatchingTemplates(res.slice(0, 6));
-      }
-    }), 250);
+    const controller = new AbortController();
+    const timer = setTimeout(async () => {
+      try {
+        const response = await fetch(`/api/template-search?q=${encodeURIComponent(searchQuery.trim())}`, { signal: controller.signal });
+        if (!response.ok) throw new Error("Search unavailable");
+        const results = await response.json();
+        if (!controller.signal.aborted) setMatchingTemplates(results);
+      } catch { if (!controller.signal.aborted) setMatchingTemplates([]); }
+    }, 250);
     return () => {
-      isCancelled = true;
+      controller.abort();
       clearTimeout(timer);
     };
   }, [searchQuery]);
@@ -66,7 +68,7 @@ export function Navbar({ onOpenPublish }: NavbarProps) {
     <header ref={headerRef} className="sticky top-0 z-50 glass-panel border-b border-zinc-800/80">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2 sm:gap-4">
         {/* Brand Logo */}
-        <Link href="/" aria-label="Tier List Maker home" className="flex min-w-0 items-center gap-2 shrink-0 group">
+        <Link prefetch={false} href="/" aria-label="Tier List Maker home" className="flex min-w-0 items-center gap-2 shrink-0 group">
           <BrandMark className="w-8 h-8 sm:w-9 sm:h-9" />
           <div className="flex items-baseline gap-1.5">
             <span className="text-base sm:text-lg font-bold tracking-tight text-white whitespace-nowrap">
@@ -103,7 +105,7 @@ export function Navbar({ onOpenPublish }: NavbarProps) {
                 </div>
               ) : (
                 matchingTemplates.map((t) => (
-                  <Link
+                  <Link prefetch={false}
                     key={t.id}
                     href={templatePath(t)}
                     onClick={() => {
@@ -133,16 +135,16 @@ export function Navbar({ onOpenPublish }: NavbarProps) {
         {/* Action Controls */}
         <div className="flex shrink-0 items-center gap-2">
           <nav aria-label="Main navigation" className="hidden xl:flex items-center whitespace-nowrap text-sm font-medium text-zinc-400">
-            <Link href="/templates" className="px-2.5 py-2 rounded-lg hover:text-white hover:bg-zinc-800/60 transition-colors">
+            <Link prefetch={false} href="/templates" className="px-2.5 py-2 rounded-lg hover:text-white hover:bg-zinc-800/60 transition-colors">
               Templates
             </Link>
-            <Link href="/#categories" className="px-2.5 py-2 rounded-lg hover:text-white hover:bg-zinc-800/60 transition-colors">
+            <Link prefetch={false} href="/#categories" className="px-2.5 py-2 rounded-lg hover:text-white hover:bg-zinc-800/60 transition-colors">
               Categories
             </Link>
-            <Link href="/my-projects" className="px-2.5 py-2 rounded-lg hover:text-white hover:bg-zinc-800/60 transition-colors">
+            <Link prefetch={false} href="/my-projects" className="px-2.5 py-2 rounded-lg hover:text-white hover:bg-zinc-800/60 transition-colors">
               My Projects
             </Link>
-            <Link
+            <Link prefetch={false}
               href="/versus"
               className="px-2.5 py-2 rounded-lg hover:text-white hover:bg-zinc-800/60 transition-colors flex items-center gap-1"
             >
@@ -163,7 +165,7 @@ export function Navbar({ onOpenPublish }: NavbarProps) {
           )}
 
           {/* Primary CTA: Start Ranking */}
-          <Link
+          <Link prefetch={false}
             href="/create"
             className="px-3 sm:px-4 min-h-10 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap text-white bg-indigo-600 hover:bg-indigo-500 transition-colors flex items-center"
           >
@@ -180,7 +182,7 @@ export function Navbar({ onOpenPublish }: NavbarProps) {
           <div className="max-w-7xl mx-auto grid gap-1">
             {[
               ["Browse templates", "/templates"], ["Categories", "/#categories"], ["Community rankings", "/#feed"], ["My Projects", "/my-projects"], ["Versus", "/versus"], ["Creator features", "/#dropfx"],
-            ].map(([label, href]) => <Link key={href} href={href} onClick={() => setMenuOpen(false)} className="px-3 py-3 rounded-lg text-sm text-zinc-200 hover:bg-zinc-800 focus-visible:ring-2 focus-visible:ring-indigo-400">{label}</Link>)}
+            ].map(([label, href]) => <Link prefetch={false} key={href} href={href} onClick={() => setMenuOpen(false)} className="px-3 py-3 rounded-lg text-sm text-zinc-200 hover:bg-zinc-800 focus-visible:ring-2 focus-visible:ring-indigo-400">{label}</Link>)}
             {onOpenPublish && (
               <button
                 type="button"

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { PageEditorial } from "@/components/PageEditorial";
 import { pageQuality } from "@/lib/page-quality";
 import { canIndexSite } from "@/lib/seo";
@@ -41,5 +42,9 @@ export default function CreateLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}<div className="px-4"><PageEditorial path="/create" /></div></>;
+  return <>{children}<div className="px-4"><PageEditorial path="/create" />
+    <nav aria-label="Editor resources" className="max-w-4xl mx-auto pb-10 flex flex-wrap gap-5 text-sm text-indigo-300">
+      <Link href="/">Tier List Maker home</Link><Link href="/templates">Browse templates</Link><Link href="/categories/gaming">Gaming templates</Link>
+    </nav>
+  </div></>;
 }

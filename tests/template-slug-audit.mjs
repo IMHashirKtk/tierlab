@@ -3,7 +3,8 @@ import { NextRequest } from 'next/server.js';
 import { publishTemplate, fetchTemplateById, fetchTemplates, fetchSharedTierList } from '../src/lib/community.ts';
 import { setMockSupabaseClient, setMockSessionUserId, resetMockSupabaseClient, resetMockSessionUserId } from '../src/lib/supabase.ts';
 import { proxy } from '../src/proxy.ts';
-import sitemap from '../src/app/sitemap.ts';
+import { templateQuality } from '../src/lib/indexability.ts';
+import { templatePath } from '../src/lib/template-url.ts';
 import { SEED_TEMPLATES } from '../src/data/seed-templates.ts';
 
 const row = { id: 'b-ie9n', slug: 'blox-fruits-fruits', title: 'Blox Fruits Fruits', description: 'Fruit roster', category: 'gaming', author_id: 'owner', author_name: 'Creator', items: [{ id:'one',name:'One' },{ id:'two',name:'Two' }], default_tiers: [], created_at: '2026-10-22', upvotes: 3, rank_count: 2 };
@@ -40,6 +41,9 @@ setMockSupabaseClient({ from(table) {
 setMockSessionUserId('owner');
 try {
   assert(SEED_TEMPLATES.every(t=>t.slug===t.id),'Library URLs must retain their established paths');
+  assert.equal((await proxy(new NextRequest('https://tierlistmaker.app/categories/gaming/page/2'))).headers.get('x-middleware-next'), '1', 'Valid category pagination must reach the page');
+  assert.equal((await proxy(new NextRequest('https://tierlistmaker.app/categories/gaming/page/0'))).status, 404);
+  assert.equal((await proxy(new NextRequest('https://tierlistmaker.app/categories/unknown/page/2'))).status, 404);
   assert.equal((await fetchTemplateById(row.id)).slug,row.slug,'Cloud slug overrides old browser copy');
   assert.equal((await fetchTemplateById(row.slug)).id,row.id,'Public slug resolves to stable template identity');
   assert.equal((await fetchTemplates()).find(t=>t.id===row.id).slug,row.slug);
@@ -62,10 +66,9 @@ try {
   await assert.rejects(publishTemplate(payload),/not owned/);
   assert.equal((await fetchSharedTierList('ranking')).templateSlug,row.slug,'Remix links receive canonical slug through FK relationship');
   process.env.VERCEL_ENV='production';
-  const urls=(await sitemap()).map(r=>r.url);
-  assert(urls.some(u=>u.endsWith('/template/'+row.slug)));
-  assert(!urls.some(u=>u.endsWith('/template/'+row.id)));
-  console.log('PASS: stable IDs, canonical lookup, stale local copies, 301 with query preservation, retry ownership, joined remix links, and canonical sitemap');
+  assert.equal(templatePath(published), '/template/' + published.slug);
+  assert.equal(templateQuality(published).eligible, false, 'Two-item fixture must stay out of the quality-gated sitemap');
+  console.log('PASS: stable IDs, canonical lookup, stale local copies, 301 with query preservation, retry ownership, joined remix links, and short-roster exclusion');
 } finally {
   resetMockSupabaseClient();resetMockSessionUserId();
   if(originalEnvironment===undefined)delete process.env.VERCEL_ENV;else process.env.VERCEL_ENV=originalEnvironment;

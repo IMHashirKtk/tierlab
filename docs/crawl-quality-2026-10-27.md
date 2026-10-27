@@ -23,3 +23,15 @@ Metadata and sitemap share `templateQuality`: at least eight named items, an exp
 Ten primary routes have distinct, visible server-rendered editorial copy of 200+ words: homepage, editor, directory, and seven categories. Other static informational pages and the as-yet-unverified comparison use noindex,follow. /create now qualifies for indexing; homepage remains the primary broad maker page. Paginated directories remain linked but noindex to avoid repeated editorial content.
 
 Sitemap dates come from deterministic editorial revision strings, not build time or voting/publishing counters. Validation: successful build and focused lint; indexability-audit covers missing editorial, short rosters, generic names and dates; built sitemap has ten qualified static URLs at this task boundary. Catalog reads retry a transient failure once after an observed timeout; they do not turn missing cloud data into a successful incomplete sitemap.
+
+## Task 3 — forty individually enriched templates
+
+Added forty separately written intros (120–200 words each) and 120 topic-specific, permanently visible FAQs. Saved roster names and counts were checked through public read-only data before writing. Text explains the actual selection, useful ranking criteria and exclusions; it does not claim current game balance or franchise completeness. In particular, the Spider-Man selection includes related spin-offs; the Taylor Swift selection contains versioned entries; the Kanye-related selection mixes singles, editions and an associated release rather than a uniform solo-album catalog.
+
+Template H1 is `{Topic} Tier List Template`; absolute titles use `{Topic} Tier List Maker (Free Template)` and are at most 60 characters. Removed repeated drag-and-drop boilerplate and generic Item #N captions. All roster names appear in visible server text and image alt attributes. Structured data matches the visible roster and FAQs. Related links use the full same-category catalog, prioritizing reviewed pages, plus category and editor links.
+
+Inventory limitation: music has only five real templates, so its two enriched pages link four other music templates rather than inventing six. Other selected categories supply six related templates.
+
+Only the editor is inside an aria-hidden skeleton Suspense boundary. An HTML regression test caught and prevented the whole editorial section being postponed with the editor. The intro is not loading content and survives hydration. Consensus renders nothing below five published submissions or on an error.
+
+Validation: successful production build, focused lint, indexability audit, directory audit and template-editorial-audit. The latter checks all forty built HTML files with scripts stripped, exact titles, every roster name, all intros/FAQs, editor/category links and the forty template sitemap entries. Sitemap now has fifty qualified pages before comparison verification.

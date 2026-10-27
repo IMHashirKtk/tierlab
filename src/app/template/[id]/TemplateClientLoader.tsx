@@ -29,8 +29,8 @@ export function TemplateClientLoader({ templateId, serverTemplate }: TemplateCli
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#09090b] text-zinc-400 flex items-center justify-center text-xs">
-        Loading template ranking studio...
+      <div aria-hidden="true" className="min-h-64 bg-zinc-950">
+
       </div>
     );
   }

@@ -1,318 +1,118 @@
-import { templatePath } from "@/lib/template-url";
-import { ItemImage } from "@/components/ItemImage";
-import React, { Suspense } from "react";
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { STARTER_GUIDES } from "@/data/starter-guides";
-import { CATEGORIES } from "@/data/categories";
-import { getPublicTemplate } from "@/lib/server/public-content";
-import { SEED_TEMPLATES } from "@/data/seed-templates";
-import { fetchSubmissionsForTemplateWithStatus } from "@/lib/community";
-import { safeJsonLd, canIndexSite, getSiteUrl } from "@/lib/seo";
-import { isIndexableTemplate } from "@/lib/indexability";
 import { notFound } from "next/navigation";
+import { Navbar } from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
+import { ItemImage } from "@/components/ItemImage";
+import { getPublicCatalog } from "@/lib/server/catalog";
+import { templatePath } from "@/lib/template-url";
+import { templateQuality } from "@/lib/indexability";
+import { CATEGORIES } from "@/data/categories";
+import { safeJsonLd, canIndexSite, getSiteUrl } from "@/lib/seo";
 import { TemplateClientLoader } from "./TemplateClientLoader";
 import { TemplateConsensusSection } from "./TemplateConsensusSection";
-import {
-  ChevronRight,
-  Layers,
-  ArrowRight,
-  Sparkles,
-} from "lucide-react";
 
-export function generateStaticParams() {
-  return SEED_TEMPLATES.map((t) => ({ id: t.id }));
+export async function generateStaticParams() {
+  return (await getPublicCatalog()).map(t => ({ id: t.slug || t.id }));
 }
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}): Promise<Metadata> {
-  const { id } = await params;
-  const template = await getPublicTemplate(id);
+async function findTemplate(id: string) {
+  const catalog = await getPublicCatalog();
+  return catalog.find(t => (t.slug || t.id) === id) || catalog.find(t => t.id === id);
+}
 
-  if (!template) {
-    return {
-      title: "Template not found",
-      description: "Create and rank custom tier lists with Tier List Maker.",
-      robots: { index: false, follow: true },
-    };
-  }
-
-  const ogUrl = `/api/og?title=${encodeURIComponent(template.title)}&author=${encodeURIComponent(
-    template.author.username
-  )}&category=${encodeURIComponent(template.category)}&totalRanked=${encodeURIComponent(
-    template.items.length + " items"
-  )}&mode=template`;
-
-  const topic = STARTER_GUIDES[template.id]?.topic || template.title;
-  const pageTitle = /tier list/i.test(topic) ? `${topic} Template` : `${topic} Tier List Template`;
-  const pageDescription = `${template.description || `Rank ${template.items.length} items in ${template.title}.`} Customize your tiers and export your ranking.`;
-  const canonicalUrl = templatePath(template);
-
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const template = await findTemplate((await params).id);
+  if (!template) return { title: "Template not found", robots: { index: false, follow: true } };
+  const quality = templateQuality(template);
+  const topic = quality.editorial?.topic || template.title.replace(/ tier list.*$/i, "");
+  const suffix = " Tier List Maker (Free Template)";
+  const title = topic.length + suffix.length <= 60 ? topic + suffix : topic.slice(0, 60 - suffix.length).trim() + suffix;
+  const description = quality.editorial?.intro[0].split(/(?<=[.!?]) /)[0] || template.description;
+  const canonical = templatePath(template);
   return {
-    title: pageTitle,
-    description: pageDescription,
-    robots: { index: canIndexSite() && isIndexableTemplate(template), follow: true },
-    alternates: {
-      canonical: canonicalUrl,
-    },
-    openGraph: {
-      title: `${pageTitle} | Tier List Maker`,
-      description: pageDescription,
-      url: canonicalUrl,
-      images: [
-        {
-          url: ogUrl,
-          width: 1200,
-          height: 630,
-          alt: `${template.title} Tier List Maker`,
-        },
-      ],
-      type: "website",
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: pageTitle,
-      description: pageDescription,
-      images: [ogUrl],
-    },
+    title: { absolute: title }, description,
+    robots: { index: canIndexSite() && quality.eligible, follow: true },
+    alternates: { canonical },
+    openGraph: { title, description, url: canonical, type: "website", images: [{
+      url: `/api/og?title=${encodeURIComponent(topic)}&category=${encodeURIComponent(template.category)}&mode=template`,
+      width: 1200, height: 630, alt: `${topic} Tier List Template`,
+    }] },
+    twitter: { card: "summary_large_image", title, description },
   };
 }
 
-async function TemplateContent({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const template = await getPublicTemplate(id);
-
-  if (!template) {
-    notFound();
-  }
-
-  const { submissions, fetchError } = await fetchSubmissionsForTemplateWithStatus(template.id);
-  const relatedTemplates = SEED_TEMPLATES.filter((t) => t.id !== id && t.category === template.category).slice(0, 3);
-  const guide = STARTER_GUIDES[template.id];
-  const siteUrl = getSiteUrl();
-  const categoryName = CATEGORIES.find(category => category.id === template.category)?.name || template.category;
-
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "BreadcrumbList",
-        itemListElement: [
-          {
-            "@type": "ListItem",
-            position: 1,
-            name: "Home",
-            item: siteUrl,
-          },
-          {
-            "@type": "ListItem",
-            position: 2,
-            name: categoryName,
-            item: `${siteUrl}/categories/${template.category}`,
-          },
-          {
-            "@type": "ListItem",
-            position: 3,
-            name: template.title,
-            item: `${siteUrl}${templatePath(template)}`,
-          },
-        ],
-      },
-      {
-        "@type": "CreativeWork",
-        "@id": `${siteUrl}${templatePath(template)}#template`,
-        name: template.title,
-        description: template.description,
-        url: `${siteUrl}${templatePath(template)}`,
-        genre: categoryName,
-        isPartOf: { "@id": `${siteUrl}/categories/${template.category}#collection` },
-        creator: template.isStarter
-          ? { "@id": `${siteUrl}/#operator` }
-          : { "@type": "Person", name: template.author.username, url: `${siteUrl}/user/${encodeURIComponent(template.author.username)}` },
-        mainEntity: { "@id": `${siteUrl}${templatePath(template)}#items` },
-      },
-      {
-        "@type": "ItemList",
-        "@id": `${siteUrl}${templatePath(template)}#items`,
-        itemListOrder: "https://schema.org/ItemListUnordered",
-        name: `${template.title} Items`,
-        description: `The ${template.items.length} items included in this template.`,
-        numberOfItems: template.items.length,
-        itemListElement: template.items.map((item, index) => ({
-          "@type": "ListItem",
-          position: index + 1,
-          name: item.name,
-          image: item.imageUrl || undefined,
-        })),
-      },
-    ],
-  };
-
-  return (
-    <div>
-      {/* JSON-LD Schema */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
-      />
-
-      {/* Interactive Ranking Studio Experience */}
-      <TemplateClientLoader templateId={template.id} serverTemplate={template} />
-
-      {/* Crawlable Semantic SEO Content Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 border-t border-zinc-800/80 space-y-12 text-zinc-300">
-        {/* Breadcrumb Navigation */}
-        <nav
-          aria-label="Breadcrumb"
-          className="flex items-center gap-2 text-xs text-zinc-400 font-medium"
-        >
-          <Link href="/" className="hover:text-white transition-colors">
-            Home
-          </Link>
-          <ChevronRight className="w-3 h-3 text-zinc-600" />
-          <Link
-            href={`/categories/${template.category}`}
-            className="hover:text-white transition-colors capitalize"
-          >
-            {categoryName}
-          </Link>
-          <ChevronRight className="w-3 h-3 text-zinc-600" />
-          <span className="text-indigo-400 font-semibold truncate max-w-xs sm:max-w-md">
-            {template.title}
-          </span>
-        </nav>
-
-        {/* Template Overview */}
-        <div className="space-y-3">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 capitalize">
-              {template.category}
-            </span>
-            <span className="text-xs text-zinc-500">•</span>
-            <span className="text-xs text-zinc-400">
-              Created by {template.isStarter ? <Link href="/about" className="text-white font-medium">Template Library</Link> : <Link href={`/user/${encodeURIComponent(template.author.username)}`} className="text-white font-medium">@{template.author.username}</Link>}
-            </span>
-            <span className="text-xs text-zinc-500">•</span>
-            <span className="text-xs text-zinc-400">{template.items.length} rankable items</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-            {template.title} Tier List
-          </h1>
-          <p className="text-zinc-400 text-sm sm:text-base leading-relaxed max-w-4xl">
-            {template.description} Use our drag-and-drop studio above to rank every item from S Tier down to F Tier. Once ranked, compare your results against our mathematical crowd consensus or export in 4K PNG and animated 9:16 TikTok video formats.
-          </p>
+async function TemplateContent({ id }: { id: string }) {
+  const template = await findTemplate(id);
+  if (!template) notFound();
+  const { editorial, eligible } = templateQuality(template);
+  const topic = editorial?.topic || template.title.replace(/ tier list.*$/i, "");
+  const catalog = await getPublicCatalog();
+  const related = catalog.filter(t => t.id !== template.id && t.category === template.category)
+    .sort((a, b) => Number(templateQuality(b).eligible) - Number(templateQuality(a).eligible)).slice(0, 6);
+  const site = getSiteUrl();
+  const url = `${site}${templatePath(template)}`;
+  const category = CATEGORIES.find(c => c.id === template.category)?.name || template.category;
+  const graph = [
+    { "@type": "BreadcrumbList", itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: site },
+      { "@type": "ListItem", position: 2, name: category, item: `${site}/categories/${template.category}` },
+      { "@type": "ListItem", position: 3, name: topic, item: url },
+    ] },
+    { "@type": "CreativeWork", "@id": `${url}#template`, name: `${topic} Tier List Template`, url,
+      description: editorial?.intro.join(" ") || template.description,
+      ...(editorial ? { dateModified: editorial.updated } : {}),
+      mainEntity: { "@id": `${url}#items` },
+    },
+    { "@type": "ItemList", "@id": `${url}#items`, name: `${topic} roster`, numberOfItems: template.items.length,
+      itemListOrder: "https://schema.org/ItemListUnordered", itemListElement: template.items.map((item, i) => ({
+        "@type": "ListItem", position: i + 1, name: item.name, ...(item.imageUrl ? { image: item.imageUrl } : {}),
+      })),
+    },
+    ...(editorial ? [{ "@type": "FAQPage", mainEntity: editorial.faqs.map(f => ({ "@type": "Question", name: f.question, acceptedAnswer: { "@type": "Answer", text: f.answer } })) }] : []),
+  ];
+  return <div className="min-h-screen bg-[#09090b] text-zinc-100"><Navbar />
+    <main>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd({ "@context": "https://schema.org", "@graph": graph }) }} />
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-5" data-template-overview>
+        <nav aria-label="Breadcrumb" className="flex flex-wrap gap-3 text-sm text-zinc-400"><Link href="/">Home</Link><Link href="/templates">Templates</Link><Link href={`/categories/${template.category}`}>{category}</Link></nav>
+        <h1 className="text-3xl sm:text-4xl font-extrabold">{topic} Tier List Template</h1>
+        <p className="text-xs text-zinc-400">{template.items.length} items · {template.isStarter ? "Template Library" : `By @${template.author.username}`}</p>
+        <div className="max-w-4xl space-y-4 text-sm sm:text-base leading-relaxed text-zinc-300" data-template-intro data-reviewed={eligible ? "true" : "false"}>
+          {(editorial?.intro || [template.description]).filter(Boolean).map(p => <p key={p.slice(0, 60)}>{p}</p>)}
         </div>
-
-        {/* Complete Crawlable Item Roster */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg sm:text-xl font-bold text-white tracking-tight flex items-center gap-2">
-              <Layers className="w-5 h-5 text-indigo-400" />
-              <span>{template.items.length} Items in This Template</span>
-            </h3>
-            <span className="text-xs text-zinc-400">Template roster</span>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-            {template.items.map((item, index) => (
-              <div
-                key={item.id}
-                className="p-2.5 rounded-xl bg-zinc-900/60 border border-zinc-800 flex items-center gap-2.5 hover:border-zinc-700 transition-colors"
-              >
-                <div className="w-10 h-10 rounded-lg bg-zinc-800 overflow-hidden flex-shrink-0 flex items-center justify-center border border-zinc-700/60">
-                  {item.imageUrl ? (
-                    <ItemImage
-                      src={item.imageUrl}
-                      alt={`${item.name} - ${template.title} Tier List`}
-                      className="w-full h-full object-cover"
-                      loading="lazy"
-                    />
-                  ) : (
-                    <span className="text-[10px] text-zinc-400 font-bold">#{index + 1}</span>
-                  )}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="text-xs font-semibold text-white truncate" title={item.name}>
-                    {item.name}
-                  </div>
-                  <div className="text-[10px] text-zinc-500">Item #{index + 1}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {guide && (
-          <section className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-5 space-y-3">
-            <h2 className="text-lg font-semibold text-white">Choose your ranking criteria</h2>
-            <p className="text-sm text-zinc-300 leading-relaxed">{guide.criteria}</p>
-            <p className="text-xs text-zinc-400">This is a curated starter roster. Leave unfamiliar items unranked, add missing picks, and rename tiers to explain your scale.</p>
-            {!template.items.some(item => item.imageUrl) && <p className="text-xs text-zinc-400">This template uses text cards. You can add your own permitted images in the studio.</p>}
-          </section>
-        )}
-
-        <p className="text-xs text-zinc-400"><Link href="/contact">Report a problem with this template</Link></p>
-
-        {/* Community Consensus Snapshot */}
-        <TemplateConsensusSection
-          template={template}
-          initialSubmissions={submissions}
-          initialFetchError={fetchError}
-        />
-
-        {/* Related Templates Grid */}
-        <div className="space-y-4">
-          <h3 className="text-lg sm:text-xl font-bold text-white tracking-tight flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-indigo-400" />
-            <span>More {template.category} Tier List Templates</span>
-          </h3>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {relatedTemplates.map((rel) => (
-              <Link
-                key={rel.id}
-                href={templatePath(rel)}
-                className="p-4 rounded-xl bg-zinc-900/60 border border-zinc-800 hover:border-indigo-500/40 transition-all group flex flex-col justify-between"
-              >
-                <div>
-                  <div className="text-[11px] font-mono text-zinc-400 mb-1">
-                    {rel.itemCount} items • {rel.category}
-                  </div>
-                  <h4 className="text-sm font-bold text-white group-hover:text-indigo-400 transition-colors">
-                    {rel.title}
-                  </h4>
-                  <p className="text-xs text-zinc-400 mt-1 line-clamp-2">{rel.description}</p>
-                </div>
-                <div className="mt-3 pt-2 border-t border-zinc-800 flex items-center justify-between text-xs text-indigo-400 font-medium">
-                  <span>Rank this template</span>
-                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
+        <Link href="/create" className="inline-flex text-indigo-300">Open a blank editor →</Link>
       </section>
-    </div>
-  );
+      <Suspense fallback={<div aria-hidden="true" className="min-h-64 bg-zinc-950" />}>
+        <TemplateClientLoader templateId={template.id} serverTemplate={template} />
+      </Suspense>
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
+        <section aria-label="Complete template roster" className="space-y-4">
+          <h2 className="text-2xl font-bold">{template.items.length} items in this roster</h2>
+          <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+            {template.items.map(item => <li key={item.id} className="rounded-xl border border-zinc-800 bg-zinc-900/70 p-3 flex gap-3 items-center">
+              {item.imageUrl && <ItemImage src={item.imageUrl} alt={item.name} width={48} height={48} loading="lazy" className="w-12 h-12 shrink-0 rounded-lg object-cover" />}
+              <span className="text-xs font-medium break-words min-w-0">{item.name}</span>
+            </li>)}
+          </ul>
+        </section>
+        {editorial && <section aria-label="Topic questions" className="max-w-4xl space-y-6" data-template-faq>
+          <h2 className="text-2xl font-bold">Questions about this {topic} template</h2>
+          {editorial.faqs.map(f => <div key={f.question} className="space-y-2"><h3 className="font-semibold">{f.question}</h3><p className="text-sm leading-relaxed text-zinc-400">{f.answer}</p></div>)}
+        </section>}
+        <TemplateConsensusSection template={template} />
+        <section className="space-y-4" data-related-templates>
+          <h2 className="text-2xl font-bold">More {category} templates</h2>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">{related.map(t => <Link key={t.id} href={templatePath(t)} prefetch={false} className="rounded-xl border border-zinc-800 bg-zinc-900 p-4 text-indigo-300">{t.title}</Link>)}</div>
+          <div className="flex flex-wrap gap-5 text-sm text-indigo-300"><Link href={`/categories/${template.category}`}>Browse {category} templates</Link><Link href="/create">Create a tier list</Link><Link href="/contact">Report a template problem</Link></div>
+        </section>
+      </section>
+    </main><Footer />
+  </div>;
 }
 
-export default function TemplatePage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen bg-[#09090b] text-zinc-400 flex items-center justify-center text-xs">
-          Loading template studio...
-        </div>
-      }
-    >
-      <TemplateContent params={params} />
-    </Suspense>
-  );
+export default async function Page({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  return <TemplateContent id={id} />;
 }

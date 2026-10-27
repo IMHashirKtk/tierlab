@@ -43,3 +43,11 @@ Empty ranking feeds render nothing until real submissions exist; consensus requi
 Public catalog responses now use the framework's shared 300-second fetch cache and larger database batches to avoid redundant prerender round trips. Failures still fail the build rather than silently dropping community pages.
 
 Validation: production build, focused ESLint, all forty editorial HTML checks, and an audit of every sitemap page for exact canonical, index permission and forbidden empty-state/placeholder text.
+
+## Task 5 — sourced comparison, deliberately noindex
+
+Replaced the short promotional page with a six-feature comparison table and practical workflow guidance. TierMaker claims are scoped to its official FAQ and one public builder, checked 27 October 2026. The FAQ documents logo-free/ad-free subscription benefits and account requirements for creating templates; its refresh warning is explicitly limited to its single-use private workflow. Public-builder image download controls are visible, but actual export extensions, video availability and broader draft behaviour remain unverified. These are labelled, not guessed. The page explicitly remains noindex,follow and outside the sitemap until verification is complete.
+
+Sources: https://tiermaker.com/blog/support/10/tier-list-template-creation-guide-and-faqs and https://tiermaker.com/create/star-wars-film-ranking-6747 . No claim is made about competitor audience, speed, ranking or superiority.
+
+Own-product claims were checked against current export defaults, local project storage and advertising integrations. Validation: production build, focused lint, and built-HTML checks for six table rows, dated sources, explicit noindex and sitemap exclusion.

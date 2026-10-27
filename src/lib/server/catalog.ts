@@ -13,11 +13,18 @@ export async function getPublicCatalog(): Promise<Template[]> {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (url && key) {
-    const db = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } });
-    for (let offset = 0; ; offset += 100) {
+    const db = createClient(url, key, {
+      auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+      // Share public responses across prerender workers as well as page renders.
+      global: { fetch: (input, init) => fetch(input, { ...init, next: { revalidate: 300 } }) },
+    });
+    // A larger database batch avoids repeated round trips during prerender.
+    // Presentation remains strictly paginated at 100 entries per HTML page.
+    const batchSize = 500;
+    for (let offset = 0; ; offset += batchSize) {
       const query = () => db.from("templates")
         .select("id,slug,title,description,category,author_name,items,default_tiers,rank_count,upvotes,created_at")
-        .order("id").range(offset, offset + 99).abortSignal(AbortSignal.timeout(15000));
+        .order("id").range(offset, offset + batchSize - 1).abortSignal(AbortSignal.timeout(15000));
       let { data, error } = await query();
       // Retry a transient transport failure once, never an authorization failure.
       if (error && (!error.code || error.code === "57014")) ({ data, error } = await query());
@@ -32,7 +39,7 @@ export async function getPublicCatalog(): Promise<Template[]> {
           createdAt: row.created_at?.slice(0, 10) || "", defaultTiers: row.default_tiers || undefined,
         }));
       }
-      if (!data || data.length < 100) break;
+      if (!data || data.length < batchSize) break;
     }
   }
   return [...catalog.values()].filter(isDiscoverableTemplate).map(presentTemplate)

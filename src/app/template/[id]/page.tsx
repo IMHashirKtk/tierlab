@@ -82,7 +82,7 @@ async function TemplateContent({ id }: { id: string }) {
         <div className="max-w-4xl space-y-4 text-sm sm:text-base leading-relaxed text-zinc-300" data-template-intro data-reviewed={eligible ? "true" : "false"}>
           {(editorial?.intro || [template.description]).filter(Boolean).map(p => <p key={p.slice(0, 60)}>{p}</p>)}
         </div>
-        <Link href="/create" className="inline-flex text-indigo-300">Open a blank editor →</Link>
+        <Link href="/create" className="inline-flex text-indigo-300">Open the editor →</Link>
       </section>
       <Suspense fallback={<div aria-hidden="true" className="min-h-64 bg-zinc-950" />}>
         <TemplateClientLoader templateId={template.id} serverTemplate={template} />

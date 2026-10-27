@@ -37,6 +37,8 @@ export function ConsensusShowcase() {
     [selectedTemplate, submissions, fetchError]
   );
 
+  if (consensus.totalSubmissions < 5) return null;
+
   return (
     <section className="py-16 border-t border-zinc-800/80 relative z-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

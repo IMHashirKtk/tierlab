@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     template: "%s | Tier List Maker",
   },
   description:
-    "Make a free tier list with images or text. Start from a template, customize your tiers, save drafts, and export images or video with optional watermarks.",
+    "Make a free tier list with images or text. Start from a template, customize your tiers, save local drafts, and export watermark-free images or reveal videos.",
   authors: [{ name: SITE_OPERATOR, url: `${siteUrl}/about` }],
   creator: "Tier List Maker",
   openGraph: {

@@ -35,3 +35,11 @@ Inventory limitation: music has only five real templates, so its two enriched pa
 Only the editor is inside an aria-hidden skeleton Suspense boundary. An HTML regression test caught and prevented the whole editorial section being postponed with the editor. The intro is not loading content and survives hydration. Consensus renders nothing below five published submissions or on an error.
 
 Validation: successful production build, focused lint, indexability audit, directory audit and template-editorial-audit. The latter checks all forty built HTML files with scripts stripped, exact titles, every roster name, all intros/FAQs, editor/category links and the forty template sitemap entries. Sitemap now has fifty qualified pages before comparison verification.
+
+## Task 4 — homepage and global navigation
+
+Empty ranking feeds render nothing until real submissions exist; consensus requires five submissions. Removed the placeholder creator-profile link from desktop and mobile navigation. Editor links now use action labels, and the homepage meta description accurately promises watermark-free exports: both image and video badges are off by default and optional at no charge.
+
+Public catalog responses now use the framework's shared 300-second fetch cache and larger database batches to avoid redundant prerender round trips. Failures still fail the build rather than silently dropping community pages.
+
+Validation: production build, focused ESLint, all forty editorial HTML checks, and an audit of every sitemap page for exact canonical, index permission and forbidden empty-state/placeholder text.

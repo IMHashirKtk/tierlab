@@ -4,7 +4,7 @@ import { templatePath } from "@/lib/template-url";
 
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { Search, Plus, User, Swords, Menu, X } from "lucide-react";
+import { Search, Plus, Swords, Menu, X } from "lucide-react";
 import { BrandMark } from "@/components/BrandMark";
 import { fetchTemplates } from "@/lib/community";
 import type { Template } from "@/types";
@@ -22,19 +22,6 @@ export function Navbar({ onOpenPublish }: NavbarProps) {
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [matchingTemplates, setMatchingTemplates] = useState<Template[]>([]);
-  const [creatorHandle, setCreatorHandle] = useState("Creator");
-
-  useEffect(() => {
-    queueMicrotask(() => {
-      if (typeof window !== "undefined") {
-        const saved = localStorage.getItem("tl_commenter_name");
-        if (saved && saved.trim()) {
-          setCreatorHandle(saved.trim());
-        }
-      }
-    });
-  }, []);
-
   useEffect(() => {
     if (!searchQuery.trim()) return;
     let isCancelled = false;
@@ -180,18 +167,9 @@ export function Navbar({ onOpenPublish }: NavbarProps) {
             href="/create"
             className="px-3 sm:px-4 min-h-10 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap text-white bg-indigo-600 hover:bg-indigo-500 transition-colors flex items-center"
           >
-            <span>Rank Now</span>
+            <span>Open the editor</span>
           </Link>
 
-          {/* Profile Button */}
-          <Link
-            href={`/user/${encodeURIComponent(creatorHandle)}`}
-            className="hidden xl:flex w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-800 items-center justify-center text-zinc-400 hover:text-white hover:border-zinc-700 transition-colors shrink-0"
-            title={`Creator Profile (${creatorHandle})`}
-            aria-label={`Creator Profile (${creatorHandle})`}
-          >
-            <User className="w-4 h-4" />
-          </Link>
           <button ref={menuButtonRef} type="button" aria-label={menuOpen ? "Close navigation" : "Open navigation"} aria-expanded={menuOpen} aria-controls="site-navigation" onClick={() => setMenuOpen(!menuOpen)} className="xl:hidden w-10 h-10 flex items-center justify-center rounded-xl border border-zinc-800 text-zinc-200 hover:bg-zinc-800 focus-visible:ring-2 focus-visible:ring-indigo-400">
             {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
@@ -201,7 +179,7 @@ export function Navbar({ onOpenPublish }: NavbarProps) {
         <nav id="site-navigation" aria-label="Mobile navigation" className="xl:hidden absolute inset-x-0 top-full max-h-[calc(100dvh-4rem)] overflow-y-auto bg-zinc-950 border-b border-zinc-800 p-4 shadow-xl">
           <div className="max-w-7xl mx-auto grid gap-1">
             {[
-              ["Browse templates", "/templates"], ["Categories", "/#categories"], ["Community rankings", "/#feed"], ["My Projects", "/my-projects"], ["Versus", "/versus"], ["Creator features", "/#dropfx"], ["My Profile", `/user/${encodeURIComponent(creatorHandle)}`],
+              ["Browse templates", "/templates"], ["Categories", "/#categories"], ["Community rankings", "/#feed"], ["My Projects", "/my-projects"], ["Versus", "/versus"], ["Creator features", "/#dropfx"],
             ].map(([label, href]) => <Link key={href} href={href} onClick={() => setMenuOpen(false)} className="px-3 py-3 rounded-lg text-sm text-zinc-200 hover:bg-zinc-800 focus-visible:ring-2 focus-visible:ring-indigo-400">{label}</Link>)}
             {onOpenPublish && (
               <button

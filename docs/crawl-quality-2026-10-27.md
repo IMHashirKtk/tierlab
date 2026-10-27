@@ -15,3 +15,11 @@ Validation: production build, focused ESLint, and `node tests/crawl-directory-au
 Baseline performance on /template/elden-ring-bosses: initial scripts total 296,547 gzip bytes (289.6 KiB). One unthrottled desktop Chrome load recorded LCP 5,356 ms and TTFB 402 ms. This is a laboratory observation, not field/p75 data.
 
 Each task has its own commit; use its file list as the authoritative change inventory.
+
+## Task 2 — explicit indexability
+
+Metadata and sitemap share `templateQuality`: at least eight named items, an explicitly reviewed 120–200-word intro, exactly three FAQs, and at least 200 editorial words. Unreviewed templates stay linked with noindex,follow and are absent from the sitemap. At this task boundary the registry is deliberately empty; Task 3 adds forty individual reviews. Generic Item #N rosters fail the gate.
+
+Ten primary routes have distinct, visible server-rendered editorial copy of 200+ words: homepage, editor, directory, and seven categories. Other static informational pages and the as-yet-unverified comparison use noindex,follow. /create now qualifies for indexing; homepage remains the primary broad maker page. Paginated directories remain linked but noindex to avoid repeated editorial content.
+
+Sitemap dates come from deterministic editorial revision strings, not build time or voting/publishing counters. Validation: successful build and focused lint; indexability-audit covers missing editorial, short rosters, generic names and dates; built sitemap has ten qualified static URLs at this task boundary. Catalog reads retry a transient failure once after an observed timeout; they do not turn missing cloud data into a successful incomplete sitemap.

@@ -1,4 +1,7 @@
 import React from "react";
+import { PageEditorial } from "@/components/PageEditorial";
+import { canIndexSite } from "@/lib/seo";
+import { pageQuality } from "@/lib/page-quality";
 import { HomeHeader } from "@/components/HomeHeader";
 import { Hero } from "@/components/Hero";
 import { QuickRankBoard } from "@/components/QuickRankBoard";
@@ -11,7 +14,7 @@ import { CategoryExplorer } from "@/components/CategoryExplorer";
 import { SeoGuideSection } from "@/components/SeoGuideSection";
 import { Footer } from "@/components/Footer";
 
-export const metadata = { alternates: { canonical: "/" } };
+export const metadata = { alternates: { canonical: "/" }, robots: { index: canIndexSite() && pageQuality("/").eligible, follow: true } };
 
 export default async function Home() {
   const catalog = await getPublicCatalog();
@@ -33,6 +36,7 @@ export default async function Home() {
         <DropFxTeaser />
         <CategoryExplorer />
         <SeoGuideSection />
+        <div className="px-4"><PageEditorial path="/" /></div>
       </main>
 
       {/* Footer */}

@@ -15,9 +15,12 @@ export async function getPublicCatalog(): Promise<Template[]> {
   if (url && key) {
     const db = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } });
     for (let offset = 0; ; offset += 100) {
-      const { data, error } = await db.from("templates")
+      const query = () => db.from("templates")
         .select("id,slug,title,description,category,author_name,items,default_tiers,rank_count,upvotes,created_at")
         .order("id").range(offset, offset + 99).abortSignal(AbortSignal.timeout(15000));
+      let { data, error } = await query();
+      // Retry a transient transport failure once, never an authorization failure.
+      if (error && (!error.code || error.code === "57014")) ({ data, error } = await query());
       if (error) throw new Error(`Public catalog unavailable: ${error.code || "network"}`);
       for (const row of data || []) {
         if (!isDiscoverableTemplate(row)) continue;

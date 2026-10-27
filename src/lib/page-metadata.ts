@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { pageQuality } from "@/lib/page-quality";
+import { canIndexSite } from "@/lib/seo";
 
 /** Keep social previews aligned with the actual page rather than the homepage. */
 export function pageMetadata(title: string, description: string, path: string): Metadata {
@@ -7,6 +9,7 @@ export function pageMetadata(title: string, description: string, path: string): 
   return {
     title: { absolute: brandedTitle },
     description,
+    robots: { index: canIndexSite() && pageQuality(path).eligible, follow: true },
     alternates: { canonical: path },
     openGraph: {
       type: "website", url: path, title: brandedTitle, description, siteName: "Tier List Maker",

@@ -9,7 +9,7 @@ import { getPublicTemplate } from "@/lib/server/public-content";
 import { SEED_TEMPLATES } from "@/data/seed-templates";
 import { fetchSubmissionsForTemplateWithStatus } from "@/lib/community";
 import { safeJsonLd, canIndexSite, getSiteUrl } from "@/lib/seo";
-import { isDiscoverableTemplate } from "@/lib/catalog";
+import { isIndexableTemplate } from "@/lib/indexability";
 import { notFound } from "next/navigation";
 import { TemplateClientLoader } from "./TemplateClientLoader";
 import { TemplateConsensusSection } from "./TemplateConsensusSection";
@@ -54,7 +54,7 @@ export async function generateMetadata({
   return {
     title: pageTitle,
     description: pageDescription,
-    robots: { index: canIndexSite() && isDiscoverableTemplate(template), follow: true },
+    robots: { index: canIndexSite() && isIndexableTemplate(template), follow: true },
     alternates: {
       canonical: canonicalUrl,
     },

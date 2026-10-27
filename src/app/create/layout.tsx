@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
+import { PageEditorial } from "@/components/PageEditorial";
+import { pageQuality } from "@/lib/page-quality";
+import { canIndexSite } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Tier List Maker Studio",
-  robots: { index: false, follow: true },
+  robots: { index: canIndexSite() && pageQuality("/create").eligible, follow: true },
   description:
     "Design and customize your tier lists with drag-and-drop tiers, streamer mode, color themes, and 4K lossless exports.",
   alternates: {
@@ -38,5 +41,5 @@ export default function CreateLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
+  return <>{children}<div className="px-4"><PageEditorial path="/create" /></div></>;
 }

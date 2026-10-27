@@ -4,7 +4,9 @@ import { directorySlice, directoryPath } from "@/lib/directory";
 
 export async function generateStaticParams() {
   const { pages } = directorySlice(await getPublicCatalog(), "all", 1);
-  return Array.from({ length: Math.max(0, pages - 1) }, (_, i) => ({ page: String(i + 2) }));
+  const params = Array.from({ length: Math.max(0, pages - 1) }, (_, i) => ({ page: String(i + 2) }));
+  // Cache Components forbids an empty result; missing pages still return 404.
+  return params.length ? params : [{ page: "2" }];
 }
 export async function generateMetadata({ params }: { params: Promise<{ page: string }> }) {
   const { page } = await params;

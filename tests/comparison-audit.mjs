@@ -1,0 +1,12 @@
+import fs from 'node:fs';
+import assert from 'node:assert/strict';
+const root = `${process.env.NEXT_TEST_DIST_DIR || '.next-test-audit'}/server/app`;
+const html = fs.readFileSync(`${root}/tiermaker-alternative.html`, 'utf8').replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '');
+assert.match(html, /name="robots" content="noindex, follow"/);
+assert.match(html, /dateTime="2026-10-27"|datetime="2026-10-27"/i);
+for (const row of ['Watermarks', 'Account required', 'Ads', 'Export formats', 'Video export', 'Local drafts']) assert(html.includes(row));
+assert(html.includes('tiermaker.com/blog/support/10/tier-list-template-creation-guide-and-faqs'));
+assert(html.includes('tiermaker.com/create/star-wars-film-ranking-6747'));
+assert(html.includes('not been verified'));
+assert(!fs.readFileSync(`${root}/sitemap.xml.body`, 'utf8').includes('/tiermaker-alternative'));
+console.log('PASS: dated six-feature sourced comparison stays noindex and outside the sitemap');

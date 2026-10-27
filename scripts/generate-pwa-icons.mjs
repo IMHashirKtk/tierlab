@@ -1,90 +1,40 @@
-import { chromium } from "playwright";
-import fs from "fs";
-import path from "path";
+import sharp from "sharp";
+import { readFile, writeFile } from "node:fs/promises";
 
-const ICONS_DIR = "C:/Users/hashi/.gemini/antigravity/scratch/tierlistmaker/public/icons";
-if (!fs.existsSync(ICONS_DIR)) {
-  fs.mkdirSync(ICONS_DIR, { recursive: true });
+// The SVG is the single source for the website mark, favicon, and app icons.
+const iconsDir = new URL("../public/icons/", import.meta.url);
+const svg = await readFile(new URL("icon.svg", iconsDir), "utf8");
+const png = (size, source = svg) => sharp(Buffer.from(source)).resize(size, size).png().toBuffer();
+
+for (const size of [192, 512]) {
+  await writeFile(new URL(`icon-${size}.png`, iconsDir), await png(size));
 }
+await writeFile(new URL("apple-touch-icon.png", iconsDir), await png(180));
 
-const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <defs>
-    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#4f46e5" />
-      <stop offset="50%" stop-color="#7c3aed" />
-      <stop offset="100%" stop-color="#c026d3" />
-    </linearGradient>
-    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#fde047" />
-      <stop offset="100%" stop-color="#eab308" />
-    </linearGradient>
-    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="16" stdDeviation="24" flood-color="#000000" flood-opacity="0.4" />
-    </filter>
-  </defs>
+// A full-bleed background and inset mark keep all artwork inside the
+// maskable icon's central 80%-diameter safe circle.
+const maskable = svg
+  .replace('<rect width="64" height="64" rx="16" fill="#09090b"/>', '<rect width="64" height="64" fill="#09090b"/><g transform="translate(6.4 6.4) scale(.8)">')
+  .replace('<rect x="1" y="1" width="62" height="62" rx="15" fill="none" stroke="#6366f1" stroke-width="2"/>', "")
+  .replace("</svg>", "</g></svg>");
+await writeFile(new URL("icon-maskable.png", iconsDir), await png(512, maskable));
 
-  <!-- Squircle Base -->
-  <rect x="24" y="24" width="464" height="464" rx="112" fill="url(#bgGrad)" filter="url(#shadow)" />
-
-  <!-- Inner subtle border -->
-  <rect x="24" y="24" width="464" height="464" rx="112" fill="none" stroke="#ffffff" stroke-width="6" stroke-opacity="0.25" />
-
-  <!-- Tier Stacks -->
-  <!-- Top Tier (S Tier) -->
-  <rect x="110" y="128" width="292" height="60" rx="16" fill="url(#goldGrad)" />
-  <text x="145" y="170" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="34" fill="#000000">S</text>
-  <rect x="195" y="142" width="185" height="32" rx="8" fill="#000000" fill-opacity="0.15" />
-
-  <!-- Middle Tier (A Tier) -->
-  <rect x="110" y="210" width="292" height="60" rx="16" fill="#f97316" />
-  <text x="145" y="252" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="34" fill="#ffffff">A</text>
-  <rect x="195" y="224" width="185" height="32" rx="8" fill="#ffffff" fill-opacity="0.2" />
-
-  <!-- Lower Tier (B Tier) -->
-  <rect x="110" y="292" width="292" height="60" rx="16" fill="#3b82f6" />
-  <text x="145" y="334" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="34" fill="#ffffff">B</text>
-  <rect x="195" y="306" width="185" height="32" rx="8" fill="#ffffff" fill-opacity="0.2" />
-
-  <!-- Bottom Tier (C Tier) -->
-  <rect x="110" y="374" width="292" height="44" rx="14" fill="#10b981" />
-  <text x="145" y="406" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="26" fill="#ffffff">C</text>
-  <rect x="195" y="384" width="185" height="24" rx="6" fill="#ffffff" fill-opacity="0.2" />
-</svg>`;
-
-fs.writeFileSync(path.join(ICONS_DIR, "icon.svg"), svgContent);
-
-async function generatePngs() {
-  const browser = await chromium.launch({ channel: "msedge", headless: true });
-
-  const page = await browser.newPage();
-  await page.setContent(`<!DOCTYPE html><html><body style="margin:0;padding:0;background:transparent;">${svgContent}</body></html>`);
-
-  const svgElement = await page.$("svg");
-  if (!svgElement) throw new Error("Could not find SVG element");
-
-  // Generate 512x512
-  await page.setViewportSize({ width: 512, height: 512 });
-  await svgElement.screenshot({
-    path: path.join(ICONS_DIR, "icon-512.png"),
-    omitBackground: true,
-  });
-
-  // Generate 192x192
-  await page.setViewportSize({ width: 192, height: 192 });
-  await svgElement.screenshot({
-    path: path.join(ICONS_DIR, "icon-192.png"),
-    omitBackground: true,
-  });
-
-  // Generate maskable icon
-  await page.setViewportSize({ width: 512, height: 512 });
-  await svgElement.screenshot({
-    path: path.join(ICONS_DIR, "icon-maskable.png"),
-    omitBackground: false,
-  });
-
-  await browser.close();
-  console.log("PWA Icons successfully generated in public/icons/");
-}
-
-generatePngs().catch(console.error);
+// PNG-backed ICO entries support browsers requesting the conventional URL.
+const sizes = [16, 32, 48];
+const images = await Promise.all(sizes.map((size) => png(size)));
+const directory = Buffer.alloc(6 + images.length * 16);
+directory.writeUInt16LE(1, 2);
+directory.writeUInt16LE(images.length, 4);
+let offset = directory.length;
+images.forEach((image, index) => {
+  const entry = 6 + index * 16;
+  directory[entry] = sizes[index];
+  directory[entry + 1] = sizes[index];
+  directory.writeUInt16LE(1, entry + 4);
+  directory.writeUInt16LE(32, entry + 6);
+  directory.writeUInt32LE(image.length, entry + 8);
+  directory.writeUInt32LE(offset, entry + 12);
+  offset += image.length;
+});
+await writeFile(new URL("../src/app/favicon.ico", import.meta.url), Buffer.concat([directory, ...images]));
+console.log("Generated tier-board app icons (180, 192, 512px) and favicon (16, 32, 48px).");

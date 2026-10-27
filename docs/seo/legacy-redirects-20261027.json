@@ -1,0 +1,1430 @@
+{
+  "base": "https://tierlistmaker.app",
+  "checkedAt": "2026-10-27T16:53:46.250Z",
+  "publicTemplates": 257,
+  "migratedTemplates": 237,
+  "checks": [
+    {
+      "id": "a-7odf",
+      "slug": "anime-series",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "a-dpqm",
+      "slug": "age-of-empires-iv-civilizations",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "a-f0fq",
+      "slug": "attack-on-titan-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "a-v1g5",
+      "slug": "apex-legends-legends",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "a-xb3d",
+      "slug": "angry-birds-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "b-47cj",
+      "slug": "ben-10-aliens",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "b-bor0",
+      "slug": "bloons-td-6-heroes",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "b-ie9n",
+      "slug": "blox-fruits-fruits",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "b-j0ju",
+      "slug": "bloodborne-weapons",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "b-lajr",
+      "slug": "bleach-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "b-og36",
+      "slug": "black-desert-online-classes",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "b-pkmw",
+      "slug": "blox-fruits-swords",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "c-1shk",
+      "slug": "cuphead-bosses",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "c-31ty",
+      "slug": "chocolate-brands",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "c-6z8k",
+      "slug": "car-manufacturers",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "c-bcac",
+      "slug": "chocolate-brands-2",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "c-e4li",
+      "slug": "civilization-v-leaders",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "c-e5h9",
+      "slug": "candy",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "c-ie3c",
+      "slug": "car-brands",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "c-oqtk",
+      "slug": "cuphead-bosses-2",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "c-y234",
+      "slug": "civilization-vi-civilizations",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "d-30f5",
+      "slug": "danganronpa-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "d-3mcz",
+      "slug": "dead-by-daylight-killers",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "d-54tv",
+      "slug": "dragon-ball-fighterz-roster",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "d-7j6f",
+      "slug": "dead-cells-weapons",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "d-g8e7",
+      "slug": "deltarune-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "d-jrng",
+      "slug": "disney-movies",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "d-q1ay",
+      "slug": "dc-movies",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "d-qbk5",
+      "slug": "disney-princesses",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "d-rfgj",
+      "slug": "dead-by-daylight-survivors",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "d-wexz",
+      "slug": "disney-channel-movies",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "d-x4zc",
+      "slug": "demon-slayer-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "d-yar2",
+      "slug": "dnd-classes",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "d-zjm2",
+      "slug": "dog-breeds",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "d-zo3u",
+      "slug": "dragon-ball-fighterz-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "e-0zyr",
+      "slug": "elden-ring-classes",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "e-aqpm",
+      "slug": "elder-scrolls-online-classes",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "e-tjwo",
+      "slug": "elden-ring-bosses-2",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "f-0lqq",
+      "slug": "football-clubs",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "f-1a68",
+      "slug": "fast-food-restaurants",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "f-3pbx",
+      "slug": "for-honor-heroes",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "f-4wbm",
+      "slug": "fire-emblem-engage-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "f-5a4f",
+      "slug": "five-nights-at-freddy-s-games",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "f-biny",
+      "slug": "final-fantasy-games",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "f-bqlf",
+      "slug": "fruits",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "f-emwc",
+      "slug": "five-nights-at-freddy-s-games-2",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "f-kks0",
+      "slug": "final-fantasy-xiv-jobs",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "f-qh2l",
+      "slug": "five-nights-at-freddy-s-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "f-tnde",
+      "slug": "fire-emblem-games",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "f-vcpc",
+      "slug": "fullmetal-alchemist-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "f-z50q",
+      "slug": "fire-emblem-three-houses-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "g-309s",
+      "slug": "grand-piece-online-fruits",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "g-86i8",
+      "slug": "game-of-thrones-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "g-aq17",
+      "slug": "gta-v-cars",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "h-07zb",
+      "slug": "horror-movies",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "h-0yww",
+      "slug": "hunter-x-hunter-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "h-1wjb",
+      "slug": "hollow-knight-charms",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "h-8zq4",
+      "slug": "harry-potter-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "h-ire0",
+      "slug": "hearthstone-classes",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "h-j4a5",
+      "slug": "harry-potter-movies-2",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "h-x2ba",
+      "slug": "harry-potter-movies",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "h-yb3q",
+      "slug": "hollow-knight-charms-2",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "j-irnp",
+      "slug": "jujutsu-kaisen-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "j-z4no",
+      "slug": "jujutsu-kaisen-characters-2",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "k-hzkm",
+      "slug": "konosuba-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "l-1b2j",
+      "slug": "league-of-legends-support-champions",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "l-7t0f",
+      "slug": "league-of-legends-mid-champions",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "l-7z41",
+      "slug": "league-of-legends-jungle-champions",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "l-cn0x",
+      "slug": "league-of-legends-bot-lane-champions",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "l-o069",
+      "slug": "lost-ark-classes",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "l-ppjx",
+      "slug": "league-of-legends-adc-champions",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "l-zw6w",
+      "slug": "league-of-legends-top-champions",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "m-4din",
+      "slug": "madoka-magica-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "m-9520",
+      "slug": "my-hero-academia-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "m-9bnw",
+      "slug": "mob-psycho-100-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "m-b8tk",
+      "slug": "monster-hunter-world-weapon-types",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "m-e76p",
+      "slug": "mario-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "m-hn4o",
+      "slug": "mcu-movies-2",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "m-pwa9",
+      "slug": "marvel-comics-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "m-t1ow",
+      "slug": "mario-enemies",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "m-v2gu",
+      "slug": "monster-hunter-rise-weapon-types",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "m-vwiz",
+      "slug": "maplestory-classes",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "m-xyol",
+      "slug": "mcu-movies-3",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "m-yixo",
+      "slug": "mario-games",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "n-30id",
+      "slug": "nfl-teams",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "n-a77w",
+      "slug": "nba-teams",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "n-qs31",
+      "slug": "naruto-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "n-vbfc",
+      "slug": "nfs-most-wanted-2005-cars",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "o-8ui2",
+      "slug": "one-piece-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "o-98dr",
+      "slug": "overwatch-dps-heroes",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "o-sfaz",
+      "slug": "overwatch-heroes",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "o-twjx",
+      "slug": "one-punch-man-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "p-3cbq",
+      "slug": "pokemon-starters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "p-6yo5",
+      "slug": "plants-vs-zombies-garden-warfare-2-classes",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "p-7rv0",
+      "slug": "pizza-restaurants",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "p-gvla",
+      "slug": "pokemon-types",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "p-m2xg",
+      "slug": "poppy-playtime-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "p-qdiq",
+      "slug": "pixar-movies-2",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "p-sg94",
+      "slug": "pokemon-games",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "p-srjd",
+      "slug": "pixar-movies",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "r-gvj2",
+      "slug": "risk-of-rain-2-survivors",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "s-0ytu",
+      "slug": "seven-deadly-sins-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "s-47fk",
+      "slug": "skullgirls-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "s-8x5j",
+      "slug": "star-wars-movies",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "s-cr99",
+      "slug": "street-fighter-6-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "s-g4xb",
+      "slug": "super-smash-bros-melee-fighters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "s-ixda",
+      "slug": "star-wars-ships",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "s-jipv",
+      "slug": "sonic-games",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "s-mz4f",
+      "slug": "studio-ghibli-movies",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "s-ng9d",
+      "slug": "star-wars-movies-2",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "s-qrm6",
+      "slug": "star-wars-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "s-ra99",
+      "slug": "straw-hat-pirates",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "s-uki8",
+      "slug": "sonic-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "s-ulh9",
+      "slug": "stardew-valley-villagers",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "s-zg1v",
+      "slug": "spider-man-movies",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "s-zoyr",
+      "slug": "spider-man-movies-2",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-98mf",
+      "slug": "best-gaming-list",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvjs1byd-bbf5bd6b",
+      "slug": "blue-lock-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvjsb2ey-d8a7ba2b",
+      "slug": "kaiju-no-8-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvjsmcf7-8e64a4af",
+      "slug": "jojo-s-bizarre-adventure-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvjt1u61-03f5a15a",
+      "slug": "solo-leveling-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvjtcryu-d0322e56",
+      "slug": "haikyuu-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvjtq0ja-8ad95b7c",
+      "slug": "chainsaw-man-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvju3de5-6af6ca80",
+      "slug": "re-zero-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvjubrox-65ad246b",
+      "slug": "tokyo-ghoul-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvjusa7m-eb9601fe",
+      "slug": "black-clover-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvjv8vbr-377f1829",
+      "slug": "fairy-tail-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvjvlv98-42a71f5f",
+      "slug": "death-note-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvjvyh77-804b56c0",
+      "slug": "one-piece-arcs",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvkemj4s-79dbb976",
+      "slug": "dragon-ball-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvketweb-b92d6e03",
+      "slug": "anime-villains",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvkezfg8-65c0339c",
+      "slug": "dr-stone-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvkf6ygv-937a23ad",
+      "slug": "classroom-of-the-elite-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvkfd33q-992f4669",
+      "slug": "frieren-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvkfic7u-f4888cdf",
+      "slug": "tokyo-revengers-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvkfplu7-f50d1a6b",
+      "slug": "mushoku-tensei-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvkfvtgw-41d9b516",
+      "slug": "fire-force-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvkg0vwg-2464f78f",
+      "slug": "evangelion-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvkg5iti-dac1e0f7",
+      "slug": "vinland-saga-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvkgehe1-a002c972",
+      "slug": "berserk-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvkgjcec-91ec9465",
+      "slug": "soul-eater-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvkgof2b-8e3baa38",
+      "slug": "overlord-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvkgux1q-d20566d6",
+      "slug": "code-geass-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvkyi4g9-e77d4b56",
+      "slug": "anime-movies",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvkyn2sx-ea8061ee",
+      "slug": "manga-series",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvkyvx59-37f2f2d3",
+      "slug": "digimon",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvkz1a08-19a92425",
+      "slug": "gundam-series",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvkz5wf5-7cf50fc7",
+      "slug": "saint-seiya-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvkzbc5f-ea395f09",
+      "slug": "hunter-x-hunter-arcs",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvkzit3k-d05a0edf",
+      "slug": "captain-tsubasa-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvkzq12a-628f85e6",
+      "slug": "gintama-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvkzxuvp-deef6450",
+      "slug": "black-butler-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvl04acu-697f7cd0",
+      "slug": "dandadan-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvl7y0gi-041f887d",
+      "slug": "marvel-rivals-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvl8553m-94995428",
+      "slug": "wuthering-waves-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvl8cj7r-66be6ed1",
+      "slug": "palworld-pals",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvl8kxoi-2db342cf",
+      "slug": "zenless-zone-zero-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvl8uwsl-b7e06f27",
+      "slug": "tekken-8-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvl91tkq-2d349635",
+      "slug": "resident-evil-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvl984wu-b6a49db8",
+      "slug": "resident-evil-games",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvl9dj78-dd1403b5",
+      "slug": "cereals",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvl9jcme-ac5c5360",
+      "slug": "sodas",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvl9p7oq-e539fbf1",
+      "slug": "invincible-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvl9ur3s-ec954ff0",
+      "slug": "stranger-things-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvla2zlo-765366fa",
+      "slug": "disney-villains",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvlbua5j-84fc89ac",
+      "slug": "helldivers-2-enemies",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvlbzbqg-1ee127d4",
+      "slug": "baldur-s-gate-3-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvlc54vs-c7988083",
+      "slug": "cartoon-network-shows",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvlcchez-e74c2c64",
+      "slug": "minecraft-mobs",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvlcj7ce-8e0480f0",
+      "slug": "footballers",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvlcp3y2-00b62b6a",
+      "slug": "world-cup-teams",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvlcv1ns-f149e363",
+      "slug": "ice-cream-flavors",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvld07pe-a2fdda6c",
+      "slug": "persona-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvldaniy-6f5efd56",
+      "slug": "f1-drivers",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvldhfgt-304c0b06",
+      "slug": "mario-kart-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvldyvn6-7e7f0a40",
+      "slug": "nba-players",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvle66jw-2bea124b",
+      "slug": "spongebob-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvlfqgfp-6e94b46e",
+      "slug": "zelda-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvlfwvzs-5ca45c8a",
+      "slug": "south-park-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvlg4f5y-bb825078",
+      "slug": "nickelodeon-shows",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvlgai6i-85fe3bd6",
+      "slug": "breaking-bad-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvlgj2z9-0e59435a",
+      "slug": "streamers",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvlgq8q7-e52be144",
+      "slug": "kingdom-hearts-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvlgvfwz-ac91f630",
+      "slug": "kirby-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvlh0z9q-a4f7d49c",
+      "slug": "sitcoms",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvlh7p75-b7a635bf",
+      "slug": "adventure-time-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvlhgn8s-c5569b63",
+      "slug": "arcane-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvlhla6y-7ca83d80",
+      "slug": "board-games",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvljdsqo-19d6f825",
+      "slug": "cartoons",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvljmhmi-f9d7da2e",
+      "slug": "memes",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvlju6fc-be84b221",
+      "slug": "elden-ring-incantations",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvlk7qpo-72708488",
+      "slug": "elden-ring-spells",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvlke3to-56724d54",
+      "slug": "books",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvlklpwl-477dd058",
+      "slug": "naruto-arcs",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvlkqynl-249e61ab",
+      "slug": "the-office-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvll0bqc-fa7187a7",
+      "slug": "family-guy-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvll5qvq-318eef1a",
+      "slug": "gravity-falls-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvllceqs-dbebf536",
+      "slug": "lord-of-the-rings-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvlli3py-9e41f4ae",
+      "slug": "rick-and-morty-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvlmw1dc-70d9d7ea",
+      "slug": "elden-ring-staffs",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvln19ef-66d92bbc",
+      "slug": "gpo-values",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvln66ck-7d778ca8",
+      "slug": "elden-ring-talismans",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvlnd0e6-2afccccf",
+      "slug": "beatles-songs",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvlnjzva-75130f68",
+      "slug": "james-bond-movies",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvlnqe5d-ec85bb1c",
+      "slug": "batman-villains",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvlnxjax-3c79d20a",
+      "slug": "elden-ring-armor-sets",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvlo5iu9-2e0a8c98",
+      "slug": "dragon-ball-arcs",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvlocfcp-e92a3acc",
+      "slug": "eurovision-winners",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvlojheb-3e994584",
+      "slug": "stephen-king-books",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvlopxwn-0c1dfc26",
+      "slug": "avatar-the-last-airbender-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvlyd787-5d6adec7",
+      "slug": "boxers",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvlzrll6-82b222fd",
+      "slug": "elden-ring-greatswords",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvlzw6zw-e0dc2515",
+      "slug": "fantasy-books",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvm04kb5-0a2a2e04",
+      "slug": "final-fantasy-brave-exvius-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvm0agxi-928d3638",
+      "slug": "nickelodeon-all-star-brawl-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvm0f1v9-1c02d03e",
+      "slug": "cat-breeds",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvm0uror-78653018",
+      "slug": "dissidia-final-fantasy-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvm11ifa-be830552",
+      "slug": "assassination-classroom-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvm16nq4-e62265c3",
+      "slug": "bts-albums",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvm19xe0-bebdbe63",
+      "slug": "friends-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvm1ciz1-ed74abe6",
+      "slug": "saiki-k-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvn9djgx-0911947b",
+      "slug": "nhl-teams",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvnbkzfe-63331cf2",
+      "slug": "dreamworks-movies",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvndo1gv-22fb7adb",
+      "slug": "dinosaurs",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvndxlp4-780a903b",
+      "slug": "cheese",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvnemwg0-ab7120e3",
+      "slug": "mortal-kombat-11-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvnevska-9526e30b",
+      "slug": "greek-gods",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "template-mvnf71bu-953feb13",
+      "slug": "sharks",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "u-h9ls",
+      "slug": "undertale-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "v-hnc9",
+      "slug": "valorant-agents",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "v-nw46",
+      "slug": "valheim-weapons",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "w-3ard",
+      "slug": "world-of-warcraft-classes",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "w-si6y",
+      "slug": "wwe-wrestlers",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "y-jna5",
+      "slug": "your-bizarre-adventure-stands",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "y-u75m",
+      "slug": "yu-yu-hakusho-characters",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "z-5qn5",
+      "slug": "zelda-games",
+      "redirect": 301,
+      "canonical": 200
+    },
+    {
+      "id": "z-6qra",
+      "slug": "zelda-games-2",
+      "redirect": 301,
+      "canonical": 200
+    }
+  ]
+}

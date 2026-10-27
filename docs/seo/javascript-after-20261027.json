@@ -1,0 +1,170 @@
+[
+  {
+    "page": "/template/elden-ring-bosses",
+    "chunks": [
+      {
+        "path": "/_next/static/immutable/chunks/19moxvumm_oah.js",
+        "raw": 34816,
+        "gzip": 8731,
+        "legacyOnly": false
+      },
+      {
+        "path": "/_next/static/immutable/chunks/0pi0mrwq8vglv.js",
+        "raw": 230311,
+        "gzip": 72211,
+        "legacyOnly": false
+      },
+      {
+        "path": "/_next/static/immutable/chunks/0z1q5r30q1ck8.js",
+        "raw": 163484,
+        "gzip": 45351,
+        "legacyOnly": false
+      },
+      {
+        "path": "/_next/static/immutable/chunks/turbopack-1byz1flvc-bu1.js",
+        "raw": 11255,
+        "gzip": 4390,
+        "legacyOnly": false
+      },
+      {
+        "path": "/_next/static/immutable/chunks/1vfgg19gmay2y.js",
+        "raw": 35461,
+        "gzip": 11125,
+        "legacyOnly": false
+      },
+      {
+        "path": "/_next/static/immutable/chunks/3l6zd02mhyckk.js",
+        "raw": 22852,
+        "gzip": 7563,
+        "legacyOnly": false
+      },
+      {
+        "path": "/_next/static/immutable/chunks/0c0hxoamwjsbw.js",
+        "raw": 112594,
+        "gzip": 39627,
+        "legacyOnly": true
+      },
+      {
+        "path": "/_next/static/immutable/chunks/2c_2b2prcozy6.js",
+        "raw": 5361,
+        "gzip": 1975,
+        "legacyOnly": false
+      }
+    ],
+    "totalGzipBytes": 190973,
+    "modernGzipBytes": 151346,
+    "targetMet": false
+  },
+  {
+    "page": "/template/overwatch-heroes",
+    "chunks": [
+      {
+        "path": "/_next/static/immutable/chunks/19moxvumm_oah.js",
+        "raw": 34816,
+        "gzip": 8731,
+        "legacyOnly": false
+      },
+      {
+        "path": "/_next/static/immutable/chunks/0pi0mrwq8vglv.js",
+        "raw": 230311,
+        "gzip": 72211,
+        "legacyOnly": false
+      },
+      {
+        "path": "/_next/static/immutable/chunks/0z1q5r30q1ck8.js",
+        "raw": 163484,
+        "gzip": 45351,
+        "legacyOnly": false
+      },
+      {
+        "path": "/_next/static/immutable/chunks/turbopack-1byz1flvc-bu1.js",
+        "raw": 11255,
+        "gzip": 4390,
+        "legacyOnly": false
+      },
+      {
+        "path": "/_next/static/immutable/chunks/1vfgg19gmay2y.js",
+        "raw": 35461,
+        "gzip": 11125,
+        "legacyOnly": false
+      },
+      {
+        "path": "/_next/static/immutable/chunks/3l6zd02mhyckk.js",
+        "raw": 22852,
+        "gzip": 7563,
+        "legacyOnly": false
+      },
+      {
+        "path": "/_next/static/immutable/chunks/0c0hxoamwjsbw.js",
+        "raw": 112594,
+        "gzip": 39627,
+        "legacyOnly": true
+      },
+      {
+        "path": "/_next/static/immutable/chunks/2c_2b2prcozy6.js",
+        "raw": 5361,
+        "gzip": 1975,
+        "legacyOnly": false
+      }
+    ],
+    "totalGzipBytes": 190973,
+    "modernGzipBytes": 151346,
+    "targetMet": false
+  },
+  {
+    "page": "/template/blox-fruits-fruits",
+    "chunks": [
+      {
+        "path": "/_next/static/immutable/chunks/19moxvumm_oah.js",
+        "raw": 34816,
+        "gzip": 8731,
+        "legacyOnly": false
+      },
+      {
+        "path": "/_next/static/immutable/chunks/0pi0mrwq8vglv.js",
+        "raw": 230311,
+        "gzip": 72211,
+        "legacyOnly": false
+      },
+      {
+        "path": "/_next/static/immutable/chunks/0z1q5r30q1ck8.js",
+        "raw": 163484,
+        "gzip": 45351,
+        "legacyOnly": false
+      },
+      {
+        "path": "/_next/static/immutable/chunks/turbopack-1byz1flvc-bu1.js",
+        "raw": 11255,
+        "gzip": 4390,
+        "legacyOnly": false
+      },
+      {
+        "path": "/_next/static/immutable/chunks/1vfgg19gmay2y.js",
+        "raw": 35461,
+        "gzip": 11125,
+        "legacyOnly": false
+      },
+      {
+        "path": "/_next/static/immutable/chunks/3l6zd02mhyckk.js",
+        "raw": 22852,
+        "gzip": 7563,
+        "legacyOnly": false
+      },
+      {
+        "path": "/_next/static/immutable/chunks/0c0hxoamwjsbw.js",
+        "raw": 112594,
+        "gzip": 39627,
+        "legacyOnly": true
+      },
+      {
+        "path": "/_next/static/immutable/chunks/2c_2b2prcozy6.js",
+        "raw": 5361,
+        "gzip": 1975,
+        "legacyOnly": false
+      }
+    ],
+    "totalGzipBytes": 190973,
+    "modernGzipBytes": 151346,
+    "targetMet": false
+  }
+]

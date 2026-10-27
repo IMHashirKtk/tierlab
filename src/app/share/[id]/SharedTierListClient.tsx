@@ -22,12 +22,13 @@ import type { PublishedTierList } from "@/types";
 
 interface SharedTierListClientProps {
   id: string;
+  initialRanking?: PublishedTierList;
 }
 
-export function SharedTierListClient({ id }: SharedTierListClientProps) {
-  const [ranking, setRanking] = useState<PublishedTierList | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [upvotes, setUpvotes] = useState(0);
+export function SharedTierListClient({ id, initialRanking }: SharedTierListClientProps) {
+  const [ranking, setRanking] = useState<PublishedTierList | null>(initialRanking || null);
+  const [loading, setLoading] = useState(!initialRanking);
+  const [upvotes, setUpvotes] = useState(initialRanking?.upvotes || 0);
   const [isUpvoted, setIsUpvoted] = useState(false);
   const [copied, setCopied] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
@@ -39,7 +40,7 @@ export function SharedTierListClient({ id }: SharedTierListClientProps) {
   useEffect(() => {
     if (!id) return;
     let active = true;
-    fetchSharedTierList(id).then((data) => {
+    if (!initialRanking || initialRanking.id !== id) fetchSharedTierList(id).then((data) => {
       if (!active) return;
       if (data) {
         setRanking(data);
@@ -51,7 +52,7 @@ export function SharedTierListClient({ id }: SharedTierListClientProps) {
       if (active) setIsUpvoted(voted);
     }).catch(() => {});
     return () => { active = false; };
-  }, [id]);
+  }, [id, initialRanking]);
 
   const [voteError, setVoteError] = useState("");
   const [voting, setVoting] = useState(false);
@@ -247,7 +248,7 @@ export function SharedTierListClient({ id }: SharedTierListClientProps) {
 
           {/* Remix / Create Own CTA */}
           <Link
-            href={ranking.templateId ? `/template/${ranking.templateId}` : "/create"}
+            href={ranking.templateId ? `/template/${encodeURIComponent(ranking.templateSlug || ranking.templateId)}` : "/create"}
             className="px-3.5 sm:px-4 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/30 flex items-center gap-1.5"
           >
             <Sparkles className="w-3.5 h-3.5" />
@@ -267,7 +268,7 @@ export function SharedTierListClient({ id }: SharedTierListClientProps) {
               <Sparkles className="w-4 h-4 text-indigo-400 flex-shrink-0" />
               <span>Remixed from community template:</span>
               <Link
-                href={`/template/${ranking.templateId}`}
+                href={`/template/${encodeURIComponent(ranking.templateSlug || ranking.templateId)}`}
                 className="text-white font-bold hover:underline hover:text-indigo-300 break-words min-w-0 max-w-full"
               >
                 {ranking.title}
@@ -343,7 +344,7 @@ export function SharedTierListClient({ id }: SharedTierListClientProps) {
             </p>
           </div>
           <Link
-            href={ranking.templateId ? `/template/${ranking.templateId}` : "/create"}
+            href={ranking.templateId ? `/template/${encodeURIComponent(ranking.templateSlug || ranking.templateId)}` : "/create"}
             className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-semibold text-xs shadow-lg shadow-indigo-600/30 flex items-center gap-2 whitespace-nowrap"
           >
             <Sparkles className="w-4 h-4" />

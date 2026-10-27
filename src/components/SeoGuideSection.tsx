@@ -63,7 +63,7 @@ export function SeoGuideSection() {
   };
 
   return (
-    <section className="py-20 border-t border-zinc-800/80 bg-zinc-950/60 relative z-10">
+    <section id="creator-guide" className="py-20 border-t border-zinc-800/80 bg-zinc-950/60 relative z-10">
       {/* FAQPage JSON-LD Structured Data */}
       <script
         type="application/ld+json"
@@ -188,10 +188,10 @@ export function SeoGuideSection() {
           {/* Quick CTA inside FAQ */}
           <div className="mt-12 text-center">
             <Link
-              href="/create"
+              href="/create" prefetch={false}
               className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm transition-all shadow-lg shadow-indigo-600/30"
             >
-              <span>Start Making a Tier List Now</span>
+              <span>Create a tier list</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
           </div>

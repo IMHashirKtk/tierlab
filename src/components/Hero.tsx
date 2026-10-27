@@ -1,16 +1,12 @@
-"use client";
-
 import React from "react";
 import Link from "next/link";
 import { Sparkles, Layers, Flame, Shuffle, BarChart3, Video } from "lucide-react";
 
 export function Hero() {
   const popularTags = [
-    { name: "Roblox Games", href: "/categories/gaming" },
-    { name: "Elden Ring Bosses", href: "/template/elden-ring-bosses" },
-    { name: "Anime of the Year", href: "/categories/anime" },
-    { name: "Fast Food French Fries", href: "/categories/food" },
-    { name: "MCU Movie Phases", href: "/template/mcu-movies" },
+    { name: "Overwatch Heroes", href: "/template/overwatch-heroes" },
+    { name: "DBD Killers", href: "/template/dead-by-daylight-killers" },
+    { name: "Apex Legends", href: "/template/apex-legends-legends" },
   ];
 
   return (
@@ -51,7 +47,7 @@ export function Hero() {
       {/* Hero CTAs */}
       <div className="flex flex-wrap justify-center items-center gap-3 sm:gap-4 mb-10">
         <Link
-          href="/create"
+          href="/create" prefetch={false}
           className="px-6 py-3.5 rounded-xl font-semibold text-white bg-indigo-600 hover:bg-indigo-500 shadow-xl shadow-indigo-600/30 flex items-center gap-2.5 transition-all text-sm sm:text-base group"
         >
           <Sparkles className="w-5 h-5 group-hover:rotate-12 transition-transform" />

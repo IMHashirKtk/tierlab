@@ -3,8 +3,9 @@
 import { useDialogFocus } from "@/lib/use-dialog-focus";
 import { ItemImage } from "@/components/ItemImage";
 import React, { useState, useRef, useEffect } from "react";
-import { X, Download, Smartphone, Monitor, Square, Sparkles, Check, ShieldCheck, AlertCircle } from "lucide-react";
+import { X, Download, Smartphone, Monitor, Square, Sparkles, LayoutGrid, ShieldCheck, AlertCircle } from "lucide-react";
 import { ExportFormatTabs } from "./ExportFormatTabs";
+import { imageExportLayout, type ImageExportLayout } from "@/lib/image-export-layout";
 import type { TierRow } from "@/types";
 
 interface CreatorExportModalProps {
@@ -27,7 +28,7 @@ export function CreatorExportModal({
   tiers,
   onSwitchToVideo,
 }: CreatorExportModalProps) {
-  const [ratio, setRatio] = useState<ExportRatio>("16:9");
+  const [ratio, setRatio] = useState<ImageExportLayout>("compact");
   const [resolution, setResolution] = useState<ExportResolution>("4k");
   const [showWatermark, setShowWatermark] = useState(false);
   const [showTitleHeader, setShowTitleHeader] = useState(true);
@@ -49,6 +50,8 @@ export function CreatorExportModal({
 
   if (!isOpen) return null;
 
+  const layout = imageExportLayout(ratio);
+
   const handleDownload = async () => {
     if (!captureRef.current) return;
     setIsExporting(true);
@@ -57,17 +60,19 @@ export function CreatorExportModal({
     try {
       const { toPng } = await import("html-to-image");
       const pixelRatio = resolution === "4k" ? 2 : 1;
-      const targetWidth = ratio === "16:9" ? 1920 : 1080;
-      const targetHeight = ratio === "9:16" ? 1920 : 1080;
+      await document.fonts.ready;
+      await Promise.allSettled(Array.from(captureRef.current.querySelectorAll("img")).map((image) => image.decode()));
+      const targetWidth = layout.width;
+      const targetHeight = Math.ceil(captureRef.current.getBoundingClientRect().height);
       const dataUrl = await toPng(captureRef.current, {
         quality: 0.98,
         pixelRatio,
         width: targetWidth,
-        height: Math.max(targetHeight, captureRef.current.scrollHeight || targetHeight),
+        height: targetHeight,
         cacheBust: true,
       });
 
-      const filename = `${boardTitle.replace(/[^a-z0-9]/gi, "-").toLowerCase()}-${ratio.replace(":", "x")}-${resolution === "4k" ? "4k" : "1080p"}.png`;
+      const filename = `${boardTitle.replace(/[^a-z0-9]/gi, "-").toLowerCase()}-${ratio.replace(":", "x")}-${resolution === "4k" ? "2x" : "1x"}.png`;
       const link = document.createElement("a");
       link.download = filename;
       link.href = dataUrl;
@@ -83,19 +88,6 @@ export function CreatorExportModal({
     }
   };
 
-  // Dynamic dimensions for hidden high-res capture container (1x = 1080p, 2x = 4K UHD)
-  const getContainerDimensions = () => {
-    switch (ratio) {
-      case "9:16":
-        return "w-[1080px] min-h-[1920px] p-12";
-      case "1:1":
-        return "w-[1080px] min-h-[1080px] p-10";
-      case "16:9":
-      default:
-        return "w-[1920px] min-h-[1080px] p-12";
-    }
-  };
-
   return (
     <div ref={dialogRef} role="dialog" aria-modal="true" aria-label="Export image" tabIndex={-1} className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
       <div className="bg-zinc-900 border border-zinc-800 rounded-2xl max-w-2xl w-full p-5 sm:p-6 shadow-2xl relative space-y-6 my-auto">
@@ -107,13 +99,13 @@ export function CreatorExportModal({
             </div>
             <div>
               <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <span>Multi-Format 4K Exporter</span>
+                <span>Export your tier list</span>
                 <span className="px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 text-[11px] font-semibold">
                   Creator Studio
                 </span>
               </h3>
               <p className="text-xs text-zinc-400">
-                Tailored aspect ratios for YouTube, TikTok, Reels, and Discord.
+                Large, readable items for mobile sharing and social posts.
               </p>
             </div>
           </div>
@@ -144,6 +136,7 @@ export function CreatorExportModal({
           </div>
         )}
 
+        <fieldset disabled={isExporting} className="space-y-6 min-w-0">
         <ExportFormatTabs
           format="image"
           disabled={isExporting}
@@ -153,12 +146,18 @@ export function CreatorExportModal({
         {/* Aspect Ratio Selector */}
         <div className="space-y-2.5">
           <label className="text-xs font-bold text-zinc-300 uppercase tracking-wider block">
-            Select Target Format & Aspect Ratio
+            Choose image layout
           </label>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 gap-3">
+            <button type="button" aria-pressed={ratio === "compact"} onClick={() => setRatio("compact")} className={`p-3.5 rounded-xl border flex flex-col items-center gap-2 text-center cursor-pointer ${ratio === "compact" ? "bg-indigo-600/15 border-indigo-500 text-white" : "bg-zinc-800/60 border-zinc-700 text-zinc-400"}`}>
+              <LayoutGrid className="w-5 h-5 text-indigo-400" />
+              <span className="text-xs font-bold">Mobile-friendly</span>
+              <span className="text-[10px] text-zinc-400">Recommended · Auto height</span>
+            </button>
             {/* 16:9 Landscape */}
             <button
               type="button"
+              aria-pressed={ratio === "16:9"}
               onClick={() => setRatio("16:9")}
               className={`p-3.5 rounded-xl border flex flex-col items-center justify-center gap-2 text-center transition-all cursor-pointer ${
                 ratio === "16:9"
@@ -176,6 +175,7 @@ export function CreatorExportModal({
             {/* 9:16 Vertical Video */}
             <button
               type="button"
+              aria-pressed={ratio === "9:16"}
               onClick={() => setRatio("9:16")}
               className={`p-3.5 rounded-xl border flex flex-col items-center justify-center gap-2 text-center transition-all cursor-pointer ${
                 ratio === "9:16"
@@ -193,6 +193,7 @@ export function CreatorExportModal({
             {/* 1:1 Square */}
             <button
               type="button"
+              aria-pressed={ratio === "1:1"}
               onClick={() => setRatio("1:1")}
               className={`p-3.5 rounded-xl border flex flex-col items-center justify-center gap-2 text-center transition-all cursor-pointer ${
                 ratio === "1:1"
@@ -209,6 +210,8 @@ export function CreatorExportModal({
           </div>
         </div>
 
+        <p className="text-xs leading-relaxed text-zinc-400">{ratio === "compact" ? "Four large items per line. Rows wrap and the image ends after your board, with no extra canvas space." : "Larger items wrap onto new lines. Long boards grow vertically so every item stays visible."}</p>
+
         {/* Toggles & Options */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
           {/* Resolution Toggle */}
@@ -216,7 +219,7 @@ export function CreatorExportModal({
             <div>
               <span className="text-xs font-bold text-zinc-200 block">Image Quality</span>
               <span className="text-[11px] text-zinc-400">
-                {resolution === "4k" ? "Ultra-HD 4K (Crisp)" : "Standard 1080p (Fast)"}
+                {resolution === "4k" ? "High resolution (2×)" : "Standard resolution (1×)"}
               </span>
             </div>
             <div className="flex bg-zinc-900 border border-zinc-700/80 rounded-lg p-0.5 text-xs">
@@ -227,7 +230,7 @@ export function CreatorExportModal({
                   resolution === "2k" ? "bg-zinc-800 text-white" : "text-zinc-400"
                 }`}
               >
-                1080p
+                Standard
               </button>
               <button
                 type="button"
@@ -236,7 +239,7 @@ export function CreatorExportModal({
                   resolution === "4k" ? "bg-indigo-600 text-white" : "text-zinc-400"
                 }`}
               >
-                4K UHD
+                High-res
               </button>
             </div>
           </div>
@@ -316,10 +319,11 @@ export function CreatorExportModal({
               className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white text-xs font-semibold shadow-lg shadow-indigo-600/30 flex items-center gap-2 transition-all cursor-pointer disabled:opacity-50"
             >
               <Download className="w-4 h-4" />
-              <span>{isExporting ? "Rendering PNG..." : `Download ${resolution === "4k" ? "4K" : "1080P"} PNG`}</span>
+              <span>{isExporting ? "Rendering PNG..." : "Download PNG"}</span>
             </button>
           </div>
         </div>
+        </fieldset>
       </div>
 
       {/* Off-Screen High-Resolution Capture Element */}
@@ -329,43 +333,44 @@ export function CreatorExportModal({
       >
         <div
           ref={captureRef}
-          className={`bg-[#09090b] text-[#f4f4f5] flex flex-col justify-between ${getContainerDimensions()}`}
-          style={{ fontFamily: "inherit" }}
+          className="bg-[#09090b] text-[#f4f4f5] flex flex-col"
+          style={{ fontFamily: "inherit", width: layout.width, minHeight: layout.minHeight, padding: layout.padding }}
         >
           {/* Header */}
           {showTitleHeader && (
-            <div className="border-b border-zinc-800 pb-6 mb-8 flex items-center justify-between">
-              <div>
-                <h1 className="text-4xl font-extrabold text-white tracking-tight">
+            <div className="border-b border-zinc-800 pb-6 mb-6 flex items-center justify-between gap-6">
+              <div className="min-w-0 flex-1">
+                <h1 className="text-4xl font-extrabold text-white tracking-tight break-words">
                   {boardTitle}
                 </h1>
                 <p className="text-lg text-zinc-400 mt-1">
                   Ranked by <span className="text-zinc-200 font-semibold">@{authorName}</span>
                 </p>
               </div>
-              <div className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-zinc-900 border border-zinc-800">
+              {showWatermark && <div className="flex shrink-0 items-center gap-2 px-4 py-2 rounded-2xl bg-zinc-900 border border-zinc-800">
                 <Sparkles className="w-5 h-5 text-indigo-400" />
                 <span className="font-bold text-sm text-zinc-200">Tier List Maker</span>
-              </div>
+              </div>}
             </div>
           )}
 
           {/* Tier Rows */}
-          <div className="space-y-4 flex-1">
+          <div className="space-y-4">
             {tiers.map((tier) => (
               <div
                 key={tier.id}
-                className="flex rounded-2xl overflow-hidden bg-zinc-900/90 border border-zinc-800 min-h-[110px]"
+                className="flex rounded-2xl overflow-hidden bg-zinc-900/90 border border-zinc-800"
               >
                 {/* Tier Label Badge */}
                 <div
-                  className={`w-36 bg-gradient-to-br ${tier.color} flex items-center justify-center font-extrabold text-3xl text-white select-none p-4 text-center break-words shadow-inner flex-shrink-0`}
+                  style={{ width: layout.labelWidth }}
+                  className={`bg-gradient-to-br ${tier.color} flex items-center justify-center font-extrabold text-3xl text-white select-none p-4 text-center break-words shadow-inner flex-shrink-0`}
                 >
-                  <span>{tier.label}</span>
+                  <span className="min-w-0 [overflow-wrap:anywhere]">{tier.label}</span>
                 </div>
 
                 {/* Tier Items */}
-                <div className="flex-1 p-3 flex flex-wrap content-start gap-3 min-h-[110px]">
+                <div className="flex-1 min-w-0 flex flex-wrap content-start" style={{ padding: layout.rowPadding, gap: layout.gap, minHeight: layout.itemSize + layout.rowPadding * 2 }}>
                   {tier.items.length === 0 ? (
                     <span className="text-sm text-zinc-600 italic px-4 select-none flex items-center h-full">
                       No items
@@ -374,10 +379,11 @@ export function CreatorExportModal({
                     tier.items.map((item) => (
                       <div
                         key={item.id}
-                        className={`rounded-xl border select-none overflow-hidden ${
+                        style={{ width: layout.itemSize, height: layout.itemSize }}
+                        className={`shrink-0 rounded-xl border select-none overflow-hidden [&>span]:text-xl ${
                           item.imageUrl
-                            ? "w-24 h-24 bg-zinc-950 flex items-center justify-center border-zinc-700/80 shadow-md"
-                            : "px-4 py-3 bg-zinc-800 text-zinc-100 text-sm font-semibold flex items-center border-zinc-700/80 shadow-md"
+                            ? "bg-zinc-950 flex items-center justify-center border-zinc-700/80 shadow-md"
+                            : "px-3 py-3 bg-zinc-800 text-zinc-100 text-xl leading-snug text-center [overflow-wrap:anywhere] font-semibold flex items-center justify-center border-zinc-700/80 shadow-md"
                         }`}
                       >
                         {item.imageUrl ? (
@@ -385,13 +391,8 @@ export function CreatorExportModal({
                             src={item.imageUrl}
                             alt={item.name}
                             className="w-full h-full object-cover"
+                            loading="eager"
                             crossOrigin="anonymous"
-                            onError={(e) => {
-                              e.currentTarget.style.display = "none";
-                              if (e.currentTarget.parentElement) {
-                                e.currentTarget.parentElement.innerText = item.name;
-                              }
-                            }}
                           />
                         ) : (
                           <span>{item.name}</span>
@@ -406,7 +407,7 @@ export function CreatorExportModal({
 
           {/* Footer / Watermark */}
           {showWatermark && (
-            <div className="pt-8 border-t border-zinc-800/80 flex items-center justify-between text-zinc-500 text-sm">
+            <div className="mt-6 pt-6 border-t border-zinc-800/80 flex items-center justify-between text-zinc-500 text-sm">
               <span>Made with Tier List Maker — The Next-Generation UGC Tier List Platform</span>
               <span className="font-bold text-zinc-400">tierlistmaker.app</span>
             </div>

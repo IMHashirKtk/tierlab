@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { connection } from "next/server";
-import { fetchUserProfile } from "@/lib/community";
+import { getPublicProfile } from "@/lib/server/public-content";
 import { canIndexSite } from "@/lib/seo";
 
 interface Props {
@@ -11,9 +11,9 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { username } = await params;
-  const decoded = decodeURIComponent(username || "Creator");
+  const decoded = username || "Creator";
 
-  const profile = await fetchUserProfile(decoded);
+  const profile = await getPublicProfile(decoded);
   const hasPublicContent = profile.templates.length > 0 || profile.tierLists.length > 0;
 
   const title = `@${decoded}'s Tier Lists & Creator Profile`;

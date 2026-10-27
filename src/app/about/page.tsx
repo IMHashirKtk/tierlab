@@ -1,13 +1,9 @@
-import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/page-metadata";
 import Link from "next/link";
 import { InfoPage } from "@/components/InfoPage";
 import { SITE_OPERATOR } from "@/lib/site-info";
 
-export const metadata: Metadata = {
-  title: "About Tier List Maker",
-  description: "Learn about Tier List Maker, operated by HashirK, and how its ranking tools and starter library work.",
-  alternates: { canonical: "/about" },
-};
+export const metadata = pageMetadata("About Tier List Maker", "Learn about Tier List Maker, operated by HashirK, and how its ranking tools and starter library work.", "/about");
 
 export default function AboutPage() {
   return <InfoPage title="About Tier List Maker" intro={`An independent tier list tool operated by ${SITE_OPERATOR}.`}>

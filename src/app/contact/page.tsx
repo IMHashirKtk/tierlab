@@ -1,13 +1,9 @@
-import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/page-metadata";
 import Link from "next/link";
 import { InfoPage } from "@/components/InfoPage";
 import { SITE_OPERATOR, SUPPORT_EMAIL } from "@/lib/site-info";
 
-export const metadata: Metadata = {
-  title: "Contact & Report Content",
-  description: "Contact HashirK for Tier List Maker support, feedback, privacy requests, or reports about published content.",
-  alternates: { canonical: "/contact" },
-};
+export const metadata = pageMetadata("Contact & Report Content", "Contact HashirK for Tier List Maker support, feedback, privacy requests, or reports about published content.", "/contact");
 
 export default function ContactPage() {
   return <InfoPage title="Contact & report content" intro={`Support and content reports are handled by ${SITE_OPERATOR}.`}>

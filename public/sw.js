@@ -3,16 +3,16 @@
  * Provides offline shell caching, asset persistence, and offline fallback.
  */
 
-const CACHE_NAME = "tierlistmaker-pwa-v1";
+const CACHE_NAME = "tierlistmaker-pwa-v2-tier-board";
 
 const PRECACHE_ASSETS = [
   "/",
   "/create",
   "/my-projects",
   "/versus",
-  "/icons/icon-192.png",
-  "/icons/icon-512.png",
-  "/icons/icon.svg",
+  "/icons/icon-192.png?v=tier-board-1",
+  "/icons/icon-512.png?v=tier-board-1",
+  "/icons/icon.svg?v=tier-board-1",
 ];
 
 // 1. Install Event: Cache Core Assets

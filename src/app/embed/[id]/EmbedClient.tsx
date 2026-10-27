@@ -104,9 +104,9 @@ export function EmbedClient({ id }: EmbedClientProps) {
 
   const title = ranking?.title || template?.title || "Community Tier List";
   const authorName = ranking?.authorName || template?.author?.username || "Creator";
-  const templateId = ranking?.templateId || template?.id;
+  const templateId = template?.slug || ranking?.templateSlug || ranking?.templateId || template?.id;
   const remixUrl = templateId
-    ? `https://tierlistmaker.app/template/${templateId}`
+    ? `https://tierlistmaker.app/template/${encodeURIComponent(templateId)}`
     : ranking
     ? `https://tierlistmaker.app/share/${ranking.id}`
     : "https://tierlistmaker.app/create";

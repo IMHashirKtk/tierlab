@@ -19,6 +19,8 @@ export function presentTemplate(template: Template): Template {
   if (!STARTER_TEMPLATE_IDS.has(template.id)) return template;
   return {
     ...template,
+    // Bundled records retain their established public URLs.
+    slug: template.id,
     isStarter: true,
     title: STARTER_GUIDES[template.id]?.title || template.title,
     description: STARTER_GUIDES[template.id]?.description || template.description,

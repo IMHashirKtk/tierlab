@@ -18,7 +18,9 @@ export function LiveFeed() {
     fetchLiveActivity().then((data) => {
       if (!isCancelled) { setRankings(data); setLoading(false); }
     });
-    return () => {
+    
+
+  return () => {
       isCancelled = true;
     };
   }, []);
@@ -35,6 +37,8 @@ export function LiveFeed() {
       setVoteError("Voting is temporarily unavailable. Please try again later.");
     } finally { setVoting(false); }
   };
+
+  if (rankings.length === 0) return null;
 
   return (
     <section id="feed" className="py-14 border-t border-zinc-800/80 bg-zinc-950/40 relative z-10">
@@ -128,7 +132,7 @@ export function LiveFeed() {
                   )}
 
                   <Link
-                    href={rank.templateId !== "custom" ? `/template/${rank.templateId}` : "/create"}
+                    href={rank.templateId !== "custom" ? `/template/${encodeURIComponent(rank.templateSlug || rank.templateId)}` : "/create"}
                     className="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition-all shadow-sm flex items-center gap-1.5"
                   >
                     <Sparkles className="w-3 h-3" />

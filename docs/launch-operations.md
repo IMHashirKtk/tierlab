@@ -25,3 +25,13 @@ Connect `tierlistmaker.app` to the **tierlab-production** Vercel project. Keep *
 The owner must authenticate to Google Search Console. Verify the domain or URL-prefix property using Google's verification instructions, submit `https://tierlistmaker.app/sitemap.xml`, and inspect the homepage, a category and a template. Request indexing only after the live checks pass. Search Console verification and sitemap submission do not guarantee indexing or ranking.
 
 Run a mobile PageSpeed Insights check after the domain is live. A new site may not yet have enough real-user data for Core Web Vitals; lab measurements do not replace that field data. Monitor errors, content reports and Search Console after launch.
+
+## Search Console connection — 20 October 2026
+
+The URL-prefix property `https://tierlistmaker.app/` is verified as `siteOwner` for the operator's connected Google account. This covers the canonical HTTPS apex site; it is not a DNS-verified Domain property for all protocols and subdomains.
+
+Verification uses `public/google5a906ed2a4b800bc.html`, committed in `b659bfd` and deployed to production (`dpl_3asj8HCGHwT9VRwuz4uj7fQfUKiW`). Keep the file in future releases; Google checks it again to retain verification.
+
+`https://tierlistmaker.app/sitemap.xml` was submitted and processed successfully. Search Console shows 35 discovered pages; the sitemap API reports zero errors and zero warnings. Discovery is not confirmation that all 35 pages are indexed.
+
+The URL Inspection API reports the homepage as indexed, with matching Google-selected and declared canonical URLs. Its recorded last crawl was 12 October 2026, before the latest SEO release, so this does not confirm Google has processed the new titles and content. Performance/indexing reports for the newly added property initially show data processing. The connected My GSC tool can now inspect this property and read its reports.

@@ -6,7 +6,8 @@ import { useDialogFocus } from "@/lib/use-dialog-focus";
 import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { X, Upload, Check, Loader2, Sparkles, Plus, Image as ImageIcon, Globe, AlertCircle, RefreshCw, Trash2 } from "lucide-react";
-import { publishTemplate, generateTemplateSlug } from "@/lib/community";
+import { createId } from "@/lib/board";
+import { publishTemplate } from "@/lib/community";
 import { compressBatchImages } from "@/utils/image-compression";
 import { uploadItemsToCloud } from "@/lib/upload";
 import { WebImageSearchModal } from "@/components/WebImageSearchModal";
@@ -98,7 +99,7 @@ export function PublishModal({ isOpen, onClose, draftId = "default" }: PublishMo
   useEffect(() => {
     if (!isOpen || !isHydrated) return;
     if (!createdTemplateId && (title || items.length > 0)) {
-      const stablePendingId = pendingId || generateTemplateSlug(title || "template");
+      const stablePendingId = pendingId || createId("template");
       if (!pendingId) {
         queueMicrotask(() => {
           setPendingId((prev) => prev || stablePendingId);
@@ -187,7 +188,7 @@ export function PublishModal({ isOpen, onClose, draftId = "default" }: PublishMo
     setDescription("");
     setAuthorName("");
     setItems([]);
-    setPendingId(generateTemplateSlug("template"));
+    setPendingId(createId("template"));
     setCreatedTemplateId(null);
     setPublishError(null);
     setIsWebSearchOpen(false);
@@ -217,7 +218,7 @@ export function PublishModal({ isOpen, onClose, draftId = "default" }: PublishMo
     setIsSubmitting(true);
     setPublishError(null);
 
-    const currentPendingId = pendingId || generateTemplateSlug(title || "template");
+    const currentPendingId = pendingId || createId("template");
     if (!pendingId) setPendingId(currentPendingId);
     const expectedGen = discardGenRef.current;
 
@@ -288,7 +289,7 @@ export function PublishModal({ isOpen, onClose, draftId = "default" }: PublishMo
       } catch (cleanupErr: unknown) {
         console.warn("Draft cleanup after publish failed:", cleanupErr);
       }
-      setCreatedTemplateId(created.id);
+      setCreatedTemplateId(created.slug);
     } catch (err: unknown) {
       console.error("Failed to publish template", err);
       const msg = err instanceof Error ? err.message : String(err);
@@ -340,7 +341,7 @@ export function PublishModal({ isOpen, onClose, draftId = "default" }: PublishMo
               <button
                 onClick={() => {
                   onClose();
-                  router.push(`/template/${createdTemplateId}`);
+                  router.push(`/template/${encodeURIComponent(createdTemplateId)}`);
                 }}
                 className="px-5 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/30 cursor-pointer flex items-center gap-1.5 min-h-[32px]"
               >

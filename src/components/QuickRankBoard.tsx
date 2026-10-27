@@ -12,7 +12,6 @@ import {
   Check,
   Zap,
 } from "lucide-react";
-import confetti from "canvas-confetti";
 
 interface QuickItem {
   id: string;
@@ -115,14 +114,14 @@ export function QuickRankBoard() {
 
     if (tierId === "S") {
       try {
-        confetti({
+        void import("canvas-confetti").then(({ default: confetti }) => confetti({
           zIndex: 20,
           disableForReducedMotion: true,
           particleCount: 50,
           spread: 60,
           origin: { y: 0.6 },
           colors: ["#f43f5e", "#fbbf24", "#6366f1"],
-        });
+        })).catch(() => {});
       } catch {}
     }
 
@@ -189,11 +188,11 @@ export function QuickRankBoard() {
             </button>
 
             <Link
-              href="/create"
+              href="/create" prefetch={false}
               className="min-h-[32px] px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white flex items-center gap-1.5 shadow-md shadow-indigo-600/30 transition-all"
             >
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Full Studio</span>
+              <span>Open the editor</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
@@ -289,11 +288,11 @@ export function QuickRankBoard() {
 
             <div className="flex items-center gap-2">
               <Link
-                href="/create"
+                href="/create" prefetch={false}
                 className="min-h-[30px] px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-xs text-indigo-300 hover:text-white transition-colors flex items-center gap-1.5"
               >
                 <Upload className="w-3.5 h-3.5" />
-                <span>Upload Custom Images</span>
+                <span>Create a tier list</span>
               </Link>
             </div>
           </div>
@@ -309,11 +308,11 @@ export function QuickRankBoard() {
               </p>
               <div className="pt-2">
                 <Link
-                  href="/create"
+                  href="/create" prefetch={false}
                   className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-md shadow-indigo-600/30"
                 >
                   <Sparkles className="w-3.5 h-3.5" />
-                  <span>Launch Creator Studio</span>
+                  <span>Open the editor</span>
                 </Link>
               </div>
             </div>

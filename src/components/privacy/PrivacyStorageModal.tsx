@@ -1,5 +1,6 @@
 "use client";
 
+import { AnalyticsPreferencesButton } from "@/components/analytics/AnalyticsConsent";
 import React, { useState, useEffect, useRef } from "react";
 import {
   ShieldCheck,
@@ -431,8 +432,9 @@ export function PrivacyStorageModal({
               <div className="bg-zinc-900/30 border border-zinc-800/60 p-2.5 rounded-lg flex items-start gap-2.5">
                 <ShieldCheck className="w-4 h-4 text-indigo-400 flex-shrink-0 mt-0.5" />
                 <div>
-                  <strong className="text-zinc-200 block text-[11px]">No Tracking Scripts</strong>
-                  <span>Zero creepy surveillance tags, third-party cookies, or sell-offs.</span>
+                  <strong className="text-zinc-200 block text-[11px]">Optional analytics</strong>
+                  <span>Google Analytics loads only if you allow analytics cookies. Local drafts are not sent to Analytics.</span>
+                  <AnalyticsPreferencesButton onOpen={onClose} className="mt-2 block text-indigo-300 underline" />
                 </div>
               </div>
             </div>

@@ -1,7 +1,12 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useRef } from "react";
-import { PrivacyStorageModal } from "@/components/privacy/PrivacyStorageModal";
+import dynamic from "next/dynamic";
+
+const PrivacyStorageModal = dynamic(
+  () => import("@/components/privacy/PrivacyStorageModal").then(module => module.PrivacyStorageModal),
+  { ssr: false }
+);
 
 interface PwaContextType {
   isOnline: boolean;
@@ -184,13 +189,13 @@ export function PwaProvider({ children }: { children: React.ReactNode }) {
       )}
 
       {/* Global Privacy & Device Storage Modal */}
-      <PrivacyStorageModal
+      {isPrivacyModalOpen && <PrivacyStorageModal
         isOpen={isPrivacyModalOpen}
         onClose={closePrivacyModal}
         isInstallable={isInstallable}
         isInstalled={isInstalled}
         onInstall={promptInstall}
-      />
+      />}
     </PwaContext.Provider>
   );
 }

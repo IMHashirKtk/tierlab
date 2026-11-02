@@ -15,7 +15,8 @@ function crawl(base) {
     if (visited.has(route)) continue;
     visited.add(route);
     const html = read(route), urls = templates(html);
-    assert(urls.size <= 100, `${route}: more than 100 template links`);
+    assert((html.match(/<article\b/g) || []).length <= 24, `${route}: more than 24 directory cards`);
+    assert((html.match(/<img\b/g) || []).length <= 100, `${route}: excessive preview images`);
     assert(!html.includes("Loading category hub"), `${route}: directory still hidden behind loading UI`);
     for (const url of urls) result.add(url);
     for (const href of links(html)) if (href.startsWith(`${base}/page/`) && !visited.has(href)) queue.push(href);
@@ -31,6 +32,10 @@ for (const category of categories) {
   console.log(`${category}: ${result.urls.size} templates across ${result.visited} HTML pages`);
 }
 assert.deepEqual([...allCategories].sort(), [...hub.urls].sort(), "Category directories must cover the entire public hub");
-assert(templates(read("/")).size >= 100, "Homepage must server-render its directory page");
+assert.equal((read("/").match(/<article\b/g) || []).length, 12, "Homepage must render twelve featured cards");
+for (const slug of ["valorant-agents", "pokemon-starters", "fast-food-restaurants"]) {
+  assert(templates(read("/")).has(`/template/${slug}`), `Missing featured cohort template ${slug}`);
+  assert(templates(read("/templates")).has(`/template/${slug}`), `Cohort must have a direct link from the indexed hub`);
+}
 assert(links(read("/")).includes("/templates"), "Homepage must link the full hub");
 console.log(`PASS: ${hub.urls.size} templates discoverable without executing JavaScript`);

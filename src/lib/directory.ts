@@ -1,6 +1,6 @@
 import type { Template } from "@/types";
 
-export const DIRECTORY_PAGE_SIZE = 100;
+export const DIRECTORY_PAGE_SIZE = 24;
 export function directoryPath(category: string, page = 1) {
   const base = category === "all" ? "/templates" : `/categories/${category}`;
   return page === 1 ? base : `${base}/page/${page}`;

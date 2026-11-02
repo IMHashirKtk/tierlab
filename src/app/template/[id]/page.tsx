@@ -9,8 +9,10 @@ import { getPublicCatalog } from "@/lib/server/catalog";
 import { templatePath } from "@/lib/template-url";
 import { templateQuality } from "@/lib/indexability";
 import { CATEGORIES } from "@/data/categories";
+import { COHORT_REVIEW } from "@/data/template-cohort";
 import { safeJsonLd, canIndexSite, getSiteUrl } from "@/lib/seo";
 import { TemplateClientLoader } from "./TemplateClientLoader";
+import { TemplateStartLink } from "@/components/TemplateStartLink";
 import { TemplateConsensusSection } from "./TemplateConsensusSection";
 
 export async function generateStaticParams() {
@@ -49,6 +51,7 @@ async function TemplateContent({ id }: { id: string }) {
   const template = await findTemplate(id);
   if (!template) notFound();
   const { editorial, eligible } = templateQuality(template);
+  const scopeReview = COHORT_REVIEW[template.slug] || COHORT_REVIEW[template.id];
   const topic = editorial?.topic || template.title.replace(/ tier list.*$/i, "");
   const catalog = await getPublicCatalog();
   const related = catalog.filter(t => t.id !== template.id && t.category === template.category)
@@ -84,7 +87,11 @@ async function TemplateContent({ id }: { id: string }) {
         <div className="max-w-4xl space-y-4 text-sm sm:text-base leading-relaxed text-zinc-300" data-template-intro data-reviewed={eligible ? "true" : "false"}>
           {(editorial?.intro || [template.description]).filter(Boolean).map(p => <p key={p.slice(0, 60)}>{p}</p>)}
         </div>
-        <Link prefetch={false} href="/create" className="inline-flex text-indigo-300">Open the editor →</Link>
+        {scopeReview && <aside className="max-w-4xl rounded-xl border border-zinc-800 bg-zinc-900/60 p-4 text-sm leading-relaxed text-zinc-300" aria-label="Roster scope">
+          <h2 className="font-semibold text-white mb-2">What this selection covers</h2><p>{scopeReview.note}</p>
+          {scopeReview.source && <a href={scopeReview.source} className="inline-flex mt-2 text-indigo-300 underline">Official roster source · checked 2 November 2026</a>}
+        </aside>}
+        <TemplateStartLink templateId={template.id} className="inline-flex text-indigo-300">Open the editor →</TemplateStartLink>
       </section>
       <Suspense fallback={<div aria-hidden="true" className="min-h-64 bg-zinc-950" />}>
         <TemplateClientLoader templateId={template.id} serverTemplate={template} />
@@ -107,7 +114,7 @@ async function TemplateContent({ id }: { id: string }) {
         <section className="space-y-4" data-related-templates>
           <h2 className="text-2xl font-bold">More {category} templates</h2>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">{related.map(t => <Link key={t.id} href={templatePath(t)} prefetch={false} className="rounded-xl border border-zinc-800 bg-zinc-900 p-4 text-indigo-300">{t.title}</Link>)}</div>
-          <div className="flex flex-wrap gap-5 text-sm text-indigo-300"><Link prefetch={false} href={`/categories/${template.category}`}>Browse {category} templates</Link><Link prefetch={false} href="/create">Create a tier list</Link><Link prefetch={false} href="/contact">Report a template problem</Link></div>
+          <div className="flex flex-wrap gap-5 text-sm text-indigo-300"><Link prefetch={false} href={`/categories/${template.category}`}>Browse {category} templates</Link><TemplateStartLink templateId={template.id}>Create a tier list with this template</TemplateStartLink><Link prefetch={false} href="/contact">Report a template problem</Link></div>
         </section>
       </section>
     </main><Footer />

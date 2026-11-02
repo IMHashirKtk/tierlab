@@ -169,7 +169,7 @@ export function Navbar({ onOpenPublish }: NavbarProps) {
             href="/create"
             className="px-3 sm:px-4 min-h-10 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap text-white bg-indigo-600 hover:bg-indigo-500 transition-colors flex items-center"
           >
-            <span>Open the editor</span>
+            <span>New blank board</span>
           </Link>
 
           <button ref={menuButtonRef} type="button" aria-label={menuOpen ? "Close navigation" : "Open navigation"} aria-expanded={menuOpen} aria-controls="site-navigation" onClick={() => setMenuOpen(!menuOpen)} className="xl:hidden w-10 h-10 flex items-center justify-center rounded-xl border border-zinc-800 text-zinc-200 hover:bg-zinc-800 focus-visible:ring-2 focus-visible:ring-indigo-400">

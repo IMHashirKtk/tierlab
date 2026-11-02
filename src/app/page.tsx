@@ -13,11 +13,16 @@ import { DropFxTeaser } from "@/components/DropFxTeaser";
 import { CategoryExplorer } from "@/components/CategoryExplorer";
 import { SeoGuideSection } from "@/components/SeoGuideSection";
 import { Footer } from "@/components/Footer";
+import { templateQuality } from "@/lib/indexability";
+import { TEMPLATE_COHORT } from "@/data/template-cohort";
 
 export const metadata = { alternates: { canonical: "/" }, robots: { index: canIndexSite() && pageQuality("/").eligible, follow: true } };
 
 export default async function Home() {
   const catalog = await getPublicCatalog();
+  const cohort = TEMPLATE_COHORT;
+  const reviewed = catalog.filter(t => templateQuality(t).eligible);
+  const featured = [...reviewed.filter(t => cohort.includes(t.slug || t.id)), ...reviewed.filter(t => !cohort.includes(t.slug || t.id))].slice(0, 12);
   return (
     <div className="min-h-screen bg-[#09090b] text-[#f4f4f5] relative flex flex-col">
       {/* Ambient Radial Glow */}
@@ -30,7 +35,7 @@ export default async function Home() {
       <main className="flex-1 relative z-10">
         <Hero />
         <QuickRankBoard />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"><TemplateDirectory catalog={catalog} /></div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"><TemplateDirectory catalog={featured} featured /></div>
         <LiveFeed />
         <ConsensusShowcase />
         <DropFxTeaser />

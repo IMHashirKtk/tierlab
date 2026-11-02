@@ -31,7 +31,7 @@ export function Footer() {
           <div>
             <h4 className="text-white font-semibold mb-3">Explore</h4>
             <ul className="space-y-1 text-zinc-500">
-              <li><Link prefetch={false} href="/create" className="hover:text-zinc-300 py-1 inline-flex items-center min-h-[28px]">Open the editor</Link></li>
+              <li><Link prefetch={false} href="/create" className="hover:text-zinc-300 py-1 inline-flex items-center min-h-[28px]">New blank board</Link></li>
               <li><Link prefetch={false} href="/tiermaker-alternative" className="hover:text-zinc-300 py-1 inline-flex items-center min-h-[28px]">TierMaker Alternative</Link></li>
               <li><Link prefetch={false} href="/versus" className="hover:text-zinc-300 py-1 inline-flex items-center min-h-[28px]">Versus Arena</Link></li>
               <li><Link prefetch={false} href="/templates" className="hover:text-zinc-300 py-1 inline-flex items-center min-h-[28px]">Explore Templates</Link></li>

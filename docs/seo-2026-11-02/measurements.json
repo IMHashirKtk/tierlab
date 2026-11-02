@@ -1,0 +1,434 @@
+{
+  "date": "2026-11-02",
+  "deployment": "not performed",
+  "productionBefore": [
+    {
+      "route": "/",
+      "status": 200,
+      "documentBytes": 918495,
+      "bodyTransferredBytes": 92029,
+      "encoding": "gzip",
+      "initialImageElements": 753,
+      "initialElements": 3261
+    },
+    {
+      "route": "/templates",
+      "status": 200,
+      "documentBytes": 898455,
+      "bodyTransferredBytes": 87955,
+      "encoding": "gzip",
+      "initialImageElements": 753,
+      "initialElements": 2952
+    },
+    {
+      "route": "/categories/gaming",
+      "status": 200,
+      "documentBytes": 900574,
+      "bodyTransferredBytes": 87118,
+      "encoding": "gzip",
+      "initialImageElements": 769,
+      "initialElements": 2955
+    }
+  ],
+  "localCandidate": [
+    {
+      "route": "/",
+      "status": 200,
+      "documentBytes": 147788,
+      "bodyTransferredBytes": 23276,
+      "encoding": "gzip",
+      "initialImageElements": 50,
+      "initialElements": 705
+    },
+    {
+      "route": "/templates",
+      "status": 200,
+      "documentBytes": 187866,
+      "bodyTransferredBytes": 24151,
+      "encoding": "gzip",
+      "initialImageElements": 86,
+      "initialElements": 691
+    },
+    {
+      "route": "/categories/gaming",
+      "status": 200,
+      "documentBytes": 184544,
+      "bodyTransferredBytes": 23227,
+      "encoding": "gzip",
+      "initialImageElements": 94,
+      "initialElements": 668
+    }
+  ],
+  "mobileProductionRaw": [
+    {
+      "result": {
+        "type": "object",
+        "value": {
+          "cls": 0,
+          "documentEncodedBytes": 77236,
+          "documentTransferBytes": 77536,
+          "domElements": 3417,
+          "fcpMs": 10408,
+          "imageElements": 753,
+          "lcpMs": 10408,
+          "overflow": false,
+          "ttfbMs": 606.8000000002794,
+          "url": "https://tierlistmaker.app/",
+          "viewport": {
+            "height": 844,
+            "width": 390
+          }
+        }
+      }
+    },
+    {
+      "result": {
+        "type": "object",
+        "value": {
+          "cls": 0,
+          "documentEncodedBytes": 72164,
+          "documentTransferBytes": 72464,
+          "domElements": 3106,
+          "fcpMs": 10848,
+          "imageElements": 753,
+          "lcpMs": 10848,
+          "overflow": false,
+          "ttfbMs": 365.8000000002794,
+          "url": "https://tierlistmaker.app/templates",
+          "viewport": {
+            "height": 844,
+            "width": 390
+          }
+        }
+      }
+    },
+    {
+      "result": {
+        "type": "object",
+        "value": {
+          "cls": 0,
+          "documentEncodedBytes": 70641,
+          "documentTransferBytes": 70941,
+          "domElements": 3112,
+          "fcpMs": 3208,
+          "imageElements": 769,
+          "lcpMs": 3208,
+          "overflow": false,
+          "ttfbMs": 253.79999999981376,
+          "url": "https://tierlistmaker.app/categories/gaming",
+          "viewport": {
+            "height": 844,
+            "width": 390
+          }
+        }
+      }
+    },
+    {
+      "result": {
+        "type": "object",
+        "value": {
+          "cls": 0,
+          "documentEncodedBytes": 77236,
+          "documentTransferBytes": 77536,
+          "domElements": 3411,
+          "fcpMs": 3472,
+          "imageElements": 753,
+          "lcpMs": 3472,
+          "overflow": false,
+          "ttfbMs": 157.80000000074506,
+          "url": "https://tierlistmaker.app/",
+          "viewport": {
+            "height": 844,
+            "width": 390
+          }
+        }
+      }
+    },
+    {
+      "result": {
+        "type": "object",
+        "value": {
+          "cls": 0,
+          "documentEncodedBytes": 72164,
+          "documentTransferBytes": 72464,
+          "domElements": 3102,
+          "fcpMs": 3096,
+          "imageElements": 753,
+          "lcpMs": 3096,
+          "overflow": false,
+          "ttfbMs": 203,
+          "url": "https://tierlistmaker.app/templates",
+          "viewport": {
+            "height": 730,
+            "width": 1536
+          }
+        }
+      }
+    },
+    {
+      "result": {
+        "type": "object",
+        "value": {
+          "cls": 0,
+          "documentEncodedBytes": 898461,
+          "documentTransferBytes": 898761,
+          "domElements": 3102,
+          "fcpMs": 2624,
+          "imageElements": 753,
+          "lcpMs": 2624,
+          "overflow": false,
+          "ttfbMs": 143.8999999994412,
+          "url": "https://tierlistmaker.app/templates",
+          "viewport": {
+            "height": 844,
+            "width": 390
+          }
+        }
+      }
+    }
+  ],
+  "mobileCandidateEarlier": [
+    {
+      "result": {
+        "type": "object",
+        "value": {
+          "cls": 0,
+          "documentEncodedBytes": 23274,
+          "documentTransferBytes": 23574,
+          "domElements": 761,
+          "fcpMs": 10516,
+          "imageElements": 50,
+          "lcpMs": 10516,
+          "overflow": false,
+          "ttfbMs": 55.60000000055879,
+          "url": "http://localhost:3016/",
+          "viewport": {
+            "height": 1055,
+            "width": 488
+          }
+        }
+      }
+    },
+    {
+      "result": {
+        "type": "object",
+        "value": {
+          "cls": 0,
+          "documentEncodedBytes": 147792,
+          "documentTransferBytes": 148092,
+          "domElements": 761,
+          "fcpMs": 3024,
+          "imageElements": 50,
+          "lcpMs": 3024,
+          "overflow": false,
+          "ttfbMs": 55.5,
+          "url": "http://localhost:3016/",
+          "viewport": {
+            "height": 844,
+            "width": 390
+          }
+        }
+      }
+    },
+    {
+      "result": {
+        "type": "object",
+        "value": {
+          "cls": 0,
+          "documentEncodedBytes": 187800,
+          "documentTransferBytes": 188100,
+          "domElements": 747,
+          "fcpMs": 4576,
+          "imageElements": 86,
+          "lcpMs": 4576,
+          "overflow": false,
+          "ttfbMs": 2089.899999999441,
+          "url": "http://localhost:3016/templates",
+          "viewport": {
+            "height": 844,
+            "width": 390
+          }
+        }
+      }
+    },
+    {
+      "result": {
+        "type": "object",
+        "value": {
+          "cls": 0,
+          "documentEncodedBytes": 184502,
+          "documentTransferBytes": 184802,
+          "domElements": 731,
+          "fcpMs": 2676,
+          "imageElements": 94,
+          "lcpMs": 2676,
+          "overflow": false,
+          "ttfbMs": 23.399999999441206,
+          "url": "http://localhost:3016/categories/gaming",
+          "viewport": {
+            "height": 844,
+            "width": 390
+          }
+        }
+      }
+    }
+  ],
+  "mobileCandidateFinal": [
+    {
+      "route": "/",
+      "cls": 0.0028771123502462316,
+      "documentEncodedBytes": 23278,
+      "documentTransferBytes": 23578,
+      "domElements": 761,
+      "fcpMs": 9424,
+      "imageElements": 50,
+      "lcpMs": 9424,
+      "overflow": false,
+      "ttfbMs": 99.3999999994412,
+      "url": "http://localhost:3016/",
+      "viewport": {
+        "height": 844,
+        "width": 390
+      }
+    },
+    {
+      "route": "/templates",
+      "cls": 0,
+      "documentEncodedBytes": 187872,
+      "documentTransferBytes": 188172,
+      "domElements": 747,
+      "fcpMs": 528,
+      "imageElements": 86,
+      "lcpMs": 528,
+      "overflow": false,
+      "ttfbMs": 34.90000000037253,
+      "url": "http://localhost:3016/templates",
+      "viewport": {
+        "height": 844,
+        "width": 390
+      }
+    },
+    {
+      "route": "/categories/gaming",
+      "cls": 0,
+      "documentEncodedBytes": 184552,
+      "documentTransferBytes": 184852,
+      "domElements": 726,
+      "fcpMs": 652,
+      "imageElements": 94,
+      "lcpMs": 652,
+      "overflow": false,
+      "ttfbMs": 172.70000000018626,
+      "url": "http://localhost:3016/categories/gaming",
+      "viewport": {
+        "height": 844,
+        "width": 390
+      }
+    }
+  ],
+  "journey": [
+    {
+      "check": "blank start",
+      "title": "Untitled Tier List",
+      "unranked": 0,
+      "source": "DOM snapshot"
+    },
+    {
+      "check": "Valorant contextual CTA",
+      "title": "Valorant Agents",
+      "unranked": 29,
+      "url": "http://localhost:3016/create?template=v-hnc9"
+    },
+    {
+      "check": "Valorant inline",
+      "title": "Valorant Agents",
+      "unranked": 29
+    },
+    {
+      "check": "pokemon-starters contextual",
+      "title": "Pokemon Starters",
+      "unranked": 27
+    },
+    {
+      "check": "pokemon-starters inline",
+      "title": "Pokemon Starters",
+      "unranked": 27
+    },
+    {
+      "check": "fast-food-restaurants contextual",
+      "title": "Fast Food Restaurants",
+      "unranked": 40
+    },
+    {
+      "check": "fast-food-restaurants inline",
+      "title": "Fast Food Restaurants",
+      "unranked": 40
+    },
+    {
+      "check": "keyboard quick assignment",
+      "result": "AandW moved to S; 39 unranked remain"
+    },
+    {
+      "check": "mobile assignment controls",
+      "result": "Arbys moved to A at 390 CSS px; physical touch drag not emulated"
+    },
+    {
+      "check": "PNG export",
+      "result": "Chrome completed the PNG download",
+      "bytes": 855769,
+      "width": 2160,
+      "height": 2678
+    },
+    {
+      "check": "invalid template",
+      "result": "Recovery links shown; no blank Studio mounted"
+    },
+    {
+      "check": "missing draft",
+      "result": "Error shown and autosave blocked"
+    },
+    {
+      "check": "existing draft recovery and ID precedence",
+      "result": "Original QA title and one item preserved; template query did not overwrite it"
+    }
+  ],
+  "liveRoutes": {
+    "origin": "http://localhost:3016",
+    "counts": {
+      "/templates": {
+        "pages": 11,
+        "templates": 257
+      },
+      "/categories/gaming": {
+        "pages": 5,
+        "templates": 103
+      },
+      "/categories/anime": {
+        "pages": 3,
+        "templates": 67
+      },
+      "/categories/food": {
+        "pages": 1,
+        "templates": 12
+      },
+      "/categories/movies": {
+        "pages": 2,
+        "templates": 40
+      },
+      "/categories/music": {
+        "pages": 1,
+        "templates": 5
+      },
+      "/categories/sports": {
+        "pages": 1,
+        "templates": 12
+      },
+      "/categories/pop-culture": {
+        "pages": 1,
+        "templates": 18
+      }
+    },
+    "cohort": "29/27/40",
+    "unknownCategory": 404
+  }
+}

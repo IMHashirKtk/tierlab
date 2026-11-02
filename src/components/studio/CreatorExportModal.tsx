@@ -15,6 +15,7 @@ interface CreatorExportModalProps {
   authorName?: string;
   tiers: TierRow[];
   onSwitchToVideo: () => void;
+  onExportComplete?: () => void;
 }
 
 export type ExportRatio = "16:9" | "9:16" | "1:1";
@@ -27,6 +28,7 @@ export function CreatorExportModal({
   authorName = "Creator",
   tiers,
   onSwitchToVideo,
+  onExportComplete,
 }: CreatorExportModalProps) {
   const [ratio, setRatio] = useState<ImageExportLayout>("compact");
   const [resolution, setResolution] = useState<ExportResolution>("4k");
@@ -77,6 +79,7 @@ export function CreatorExportModal({
       link.download = filename;
       link.href = dataUrl;
       link.click();
+      onExportComplete?.();
       onClose();
     } catch (err: unknown) {
       console.error("Failed to render export image", err);

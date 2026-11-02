@@ -105,6 +105,7 @@ import {
   countRanked,
 } from "@/lib/board";
 import { getProject, saveProject } from "@/lib/storage";
+import { trackProductEvent } from "@/lib/analytics";
 import { fetchTemplateById } from "@/lib/community";
 import { DropZone, ItemCard } from "@/components/studio/BoardDnd";
 
@@ -170,6 +171,8 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
   const [publishedShareId, setPublishedShareId] = useState<string | undefined>(undefined);
   const [projectCreatedAt, setProjectCreatedAt] = useState<number>(() => Date.now());
   const [isProjectHydrated, setIsProjectHydrated] = useState<boolean>(!initialProjectId);
+  const [projectLoadFailed, setProjectLoadFailed] = useState(false);
+  const readyReported = useRef(false);
   const activeProjectIdRef = useRef<string>(projectId);
 
   useEffect(() => {
@@ -215,6 +218,7 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
       .then((loaded) => {
         if (isCancelled) return;
         if (!loaded) {
+          setProjectLoadFailed(true);
           setIsProjectHydrated(true);
           return;
         }
@@ -241,7 +245,7 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
         setIsProjectHydrated(true);
       })
       .catch(() => {
-        if (!isCancelled) setIsProjectHydrated(true);
+        if (!isCancelled) { setProjectLoadFailed(true); setIsProjectHydrated(true); }
       });
     return () => {
       isCancelled = true;
@@ -284,7 +288,7 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
       isInitialMount.current = false;
       return;
     }
-    if (!isProjectHydrated || activeItem) return;
+    if (!isProjectHydrated || projectLoadFailed || activeItem) return;
 
     const timer = setTimeout(() => {
       setSaveStatus("saving");
@@ -307,7 +311,17 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
     }, 600);
 
     return () => clearTimeout(timer);
-  }, [board, title, projectId, initialTemplate, loadedTemplateId, publishedShareId, projectCreatedAt, activeItem, isProjectHydrated]);
+  }, [board, title, projectId, initialTemplate, loadedTemplateId, publishedShareId, projectCreatedAt, activeItem, isProjectHydrated, projectLoadFailed]);
+
+  useEffect(() => {
+    if (!isProjectHydrated || readyReported.current) return;
+    readyReported.current = true;
+    trackProductEvent("editor_ready", {
+      start_type: initialProjectId ? "project" : initialTemplate ? "template" : "blank",
+      result: projectLoadFailed ? "failure" : "success",
+      ...(projectLoadFailed ? { reason: "project_unavailable" as const } : {}),
+    });
+  }, [isProjectHydrated, projectLoadFailed, initialProjectId, initialTemplate]);
 
   // Push board change to history (for Undo)
   const commitBoardChange = useCallback(
@@ -879,6 +893,13 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
   };
 
   const totalRanked = countRanked(board);
+
+  if (!isProjectHydrated) return <div role="status" className="min-h-64 flex items-center justify-center text-zinc-400">Opening your saved project…</div>;
+  if (projectLoadFailed) return <section role="alert" className="max-w-xl mx-auto px-5 py-20 space-y-4 text-zinc-300">
+    <h1 className="text-2xl font-bold text-white">Saved project could not be opened</h1>
+    <p>Your saved data has not been replaced. Check this browser’s storage or select another project.</p>
+    <Link href="/my-projects" className="text-indigo-300">Return to saved projects</Link>
+  </section>;
 
   return (
     <DndContext
@@ -1537,11 +1558,13 @@ export function Studio({ initialProjectId, initialTemplate }: StudioProps) {
           }
           tiers={board.tiers}
           onSwitchToVideo={() => setExportFormat("video")}
+          onExportComplete={() => trackProductEvent("export_completed", { start_type: initialProjectId ? "project" : initialTemplate ? "template" : "blank", format: "image" })}
         />
 
         {/* Animated Video Export Modal (TikTok / Reels / Shorts) */}
         <VideoExportModal
           onSwitchToImage={() => setExportFormat("image")}
+          onExportComplete={() => trackProductEvent("export_completed", { start_type: initialProjectId ? "project" : initialTemplate ? "template" : "blank", format: "video" })}
           isOpen={exportFormat === "video"}
           onClose={() => setExportFormat(null)}
           boardTitle={title}

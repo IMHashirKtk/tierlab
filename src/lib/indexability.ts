@@ -1,10 +1,13 @@
 import type { Template } from "@/types";
 import { TEMPLATE_EDITORIAL } from "@/data/template-editorial";
 import { isDiscoverableTemplate } from "@/lib/catalog";
+import { COHORT_REVIEW } from "@/data/template-cohort";
 
 export const wordCount = (text: string) => text.trim().split(/\s+/u).filter(Boolean).length;
 export function templateQuality(template: Template) {
-  const editorial = TEMPLATE_EDITORIAL[template.slug] || TEMPLATE_EDITORIAL[template.id];
+  const original = TEMPLATE_EDITORIAL[template.slug] || TEMPLATE_EDITORIAL[template.id];
+  const scopeReview = COHORT_REVIEW[template.slug] || COHORT_REVIEW[template.id];
+  const editorial = original && scopeReview ? { ...original, updated: scopeReview.updated } : original;
   const introWords = wordCount(editorial?.intro.join(" ") || "");
   const words = editorial ? wordCount([...editorial.intro, ...editorial.faqs.flatMap(f => [f.question, f.answer])].join(" ")) : 0;
   const namedRoster = template.items.every(i => i.name.trim() && !/^item\s*#?\d+$/i.test(i.name.trim()));

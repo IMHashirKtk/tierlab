@@ -30,6 +30,7 @@ interface VideoExportModalProps {
   boardTitle: string;
   authorName?: string;
   tiers: TierRow[];
+  onExportComplete?: () => void;
 }
 
 export function VideoExportModal({
@@ -39,6 +40,7 @@ export function VideoExportModal({
   boardTitle,
   authorName = "Creator",
   tiers,
+  onExportComplete,
 }: VideoExportModalProps) {
   const [ratio, setRatio] = useState<"9:16" | "1:1" | "16:9">("9:16");
   const [speed, setSpeed] = useState<"fast" | "normal" | "dramatic">("normal");
@@ -127,6 +129,7 @@ export function VideoExportModal({
     link.download = filename;
     document.body.appendChild(link);
     link.click();
+    onExportComplete?.();
     document.body.removeChild(link);
   };
 
